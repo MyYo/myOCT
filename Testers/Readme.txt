@@ -1,0 +1,1 @@
+This folder contains library testing function to make sure current version is bit exact (or flag where changes are made) with previous version
