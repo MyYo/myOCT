@@ -225,15 +225,19 @@ interferogram = zeros(sizeLambda,sizeX,sizeY, AScanAvgN, BScanAvgN);
 apodization   = zeros(sizeLambda,apodSize,sizeY,BScanAvgN);
 N = sizeLambda;
 for fi=1:length(fileIndex)
+    spectralFilePath = [inputDataFolder '/data/Spectral' num2str(fileIndex(fi)) '.data'];
     if ~isAWS
         %Load Data from File
-        fid = fopen([inputDataFolder '/data/Spectral' num2str(fileIndex(fi)) '.data']);
+        fid = fopen(spectralFilePath);
         temp = fread(fid,inf,'short');
         fclose(fid);
     else
         %Load Data from AWS
-        ds=fileDatastore([inputDataFolder '/data/Spectral' num2str(fileIndex(fi)) '.data'],'ReadFcn',@AWSRead);
+        ds=fileDatastore(spectralFilePath,'ReadFcn',@AWSRead);
         temp=ds.read;
+    end
+    if (isempty(temp))
+        error(['Missing file / file size wrong' spectralFilePath]);
     end
     temp = reshape(temp,[N,interfSize]);
 
