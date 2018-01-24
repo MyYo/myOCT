@@ -27,6 +27,11 @@ function [interferogram, dimensions, apodization] = yOCTLoadInterfFromFile(varar
 %Author: Yonatan W (25 Dec, 2017)
 
 %% Input Checks
+if (iscell(varargin{1}))
+    %the first varible contains a cell with the rest of the varibles, open it
+    varargin = varargin{1};
+end 
+
 inputDataFolder = varargin{1};
 if (inputDataFolder(end) ~='/' && inputDataFolder(end) ~='\')
     inputDataFolder = [inputDataFolder '/'];
@@ -55,7 +60,7 @@ for i=2:2:length(varargin)
             BScanAvgFramesToProcess = varargin{i+1};
             BScanAvgFramesToProcess = BScanAvgFramesToProcess(:);
         otherwise
-            error('Unknown parameter');
+            %error('Unknown parameter');
     end
 end
 
@@ -120,6 +125,10 @@ order = order + 1;
 %Across B Scan Axis (y)
 if ~isfield(xDoc.Image.PixelSpacing,'SpacingY') %Only 1 B Scan
     sizeY = 1;
+    dimensions.y.order = NaN;
+    dimensions.y.values = 0;
+    dimensions.y.units = 'microns';
+    dimensions.y.index = 1;
 else
     sizeY = str2double(xDoc.Image.SizePixel.SizeY.Text);
     sizeYReal=str2double(xDoc.Image.SizeReal.SizeY.Text)*1000;
@@ -138,6 +147,11 @@ else
             dimensions.y.values = dimensions.y.values(YFramesToProcess);
             dimensions.y.index = dimensions.y.index(YFramesToProcess);
             sizeY = length(YFramesToProcess);
+        end
+        
+        if (sizeY==1) %Practically, we don't have a Y dimenson
+            order = order - 1;
+            dimensions.y.order = NaN;
         end
     else
         %Y Dimension is actually BScanAvg
