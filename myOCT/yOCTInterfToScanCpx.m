@@ -7,7 +7,7 @@ function scanCpx = yOCTInterfToScanCpx (varargin)
 %   - interferogram - as loaded by yOCTLoadInterfFromFile. dimensions
 %       should be (lambda,x,...)
 %   - k_n - for each lambda, what is the actual k value. This can be
-%       extracted from dimensions.lambda. from yOCTLoadInterfFromFile
+%       extracted from dimensions.lambda.k_n from yOCTLoadInterfFromFile
 %       outputs
 %   - Optional Parameters
 %       - 'dispersionParameterA',value - linear phase dispersion. 
@@ -25,6 +25,11 @@ function scanCpx = yOCTInterfToScanCpx (varargin)
 %Author: Yonatan W (Dec 27, 2017)
 
 %% Hendle Inputs
+if (iscell(varargin{1}))
+    %the first varible contains a cell with the rest of the varibles, open it
+    varargin = varargin{1};
+end 
+
 interferogram = varargin{1};
 s = size(interferogram);
 k_n = varargin{2};
@@ -34,7 +39,7 @@ N = length(k_n);
 dispersionParameterA = [];
 hannFilterK = [];
 for i=3:2:length(varargin)
-   eval([varargin{i} ' = varargin{i+1};']);
+   eval([varargin{i} ' = varargin{i+1};']); %<-TBD - there should be a safer way
 end
 
 %% Filter bands if required
