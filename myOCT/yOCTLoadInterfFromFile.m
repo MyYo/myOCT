@@ -158,6 +158,10 @@ else
         BScanAvgN = sizeY;
         BScanAvgNOrig = BScanAvgN;
         sizeY = 1;
+        dimensions.y.order = NaN;
+        dimensions.y.values = 0;
+        dimensions.y.units = 'microns';
+        dimensions.y.index = 1;
     end
 end
 
