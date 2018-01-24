@@ -10,7 +10,7 @@ filePath = 's3://delazerdalab1/CodePackage/TestVectors/yOCTInterfToScanCpx_Teste
 
 %% Preform Tests
 disp('Testing yOCTInterfToScanCpx');
-if (strcmp(filePath(1:3),'s3:'))
+if (strcmpi(filePath(1:3),'s3:'))
     %Load Data from AWS
     yOCTSetAWScredentials;
     ds=fileDatastore(filePath,'ReadFcn',@load);
