@@ -1,4 +1,4 @@
-function [interferogram, dimensions, apodization] = yOCTLoadInterfFromFile(varargin)
+function [interferogram, dimensions, apodization,prof] = yOCTLoadInterfFromFile(varargin)
 %USAGE:
 % [interferogram, dimensions, apodization] = 
 %       yOCTLoadInterfFromFile(inputDataFolder,'param1',value1,'param2',value2,...)
@@ -24,6 +24,7 @@ function [interferogram, dimensions, apodization] = yOCTLoadInterfFromFile(varar
 %   - apodization - OCT baseline intensity, without the tissue scatterers.
 %       Dimensions order (lambda,podization #,y,BScanAvg). 
 %       If dimension size is 1 it does not appear at the final matrix
+%   - prof - profiling data - for debug purposes 
 %Author: Yonatan W (25 Dec, 2017)
 
 %% Input Checks
@@ -78,6 +79,7 @@ switch(OCTSystem)
         error('ERROR: Wrong OCTSystem name! (yOCTLoadInterfFromFile)')
 end
 
+tt=tic;
 %Load Chirp
 if ~isAWS
     currentFileFolder = fileparts(mfilename());
@@ -98,6 +100,7 @@ else
     xDoc = ds.read;
     xDoc = xDoc.Ocity;
 end
+prof.headerLoadTimeSec = toc(tt);
 
 %% Determine Dimensions
 order = 1;
@@ -242,8 +245,11 @@ fileIndex = (dimensions.y.index(yI)-1)*BScanAvgNOrig + dimensions.BScanAvg.value
 interferogram = zeros(sizeLambda,sizeX,sizeY, AScanAvgN, BScanAvgN);
 apodization   = zeros(sizeLambda,apodSize,sizeY,BScanAvgN);
 N = sizeLambda;
+prof.numberOfFramesLoaded = length(fileIndex);
+prof.totalFrameLoadTimeSec = 0;
 for fi=1:length(fileIndex)
     spectralFilePath = [inputDataFolder '/data/Spectral' num2str(fileIndex(fi)) '.data'];
+    td=tic;
     if ~isAWS
         %Load Data from File
         fid = fopen(spectralFilePath);
@@ -257,6 +263,7 @@ for fi=1:length(fileIndex)
     if (isempty(temp))
         error(['Missing file / file size wrong' spectralFilePath]);
     end
+    prof.totalFrameLoadTimeSec = prof.totalFrameLoadTimeSec + toc(td);
     temp = reshape(temp,[N,interfSize]);
 
     %Read apodization
