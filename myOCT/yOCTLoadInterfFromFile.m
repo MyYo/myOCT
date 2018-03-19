@@ -85,7 +85,7 @@ if ~isAWS
     currentFileFolder = fileparts(mfilename());
     load([currentFileFolder chirpFileName],'chirp_vect');
 else
-    ds=fileDatastore(['s3://delazerdalab1/CodePackage/' chirpFileName],'ReadFcn',@load);
+    ds=fileDatastore(['s3://delazerdalab2/CodePackage/' chirpFileName],'ReadFcn',@load);
     tmp = ds.read;
     chirp_vect = tmp.chirp_vect;
 end
