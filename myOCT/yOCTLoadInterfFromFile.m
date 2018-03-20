@@ -12,7 +12,9 @@ function [interferogram, dimensions, apodization,prof] = yOCTLoadInterfFromFile(
 % 'OCTSystem'               'Ganymede'  OCT System Name, can be 'Ganymede' or 'Telesto'
 % 'BScanAvgFramesToProcess' all         What B-Scan Average frame indexies to process. Usefull for memory management applications     
 % 'YFramesToProcess'        all         What Y frames to process indexies
-%                                       (applicable only for 3D scans). Usefull for memory management applications
+%                                       (applicable only for 3D scans).
+%                                       Usefull for memory management
+%                                       applications. Index starts at 1
 % 'PeakOnly'                false       when set to true, this function will return 
 %                                       dimensions without computing the interferogram
 %                                       Usage: dimensions = yOCTLoadInterfFromFile(...)
@@ -85,7 +87,7 @@ if ~isAWS
     currentFileFolder = fileparts(mfilename());
     load([currentFileFolder chirpFileName],'chirp_vect');
 else
-    ds=fileDatastore(['s3://delazerdalab2/CodePackage/' chirpFileName],'ReadFcn',@load);
+    ds=fileDatastore(['s3://delazerdalab1/CodePackage/' chirpFileName],'ReadFcn',@load);
     tmp = ds.read;
     chirp_vect = tmp.chirp_vect;
 end
