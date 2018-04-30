@@ -21,7 +21,7 @@ else
 end
 
 tic
-scanCpx2 = yOCTInterfToScanCpx(data.interf,data.dim.lambda.k_n,'dispersionParameterA',data.dispersionParameterA);
+scanCpx2 = yOCTInterfToScanCpx(data.interf,data.dim,'dispersionParameterA',data.dispersionParameterA);
 runtime2 = toc;
 
 %% Check results

@@ -2,23 +2,23 @@ function scanCpx = yOCTInterfToScanCpx (varargin)
 %This function takes the interferogram loaded from yOCTLoadInterfFromFile
 %and converts it to a complex scanCpx datastructure
 %USAGE:
-%   scanCpx = yOCTInterfToBScanCpx (interferogram,k_n [,param1,value1,...])
+%   Option #1
+%       scanCpx = yOCTInterfToBScanCpx (interferogram,dimensions [,param1,value1,...])
+%   Option #2
+%       scanCpx = yOCTInterfToBScanCpx (interferogram,k_n [,param1,value1,...])
 %INPUTS
 %   - interferogram - as loaded by yOCTLoadInterfFromFile. dimensions
 %       should be (lambda,x,...)
-%   - k_n - for each lambda, what is the actual k value. This can be
+%   - dimensions - Dimensions structure as loaded by yOCTLoadInterfFromFile.
+%   - k_n - if dimensions structure not available, use this option (dimensions is better):
+%       for each lambda, what is the actual k value. This can be
 %       extracted from dimensions.lambda.k_n from yOCTLoadInterfFromFile
 %       outputs
 %   - Optional Parameters
 %       - 'dispersionParameterA',value - linear phase dispersion. 
 %           if set to 0 cancels. Default value is water imesed sample value
-%       - 'hannFilterK',[start end] - filter out some bands. 
-%   - bandI - Optional Support for Hann filter of interferogram prior to extracting
-%       of OCT signal (default []). bandI = [start end]. Where start, end are the
-%       index of wavelength to start, and end. Since wavelength is not
-%       exact conversion to wavelength is only estimated.
-%       See yOCTnmtoBandI for information about how to convert from nm to
-%       bandI. TBD
+%       - 'band',[start end] - Use a Hann filter to filter out part of the
+%          spectrum. Units are [nm] 
 %OUTPUT
 %   BScanCpx - where lambda dimension is replaced by z
 %
@@ -32,14 +32,33 @@ end
 
 interferogram = varargin{1};
 s = size(interferogram);
-k_n = varargin{2};
+if isstruct(varargin{2})
+    dimensions = varargin{2};
+    k_n = dimensions.lambda.k_n;
+else
+    k_n = varargin{2};
+end
 N = length(k_n);
 
 %Optional Parameters
 dispersionParameterA = [];
-hannFilterK = [];
+band = [];
 for i=3:2:length(varargin)
    eval([varargin{i} ' = varargin{i+1};']); %<-TBD - there should be a safer way
+end
+
+filter = zeros(size(k_n));
+filter = filter(:);
+if ~isempty(band)
+    %Band filter to select sub band
+    bandStartI = find(dimensions.lambda.values >= band(1),1,'first');
+    bandEndI = find(dimensions.lambda.values <= band(2),1,'last');
+    i = bandStartI:bandEndI;
+    filter(i) = hann(length(i));
+    filter = filter * (length(filter)/sum(filter)); %Normalization
+else
+    %No band filter
+    filter = filter+1;
 end
 
 %% Filter bands if required
@@ -77,8 +96,9 @@ if ~exist('a2','var') || isempty(dispersionParameterA)
     dispersionParameterA=0.0058; %Air-water parameter
 end
 dispersionComp = exp(1i*(dispersionParameterA*k_n(:)'.^2/N))';
-%dispersionComp = repmat(dispersionComp,[1 size(interf,2)]);
 dispersionComp = repmat(dispersionComp,[1 size(BlockII,1)]);
+
+filter = repmat(filter,[1 size(BlockII,1)]);
 
 %Make grid for DFT
 m = 0:N-1;
@@ -90,7 +110,7 @@ DFTM = exp(2*pi*1i.*M.*K/N);
 %BScanCpx = TempFFTM*(interf.*Phase); 
 scanCpx = zeros(size(DFTM,1),size(interf,2));
 for i=1:size(BlockII,2)
-    scanCpx(:,BlockII(:,i)) = DFTM*(interf(:,BlockII(:,i)).*dispersionComp); 
+    scanCpx(:,BlockII(:,i)) = DFTM*(interf(:,BlockII(:,i)).*dispersionComp.*filter); 
 end
 
 %% Reshape back
