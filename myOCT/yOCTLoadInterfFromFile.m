@@ -71,9 +71,8 @@ end
 switch(OCTSystem)
     case 'Ganymede'
         chirpFileName = 'Chirp_Ganymede.mat';
-        lambdaMin = 800;  %nm
-        lambdaMax = 1000; %nm
         filt = @(chirp_vect)(ones(size(length(chirp_vect))));
+        lambda = @(chrip_vect)(chrip_vect*0.10448+824.16); %Nominal lambda values run from 824.16 nm to 1038.03
     case 'Telesto'
         chirpFileName ='Chirp_Telesto.mat';
         filt = @(chirp_vect)(hann(length(chirp_vect)));
@@ -110,11 +109,11 @@ order = 1;
 %Lambda Size
 sizeLambda = length(chirp_vect);
 dimensions.lambda.order  = order;
-dimensions.lambda.values = ...
-    interp1([0,max(chirp_vect)],[lambdaMin,lambdaMax],flipud(chirp_vect));
+dimensions.lambda.values = lambda(chirp_vect);
 dimensions.lambda.values = dimensions.lambda.values(:)';
 dimensions.lambda.units = 'nm';
 dimensions.lambda.k_n = flipud(chirp_vect);
+dimensions.lambda.k_n = dimensions.lambda.k_n(:)';
 order = order + 1;
 
 %Along B Scan Axis (x)
@@ -124,7 +123,8 @@ dimensions.x.order = order;
 dimensions.x.values = linspace(0,1,sizeX).*sizeXReal;
 dimensions.x.values = dimensions.x.values(:)';
 dimensions.x.units = 'microns';
-dimensions.x.index = (1:sizeX)';
+dimensions.x.index = (1:sizeX);
+dimensions.x.index = dimensions.x.index(:)';
 order = order + 1;
 
 %Across B Scan Axis (y)
@@ -145,12 +145,14 @@ else
         dimensions.y.values = dimensions.y.values(:)';
         dimensions.y.units = 'microns';
         dimensions.y.index = 1:sizeY;
+        dimensions.y.index = dimensions.y.index(:)';
         order = order + 1;
         
         if exist('YFramesToProcess','var')
             %Process only subset of Y frames
             dimensions.y.values = dimensions.y.values(YFramesToProcess);
             dimensions.y.index = dimensions.y.index(YFramesToProcess);
+            dimensions.y.index = dimensions.y.index(:)';
             sizeY = length(YFramesToProcess);
         end
         
