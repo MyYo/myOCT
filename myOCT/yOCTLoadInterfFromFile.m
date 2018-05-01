@@ -81,7 +81,7 @@ switch(OCTSystem)
 end
 
 tt=tic;
-%Load Chirp
+%% Load Chirp
 if ~isAWS
     currentFileFolder = fileparts(mfilename());
     load([currentFileFolder chirpFileName],'chirp_vect');
@@ -112,7 +112,7 @@ dimensions.lambda.order  = order;
 dimensions.lambda.values = lambda(chirp_vect);
 dimensions.lambda.values = dimensions.lambda.values(:)';
 dimensions.lambda.units = 'nm';
-dimensions.lambda.k_n = flipud(chirp_vect);
+dimensions.lambda.k_n = chirp_vect;
 dimensions.lambda.k_n = dimensions.lambda.k_n(:)';
 order = order + 1;
 
@@ -261,7 +261,7 @@ for fi=1:length(fileIndex)
         fclose(fid);
     else
         %Load Data from AWS
-        ds=fileDatastore(spectralFilePath,'ReadFcn',@AWSRead);
+        ds=fileDatastore(spectralFilePath,'ReadFcn',@(a)(AWSRead(a,'short')));
         temp=ds.read;
     end
     if (isempty(temp))
@@ -271,11 +271,11 @@ for fi=1:length(fileIndex)
     temp = reshape(temp,[N,interfSize]);
 
     %Read apodization
-    apodization(:,:,fi) = flipud(temp(:,1:apodSize));
+    apodization(:,:,fi) = temp(:,1:apodSize);
     apod = mean(apodization(:,:,fi),2);    
     
     %Read interferogram
-    interf = flipud(temp(:,apodSize+1:end)); 
+    interf = temp(:,apodSize+1:end); 
     
     %Correct for apodization
     interf = interf - repmat(apod,1,size(interf,2)); %Subtract baseline intensity
@@ -306,7 +306,7 @@ end
 interferogram = squeeze(interferogram);
 apodization = squeeze(apodization);
 
-function temp = AWSRead(fileName)
+function temp = AWSRead(fileName, dataType) %dataType can be 'short','float32'
 fid = fopen(fileName);
-temp = fread(fid,inf,'short');
+temp = fread(fid,inf,dataType);
 fclose(fid);

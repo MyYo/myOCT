@@ -14,7 +14,8 @@ switch(testI)
         runtime2 = toc;
 
         scanCpx = yOCTInterfToScanCpx(interf2,dimensions2);
-        imagesc(log(mean(abs(scanCpx),3)));
+        im = log(mean(abs(scanCpx),3));
+        imagesc(im);
         title(sprintf('2D BScan Average Image, time: %.0f [sec]',runtime2));
     case 2
         %% Preform Test - 3D BScan Average
