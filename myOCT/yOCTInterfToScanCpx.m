@@ -47,6 +47,7 @@ for i=3:2:length(varargin)
    eval([varargin{i} ' = varargin{i+1};']); %<-TBD - there should be a safer way
 end
 
+%% Filter bands if required
 filter = zeros(size(k_n));
 filter = filter(:);
 if ~isempty(band)
@@ -60,8 +61,6 @@ else
     %No band filter
     filter = filter+1;
 end
-
-%% Filter bands if required
 
 %% Compute parallelization structure to use
 %Try to optimize for how many interferogram to compute in one 'shot'. The
