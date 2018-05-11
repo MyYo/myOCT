@@ -10,7 +10,8 @@ function varargout = yOCTLoadScan(varargin)
 % Parameter                 Default     Information & Values
 % 'nYPerIteration'          10          Number of Y scans to load per
 %                                       iteration. Try to set such that
-%                                       nYPerIteration*scanAvg = 100 scans
+%                                       nYPerIteration*scanAvg = 100 scans.
+%                                       For parallel usage. Leave default
 % 'showStats'               False       Prints execution stats
 %
 %OUTPUTS:

@@ -19,7 +19,7 @@ function [interferogram, dimensions, apodization,prof] = yOCTLoadInterfFromFile(
 %                                       dimensions without computing the interferogram
 %                                       Usage: dimensions = yOCTLoadInterfFromFile(...)
 % OUTPUTS:
-%   - interferogram - interferogram data. 
+%   - interferogram - interferogram data, apodization corrected. 
 %       Dimensions order (lambda,x,y,AScanAvg,BScanAvg). 
 %       If dimension size is 1 it does not appear at the final matrix
 %   - dimensions  - interferogram dimensions structure, containing dimension order and values. 
@@ -72,16 +72,18 @@ switch(OCTSystem)
     case 'Ganymede'
         chirpFileName = 'Chirp_Ganymede.mat';
         filt = @(chirp_vect)(ones(size(length(chirp_vect))));
-        lambda = @(chrip_vect)(chrip_vect*0.10448+824.16); %Nominal lambda values run from 824.16 nm to 1038.03
+        lambda = @(chrip_vect)(chrip_vect*0.10448+824.16); %Nominal lambda values run from 824.16 nm to 1038.03 nm
     case 'Telesto'
         chirpFileName ='Chirp_Telesto.mat';
         filt = @(chirp_vect)(hann(length(chirp_vect)));
+        lambda = @(chrip_vect)(chrip_vect*0.16344+1200.56); %Nominal lambda values run from 1200.56 nm to 1367.75 nm
+
     otherwise
         error('ERROR: Wrong OCTSystem name! (yOCTLoadInterfFromFile)')
 end
 
 tt=tic;
-%% Load Chirp
+%% Load Chirp & Header Information
 if ~isAWS
     currentFileFolder = fileparts(mfilename());
     load([currentFileFolder chirpFileName],'chirp_vect');
