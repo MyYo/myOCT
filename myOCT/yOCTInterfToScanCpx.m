@@ -34,11 +34,13 @@ interferogram = varargin{1};
 s = size(interferogram);
 if isstruct(varargin{2})
     dimensions = varargin{2};
-    k_n = dimensions.lambda.k_n;
+    lambda = dimensions.lambda.values;
+    kn = (lambda-min(lambda))/(max(lambda)-min(lambda)).*(length(lambda)-1);
+    %kn = dimensions.lambda.k_n; %Legacy support
 else
-    k_n = varargin{2};
+    kn = varargin{2};
 end
-N = length(k_n);
+N = length(kn);
 
 %Optional Parameters
 dispersionParameterA = [];
@@ -48,7 +50,7 @@ for i=3:2:length(varargin)
 end
 
 %% Filter bands if required
-filter = zeros(size(k_n));
+filter = zeros(size(kn));
 filter = filter(:);
 if ~isempty(band)
     %Band filter to select sub band
@@ -91,17 +93,17 @@ interf = reshape(interferogram,s(1),[]);
 %recomended to go back to fft
 
 % Dispersion
-if ~exist('a2','var') || isempty(dispersionParameterA)
+if ~exist('dispersionParameterA','var') || isempty(dispersionParameterA)
     dispersionParameterA=0.0058; %Air-water parameter
 end
-dispersionComp = exp(1i*(dispersionParameterA*k_n(:)'.^2/N))';
+dispersionComp = exp(1i*(dispersionParameterA*kn(:)'.^2/N))';
 dispersionComp = repmat(dispersionComp,[1 size(BlockII,1)]);
 
 filter = repmat(filter,[1 size(BlockII,1)]);
 
 %Make grid for DFT
 m = 0:N-1;
-[K, M] = meshgrid(k_n,m(1:end/2));
+[K, M] = meshgrid(kn,m(1:end/2));
 %DFT Matrix
 DFTM = exp(2*pi*1i.*M.*K/N);
 
