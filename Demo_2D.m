@@ -1,9 +1,11 @@
 %Run this demo to load and process 2D OCT Images
 
 %% Iputs
+%Ganymede
 %filePath = 's3://delazerdalab2/CodePackage/TestVectors/Ganymede2D_BScanAvg/';
 %OCTSystem = 'Ganymede';
 
+%Wasatch
 filePath = 's3://delazerdalab2/CodePackage/TestVectors/Wasatch2D_BScanAvg/';
 OCTSystem = 'Wasatch';
 

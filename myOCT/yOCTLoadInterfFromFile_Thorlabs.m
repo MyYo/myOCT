@@ -175,7 +175,7 @@ if (BScanAvgN > 1)
     dimensions.BScanAvg.values = 1:BScanAvgN;
     dimensions.BScanAvg.values = dimensions.BScanAvg.values(:)';
     dimensions.BScanAvg.units = '#';
-    %order = order + 1;
+    order = order + 1;
     
     if exist('BScanAvgFramesToProcess','var')
         %Process only subset of Y frames
@@ -220,7 +220,11 @@ BScanAvgI = BScanAvgI(:)';
 
 %fileIndex is organized such as beam scans B scan avg, then moves to the
 %next y position
-fileIndex = (dimensions.y.index(yI)-1)*BScanAvgNOrig + dimensions.BScanAvg.values(BScanAvgI)-1;
+if (isfield(dimensions,'BScanAvg'))
+    fileIndex = (dimensions.y.index(yI)-1)*BScanAvgNOrig + dimensions.BScanAvg.values(BScanAvgI)-1;
+else
+    fileIndex = (dimensions.y.index(yI)-1);
+end
 
 %% Loop over all frames and extract data
 %Define output structure
