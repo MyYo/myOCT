@@ -1,9 +1,10 @@
 function [interferogram, dimensions, apodization,prof] = yOCTLoadInterfFromFile(varargin)
+%%This function loads an interferogram data from file and preforms initial
+%interferogram preprocessing
+%
 %USAGE:
 % [interferogram, dimensions, apodization] = 
 %       yOCTLoadInterfFromFile(inputDataFolder,'param1',value1,'param2',value2,...)
-%This function loads an interferogram data from file and preforms initial
-%interferogram preprocessing
 %
 % INPUTS:
 %   - inputDataFolder - OCT data folder / AWS data folder

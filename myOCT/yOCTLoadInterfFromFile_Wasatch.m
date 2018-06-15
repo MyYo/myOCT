@@ -103,6 +103,8 @@ cl3=-7.04714E-11;
 pixel = 1:(sizeLambda);
 lambda = cl0+cl1*pixel+cl2*pixel.^2+cl3*pixel.^3;
 
+prof.headerLoadTimeSec = toc(tt);
+
 %% Determine Dimensions
 order = 1;
 

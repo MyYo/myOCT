@@ -1,4 +1,4 @@
-%Run this demo to load and process 2D OCT Images
+%Run this demo to load and process 3D OCT Images
 
 %% Iputs
 
@@ -6,11 +6,13 @@
 %filePath = 's3://delazerdalab2/CodePackage/TestVectors/Ganymede3D_BScanAvg/';
 %OCTSystem = 'Ganymede';
 %YFramesToProcess = 1:10:500;
+%dispersionParameterA = 0.0058; %Use this dispersion Parameter for air-water interface
 
 %Wasatch
 filePath = 's3://delazerdalab2/CodePackage/TestVectors/Wasatch3D/';
 OCTSystem = 'Wasatch';
 YFramesToProcess = 1:2;
+dispersionParameterA = 2.271e-02; %Use this dispersion Parameter for air-water interface
 
 
 %% Process
@@ -24,7 +26,7 @@ tic;
 
 %Generate BScans
 scanCpx = yOCTInterfToScanCpx(interf,dimensions ...
-    ,'dispersionParameterA', 0.0058 ...Use this dispersion Parameter for air-water interface
+    ,'dispersionParameterA', dispersionParameterA ...
     );
 
 %Average along BScanAvg dimension
