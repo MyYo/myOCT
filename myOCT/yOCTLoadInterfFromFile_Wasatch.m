@@ -52,7 +52,7 @@ tt=tic;
 
 %% Header Information
 %Determine if this is a 2D or 3D Volume
-
+is2D = [];
 try
     %Quarry how many files are there tif (Tif files represent a 2D Mode
     ds=fileDatastore([inputDataFolder 'raw_0*.tif'],'ReadFcn',@(a)DSInfo_Tif(a));
@@ -71,6 +71,7 @@ try
     DSRead = @(a)DSRead_Tif(a);
     rawFilePath = @(i)(sprintf('%sraw_%05d.tif',inputDataFolder,i));
     
+    is2D = true;
 catch
     %No Tif Files exist, this is a 3D Mode
     
@@ -90,6 +91,8 @@ catch
     %Set reader functions
     DSRead = @(a)DSRead_Bin(a);
     rawFilePath = @(i)(sprintf('%s%05d_raw_us_%d_%d_%d.bin',inputDataFolder,i,sizeLambda,sizeX,BScanAvgN));    
+    
+    is2D = false;
 end
 
 %% Compute Chirp
@@ -184,6 +187,10 @@ if (isfield(dimensions,'BScanAvg'))
     fileIndex = (dimensions.y.index(yI)-1)*BScanAvgNOrig + dimensions.BScanAvg.values(BScanAvgI)-1;
 else
     fileIndex = (dimensions.y.index(yI)-1);
+end
+
+if (is2D)
+    fileIndex = fileIndex+1; %In 2D file index starts with 1, in 3D, starts with 0
 end
 
 %% Loop over all frames and extract data
