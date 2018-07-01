@@ -3,18 +3,11 @@ function scanCpx = yOCTInterfToScanCpx (varargin)
 %and converts it to a complex scanCpx datastructure
 %
 %USAGE:
-%   Option #1
 %       scanCpx = yOCTInterfToBScanCpx (interferogram,dimensions [,param1,value1,...])
-%   Option #2
-%       scanCpx = yOCTInterfToBScanCpx (interferogram,k_n [,param1,value1,...])
 %INPUTS
 %   - interferogram - as loaded by yOCTLoadInterfFromFile. dimensions
 %       should be (lambda,x,...)
 %   - dimensions - Dimensions structure as loaded by yOCTLoadInterfFromFile.
-%   - k_n - if dimensions structure not available, use this option (dimensions is better):
-%       for each lambda, what is the actual k value. This can be
-%       extracted from dimensions.lambda.k_n from yOCTLoadInterfFromFile
-%       outputs
 %   - Optional Parameters
 %       - 'dispersionParameterA',value - linear phase dispersion. 
 %           if set to 0 cancels. Default value is water imesed sample value
@@ -32,16 +25,7 @@ if (iscell(varargin{1}))
 end 
 
 interferogram = varargin{1};
-s = size(interferogram);
-if isstruct(varargin{2})
-    dimensions = varargin{2};
-    lambda = dimensions.lambda.values;
-    kn = (lambda-min(lambda))/(max(lambda)-min(lambda)).*(length(lambda)-1);
-    %kn = dimensions.lambda.k_n; %Legacy support
-else
-    kn = varargin{2};
-end
-N = length(kn);
+dimensions = varargin{2};
 
 %Optional Parameters
 dispersionParameterA = [];
@@ -49,6 +33,20 @@ band = [];
 for i=3:2:length(varargin)
    eval([varargin{i} ' = varargin{i+1};']); %<-TBD - there should be a safer way
 end
+
+%% Check if interferogram is equispaced. If not, equispace it before processing
+lambda = dimensions.lambda.values;
+kn = (lambda-min(lambda))/(max(lambda)-min(lambda)).*(length(lambda)-1);
+
+if (abs((max(diff(kn)) - min(diff(kn)))/max(kn)) > 1e-10)
+    %Not equispaced, equispacing needed
+    [interferogram,dimensions] = yOCTEquispaceInterf(interferogram,dimensions);
+    
+    lambda = dimensions.lambda.values;
+    kn = (lambda-min(lambda))/(max(lambda)-min(lambda)).*(length(lambda)-1);
+end
+N = length(kn);
+s = size(interferogram);
 
 %% Filter bands if required
 filter = zeros(size(kn));
@@ -65,22 +63,6 @@ else
     filter = filter+1;
 end
 
-%% Compute parallelization structure to use
-%Try to optimize for how many interferogram to compute in one 'shot'. The
-%more we compute, the more memory we require and the process becomes slower
-nAScans = prod(s(2:end)); %Number of A scans to compute
-nRecommendedAScansPerBlock = 10e3; %From experience what is the maximum number of A-Scans per block
-
-nBlocksOptimal = nAScans/nRecommendedAScansPerBlock;
-
-%Number of blocks will be the the closests to the optimum
-dv = cumprod(factor(nAScans)); %Some of the divisabls of nAScans
-NBlocks = dv(find(abs(dv-nBlocksOptimal)==min(abs(dv-nBlocksOptimal)),1,'first'));
-if false
-    NBlocks = 1; %Ignore calculation
-end  
-BlockII = reshape(1:nAScans,[],NBlocks);
-
 %% Reshape interferogram for easy parallelization
 interf = reshape(interferogram,s(1),[]);
 
@@ -89,44 +71,13 @@ if ~exist('dispersionParameterA','var') || isempty(dispersionParameterA)
     dispersionParameterA=0.0058; %Air-water parameter
 end
 dispersionComp = exp(1i*(dispersionParameterA*kn(:)'.^2/N))';
-dispersionComp = repmat(dispersionComp,[1 size(BlockII,1)]);
+dispersionComp = repmat(dispersionComp,[1 size(interf,2)]);
 
-filter = repmat(filter,[1 size(BlockII,1)]);
+filter = repmat(filter,[1 size(interf,2)]);
 
-%% Generate Cpx
-if (abs((max(diff(kn)) - min(diff(kn)))/max(kn)) > 1e-10)
-    %Non equispaced kn. Processing required
+%% Generate Cpx 
+ft = ifft((interf.*dispersionComp.*filter));
+scanCpx = ft(1:(size(interf,1)/2),:);
 
-    %Notice that k_n is non unifrom therefore we should use non uniform fourier
-    %transform. We shall use Non Uniform DFT. In theory NU-FFT should work faster as described
-    %here:
-    %https://statweb.stanford.edu/~candes/math262/Lectures/Lecture11.pdf
-    %However runtime comparison did show advantage for matrix multiplication
-    %over interpolation (longest) and fft. If in the future k_n is uniform, it is
-    %recomended to go back to fft
-
-    %Make grid for DFT
-    m = 0:N-1;
-    [K, M] = meshgrid(kn,m(1:end/2));
-    %DFT Matrix
-    DFTM = exp(2*pi*1i.*M.*K/N);
-
-    %DFT in blocks
-    %BScanCpx = TempFFTM*(interf.*Phase); 
-    scanCpx = zeros(size(DFTM,1),size(interf,2));
-    for i=1:size(BlockII,2)
-        scanCpx(:,BlockII(:,i)) = DFTM*(interf(:,BlockII(:,i)).*dispersionComp.*filter) ...
-            ./size(interf,1) ... This factor is to insure compatability with Matlab FFT function. Such that DFT equals FFT
-            ; 
-    end
-else
-    %Equispaced FFT, we can just use FFT in blocks
-    scanCpx = zeros(length(kn)/2,size(interf,2));
-    for i=1:size(BlockII,2)
-        ft = ifft((interf(:,BlockII(:,i)).*dispersionComp.*filter));
-        ft = ft(1:(size(interf,1)/2),:);
-        scanCpx(:,BlockII(:,i)) = ft;
-    end 
-end
 %% Reshape back
 scanCpx = reshape(scanCpx,[size(scanCpx,1) s(2:end)]);
