@@ -68,7 +68,12 @@ interf = reshape(interferogram,s(1),[]);
 
 %% Dispersion & Filter
 if ~exist('dispersionParameterA','var') || isempty(dispersionParameterA)
-    dispersionParameterA=0.0058; %Air-water parameter
+    disp('Please Enter dispersionParameterA, recomendations:')
+    disp('Thorlabs Ganymede: +5.800e-03');
+    disp('Thorlabs Telesto:  -7.814e-04');
+    disp('Wasatch Ganymede:  +2.271e-02');
+    disp('You can also try running Demo_DispersionCorrection, to figure out the best Value for you');
+    return;
 end
 dispersionComp = exp(1i*(dispersionParameterA*kn(:)'.^2/N))';
 dispersionComp = repmat(dispersionComp,[1 size(interf,2)]);
