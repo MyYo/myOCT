@@ -71,7 +71,7 @@ title('Max Projection');
 
 %Present one of the B-Scans
 figure(2);
-imagesc(log(squeeze(scanAbs(:,:,round(end/2)))));
+imagesc(log(squeeze(outputMat(:,:,round(end/2)))));
 title('Middle B-Scan');
 xlabel('x direction');
 ylabel('z direction');
