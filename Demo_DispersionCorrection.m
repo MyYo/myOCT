@@ -44,7 +44,7 @@ colormap gray;
 hold on;
 plot(ROIx([1 end end 1 1]),ROIz([1 1 end end 1]));
 hold off;
-title('ROI');
+title('ROI, Make sure an interface is visible in the ROI');
 
 %% Loop Over Dispersion Parameters
 figure(2);
