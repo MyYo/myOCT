@@ -17,8 +17,8 @@ function [interferogram, dimensions, apodization,prof] = yOCTLoadInterfFromFile(
 % 'YFramesToProcess'        all         What Y frames to process indexies (applicable only for 3D scans).
 %                                       Usefull in cases where scan size is too big to be stored in memory, thus only part of the scan is loaded 
 %                                       Index starts at 1.
-% 'PeakOnly'                false       when set to true, this function will return 
-%                                       dimensions without computing the interferogram
+% 'PeakOnly'                false       when set to true, this function will only read file header without reading all dataa
+%                                       and return data dimensions without computing the interferogram
 %                                       Usage: dimensions = yOCTLoadInterfFromFile(...)
 % OUTPUTS:
 %   - interferogram - interferogram data, apodization corrected. 
