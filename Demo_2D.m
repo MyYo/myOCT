@@ -13,9 +13,7 @@ OCTSystem = 'Wasatch';
 tic;
 
 %Load Intef From file
-[interf,dimensions] = yOCTLoadInterfFromFile(filePath,'OCTSystem',OCTSystem ...
-    ,'BScanAvgFramesToProcess', 1:2 ... To save time, load first few BScans. Comment out this line to load all BScans
-    );
+[interf,dimensions] = yOCTLoadInterfFromFile(filePath,'OCTSystem',OCTSystem);
 
 %Generate BScans
 scanCpx = yOCTInterfToScanCpx(interf,dimensions ...
