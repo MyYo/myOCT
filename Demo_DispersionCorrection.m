@@ -12,7 +12,10 @@ close all;
 %Wasatch
 filePath = 's3://delazerdalab2/CodePackage/TestVectors/Wasatch2D_BScanAvg/';
 OCTSystem = 'Wasatch';
-ROIx = 300 + (-5:5); ROIz = 50:150; %Where should we look for a sharp edge?
+
+%Where should we look for a sharp edge?
+ROIx = 300 + (-5:5); %[pixels]
+ROIz = 50:150; %[pixels]
 
 %% Pre-Process
 %Load Intef From file
