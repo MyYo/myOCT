@@ -214,7 +214,7 @@ end
 try
     ds=fileDatastore([inputDataFolder 'raw_bg_00001.tif'],'ReadFcn',@(a)(DSRead(a)));
     apodization = double(ds.read)';
-    apodization = mean(apodization,2);
+    apodization = mean(apodization);
 catch
     %No Apodization file, then apodization is the mean of all datasets
     apodization = squeeze(mean(mean(interferogram,3),2));
