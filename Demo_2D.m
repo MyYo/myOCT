@@ -4,10 +4,12 @@
 %Ganymede
 %filePath = 's3://delazerdalab2/CodePackage/TestVectors/Ganymede2D_BScanAvg/';
 %OCTSystem = 'Ganymede';
+%dispersionParameterA = 0.0058; %Use this dispersion Parameter for air-water interface
 
 %Wasatch
 filePath = 's3://delazerdalab2/CodePackage/TestVectors/Wasatch2D_BScanAvg/';
 OCTSystem = 'Wasatch';
+dispersionParameterA = 2.271e-02; %Use this dispersion Parameter for air-water interface
 
 %% Process
 tic;
@@ -17,7 +19,7 @@ tic;
 
 %Generate BScans
 scanCpx = yOCTInterfToScanCpx(interf,dimensions ...
-    ,'dispersionParameterA', 0.0058 ...Use this dispersion Parameter for air-water interface
+    ,'dispersionParameterA', dispersionParameterA ...Use this dispersion Parameter for air-water interface
     );
 
 toc;
