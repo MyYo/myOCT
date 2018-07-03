@@ -36,21 +36,93 @@ if (iscell(varargin{1}))
     varargin = varargin{1};
 end 
 
+inputDataFolder = varargin{1};
+
 %Optional Parameters
 OCTSystem = 'Ganymede';
+peakOnly = false;
 for i=2:2:length(varargin)
     switch(lower(varargin{i}))
         case 'octsystem'
             OCTSystem = varargin{i+1};
+        case 'dimensions'
+            dimensions = varargin{i+1};
+        case 'yframestoprocess'
+            YFramesToProcess = varargin{i+1};
+            YFramesToProcess = YFramesToProcess(:);
+        case 'bscanavgframestoprocess'
+            BScanAvgFramesToProcess = varargin{i+1};
+            BScanAvgFramesToProcess = BScanAvgFramesToProcess(:);
+        case 'peakonly'
+            peakOnly = varargin{i+1};
     end
 end
 
-%% System Specific Configuration
+%% Load Header file, get dimensions
+tt = tic;
+if ~exist('dimensions','var')
+    %Load header information
+    switch(OCTSystem)
+        case {'Ganymede','Telesto'}
+            dimensions = yOCTLoadInterfFromFile_ThorlabsHeader(inputDataFolder,OCTSystem);
+        case {'Wasatch'}
+            dimensions = yOCTLoadInterfFromFile_ThorlabsHeader(inputDataFolder);
+        otherwise
+            error('ERROR: Wrong OCTSystem name! (yOCTLoadInterfFromFile)')
+    end
+else
+    %Header information given by user
+end
+
+%Correct dimensions according to what user asks to process
+if exist('YFramesToProcess','var')
+    %Process only subset of Y frames
+    dimensions.y.values = dimensions.y.values(YFramesToProcess);
+    dimensions.y.index = dimensions.y.index(YFramesToProcess);
+    dimensions.y.index = dimensions.y.index(:)';
+    
+    if (length(YFramesToProcess)==1) %Practically, we don't have a Y dimenson
+        dimensions.y.order = NaN;
+        if isfield(dimensions,'AScanAvg')
+            dimensions.AScanAvg.order = dimensions.AScanAvg.order - 1;
+        end
+        if isfield(dimensions,'BScanAvg')
+            dimensions.BScanAvg.order = dimensions.BScanAvg.order - 1;
+        end
+    end
+end
+if exist('BScanAvgFramesToProcess','var')
+    %Process only subset of BScanAvgFramesToProcess frames
+    dimensions.BScanAvg.index = dimensions.BScanAvg.index(BScanAvgFramesToProcess);
+    dimensions.BScanAvg.index = dimensions.BScanAvg.index(:)';
+end
+
+headerLoadTimeSec = toc(tt);
+ 
+if (peakOnly == true)
+    %We are done!
+    interferogram = dimensions;
+    apodization = dimensions;
+    prof.headerLoadTimeSec = headerLoadTimeSec;
+    return;
+end
+
+%% Load Data - System Specific Configuration
 switch(OCTSystem)
     case {'Ganymede','Telesto'}
-        [interferogram, dimensions, apodization,prof] = yOCTLoadInterfFromFile_Thorlabs(varargin);
+        [interferogram, apodization, prof] = yOCTLoadInterfFromFile_ThorlabsData([varargin {'dimensions'} {dimensions}]);
     case {'Wasatch'}
-        [interferogram, dimensions, apodization,prof] = yOCTLoadInterfFromFile_Wasatch(varargin);
-    otherwise
-        error('ERROR: Wrong OCTSystem name! (yOCTLoadInterfFromFile)')
+        [interferogram, apodization, prof] = yOCTLoadInterfFromFile_Wasatch([varargin {'dimensions'} {dimensions}]);
 end
+
+%% Correct For Apodization
+[~, sizeX, sizeY, AScanAvgN, BScanAvgN] = yOCTLoadInterfFromFile_DataSizing(dimensions);   
+apod = mean(apodization,2); %Mean across x axis
+s = size(apod);
+
+interferogram = interferogram - repmat(apod,[1 sizeX sizeY/s(3) AScanAvgN BScanAvgN/s(5)]);
+
+%% Finish
+interferogram = squeeze(interferogram);
+apodization = squeeze(apodization);
+prof.headerLoadTimeSec = headerLoadTimeSec;
