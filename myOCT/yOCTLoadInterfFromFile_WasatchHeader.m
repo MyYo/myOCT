@@ -107,7 +107,7 @@ if (BScanAvgN>1)
     dimensions.BScanAvg.order = order;
     dimensions.BScanAvg.index = 1:BScanAvgN;
     dimensions.BScanAvg.index = dimensions.BScanAvg.index(:)';
-    dimensions.BScanAvg.indexMax = BScanAvg;
+    dimensions.BScanAvg.indexMax = BScanAvgN;
     
     order = order + 1;
 end

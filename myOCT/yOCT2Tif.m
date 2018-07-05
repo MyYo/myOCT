@@ -12,7 +12,7 @@ end
 
 d = sprintf('min:%.5g,max:%.5g',c(1),c(2));
 for yi=1:size(scanAbs,3)
-    color = uint8( (squeeze(scanAbs(:,:,yi))-c(1))/c(2)*255);
+    color = uint8( (squeeze(scanAbs(:,:,yi))-c(1))/(c(2)-c(1))*255);
     color(color>255) = 255;
     color(color<0) = 0;
     if (yi==1)

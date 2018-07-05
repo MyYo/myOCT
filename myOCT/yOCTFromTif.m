@@ -20,5 +20,5 @@ if isempty(c) || length(c)~=2
 end
 
 for yi=1:size(scanAbs,3)
-    scanAbs(:,:,yi) = double(imread(filpath,'index',yi))*c(2)/255+c(1); %Rescale to the original values
+    scanAbs(:,:,yi) = double(imread(filpath,'index',yi))*(c(2)-c(1))/255+c(1); %Rescale to the original values
 end

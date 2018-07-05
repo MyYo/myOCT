@@ -52,7 +52,7 @@ BScanAvgI = BScanAvgI(:)';
 %fileIndex is organized such as beam scans B scan avg, then moves to the
 %next y position
 if (isfield(dimensions,'BScanAvg'))
-    fileIndex = (dimensions.y.index(yI)-1)*dimensions.BScanAvg.indexMax + dimensions.BScanAvg.values(BScanAvgI)-1;
+    fileIndex = (dimensions.y.index(yI)-1)*dimensions.BScanAvg.indexMax + dimensions.BScanAvg.index(BScanAvgI)-1;
 else
     fileIndex = (dimensions.y.index(yI)-1);
 end
@@ -107,3 +107,12 @@ f = fopen(fileName);
 in = fread(f,'*uint16');
 fclose(f);
 temp = reshape(in,out.sizeLambda,out.sizeX);
+
+function out = DSInfo_Bin(fileName)
+%Process file name
+[~, fn, ~] = fileparts(fileName);
+temp = sscanf(fn,'%05d_raw_us_%d_%d_%d');
+out.sizeX = temp(3); %Number of A scans in a B Scan
+out.sizeLambda = temp(2); %Number of pixels in an A-scan
+out.scanNumber = temp(1);
+out.bScanAvgFrameNumber = temp(4);

@@ -6,7 +6,6 @@
 filePath = 's3://delazerdalab2/CodePackage/TestVectors/Wasatch3D/';
 OCTSystem = 'Wasatch';
 
-
 %Dispersion Parameter A
 %dispersionParameterA = 0.0058; Ganymede
 %dispersionParameterA = -7.814e-04; %Telesto

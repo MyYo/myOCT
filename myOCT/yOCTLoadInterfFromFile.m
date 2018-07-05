@@ -66,7 +66,7 @@ if ~exist('dimensions','var')
         case {'Ganymede','Telesto'}
             dimensions = yOCTLoadInterfFromFile_ThorlabsHeader(inputDataFolder,OCTSystem);
         case {'Wasatch'}
-            dimensions = yOCTLoadInterfFromFile_ThorlabsHeader(inputDataFolder);
+            dimensions = yOCTLoadInterfFromFile_WasatchHeader(inputDataFolder);
         otherwise
             error('ERROR: Wrong OCTSystem name! (yOCTLoadInterfFromFile)')
     end
@@ -112,13 +112,14 @@ switch(OCTSystem)
     case {'Ganymede','Telesto'}
         [interferogram, apodization, prof] = yOCTLoadInterfFromFile_ThorlabsData([varargin {'dimensions'} {dimensions}]);
     case {'Wasatch'}
-        [interferogram, apodization, prof] = yOCTLoadInterfFromFile_Wasatch([varargin {'dimensions'} {dimensions}]);
+        [interferogram, apodization, prof] = yOCTLoadInterfFromFile_WasatchData([varargin {'dimensions'} {dimensions}]);
 end
 
 %% Correct For Apodization
 [~, sizeX, sizeY, AScanAvgN, BScanAvgN] = yOCTLoadInterfFromFile_DataSizing(dimensions);   
 apod = mean(apodization,2); %Mean across x axis
 s = size(apod);
+s = [s 1 1 1 1 1]; %Pad with ones
 
 interferogram = interferogram - repmat(apod,[1 sizeX sizeY/s(3) AScanAvgN BScanAvgN/s(5)]);
 

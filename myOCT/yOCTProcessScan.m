@@ -202,6 +202,9 @@ function out = meanAbs(scan, scanAbs, dim)
     if(isfield(dim,'AScanAvg'))
         dim2Avg(end+1) = dim.AScanAvg.order; 
     end
+    if isempty(dim2Avg)
+        dim2Avg = 100;
+    end
 
     %Compute mean
     m = scanAbs;
@@ -219,6 +222,9 @@ function out = speckleVariance(scan, scanAbs, dim)
     end
     if(isfield(dim,'AScanAvg'))
         dim2Avg(end+1) = dim.AScanAvg.order; 
+    end
+    if isempty(dim2Avg)
+        dim2Avg = 100;
     end
 
     %Compute Speckle Variance
