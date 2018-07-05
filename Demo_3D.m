@@ -24,6 +24,12 @@ tic;
     'showStats',true);
 toc;
 
+%% Save To File
+tic;
+yOCT2Tif(log(meanAbs),'tmp.tif');
+meanAbs2 = yOCTFromTif('tmp.tif');
+toc;
+
 %% Visualization - example
 %Preform max projection along z
 figure(1);
