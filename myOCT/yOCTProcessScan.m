@@ -1,23 +1,33 @@
-function varargout = yOCTLoadScan(varargin)
-%This function will utilize parallel computing to load OCT file and preprocess
+function varargout = yOCTProcessScan(varargin)
+%This function will utilize parallel computing to load OCT dataset and
+%process using processFunc
 %USAGE:
-%    [scanAbs, scanSpeckleVar] = yOCTLoadScan(inputDataFolder [,parameter1,...]);
+%    [out1, out2, ..., dimensions] = yOCTLoadScan(inputDataFolder, processFunc [,parameter1,...]);
 %INPUTS:
 %   - inputDataFolder - OCT file / folder in local computer or at s3://
+%   - processFunc - what function to run on each slide, options are:
+%       * 'meanAbs' - to return mean BScan / AScan avg 
+%       * 'speckleVariance' - to return STD of BScan / AScan Avg
+%       * function handle implementing interface: @(scan,scanAbs,dim)(func(scan,scanAbs,dim)) Where
+%           + scan is a vloume 
+%           + scanAbs - is abs(scan) - provided for faster calculation
+%           + dim is the dimensions structure
+%           function should return a matrix the same size as scan.
+%       * combination of the above by specifing a cell array. Example:
+%           {'meanAbs','speckleVariance',@myfun}
 %   - parameter1,... - parameters to be passed to yOCTLoadInterfFromFile
 %       and yOCTInterfToScanCpx or any of the parameters below
 % LIST OF OPTIONAL PARAMETERS AND VALUES
 % Parameter                 Default     Information & Values
-% 'nYPerIteration'          10          Number of Y scans to load per
+% 'nYPerIteration'          1           Number of Y scans to load per
 %                                       iteration. Try to set such that
 %                                       nYPerIteration*scanAvg = 100 scans.
 %                                       For parallel usage. Leave default
 % 'showStats'               False       Prints execution stats
 %
 %OUTPUTS:
-%   - scanAbs - mean abs scan value (z,x,y) - linear
-%   - scanSpeckleVar - speckle variance (z,x,y) 
-%Author: Yonatan W (21 Jan, 2018)
+%   - out1, out2... same as processFunc dimensions: (z,x,y)
+%   - dimensions - dimensions structure 
 
 %% Input Checks
 if (iscell(varargin{1}))
@@ -26,10 +36,11 @@ if (iscell(varargin{1}))
 end 
 
 inputDataFolder = varargin{1}; 
-nYPerIteration = 10;
+processFunc = varargin{2}; 
+nYPerIteration = 1;
 showStats = false;
 parameters = {};
-for i=2:2:length(varargin)
+for i=3:2:length(varargin)
     switch(lower(varargin{i}))
         case 'nyperiteration'
             nYPerIteration = varargin{i+1};
@@ -41,19 +52,17 @@ for i=2:2:length(varargin)
     end
 end
 
-switch(nargout)
-    case 1
-        isComputeScanVar = false;
-    case 2
-        isComputeScanVar = true;
+if ~iscell(processFunc)
+    processFunc = {processFunc};
 end
 
 %% Gather Data
 p = gcp;
 dimensions = yOCTLoadInterfFromFile([{inputDataFolder}, parameters {'PeakOnly'},{true}]);
+[~, ~, sizeY, AScanAvgN, BScanAvgN] = yOCTLoadInterfFromFile_DataSizing(dimensions);
 
 %% Create Grid
-if (isnan(dimensions.y.order))
+if (sizeY == 1)
     %2D
     ys = 1; %Only the first image
     nYPerIteration = 1; %One scan per iteration, as we don't have additional ones
@@ -61,11 +70,30 @@ else
     %3D
     ys = dimensions.y.index;
 end
-sizeY = length(ys);
+nScanAvg = AScanAvgN*BScanAvgN;
 
 nIterations = (sizeY/nYPerIteration); %Make sure this number is integer
 if (nIterations ~= round(nIterations))
     error('Please set nYPerIteration to be a multiplicative of sizeY');
+end
+
+%% Generate Output Structure & Execution Functions
+func = cell(size(processFunc));
+datOut = ...
+        zeros(length(dimensions.lambda.values)/2,length(dimensions.x.values),nYPerIteration,length(func),nIterations,'single'); %z,x,y,iteration, function
+for i=1:length(processFunc)  
+    if(ischar(processFunc{i}))
+        switch(processFunc{i})
+            case 'meanAbs'
+                func{i} = @meanAbs;
+            case 'speckleVariance'
+                func{i} = @speckleVariance;
+            otherwise
+                error('Function Unknown');
+        end
+    else
+        func{i} = processFunc{i};
+    end
 end
 
 %% Initialize profiling data
@@ -76,63 +104,53 @@ tt = tic;
 ticBytes(p);
 
 %% Loop over all files
-scanAbs = single(zeros(length(dimensions.lambda.values)/2,length(dimensions.x.values),nYPerIteration,nIterations));
-if (isComputeScanVar)
-    scanVar = scanAbs;
+iis = zeros(nIterations,nYPerIteration);
+for i=1:nIterations
+    iis(i,:) = ys((i-1)*nYPerIteration + (1:nYPerIteration));
 end
+tmpSize = [size(datOut,1) size(datOut,2) size(datOut,3) length(func)];
+starI = round(linspace(1,nIterations,10));
+fprintf('Processing, Wait for %d Stars ... [ ',length(starI));
+myT = tic;
 parfor i = 1:nIterations
 %for i = 1:nIterations
     tw = tic;
     
-    ii = ys((i-1)*nYPerIteration + (1:nYPerIteration));
+    ii = iis(i,:);
     
     %Load interf from file
-    [interf,dim,~,prof] = yOCTLoadInterfFromFile([{inputDataFolder} parameters {'YFramesToProcess'} {ii}]);
+    [interf,dim,~,prof] = yOCTLoadInterfFromFile([{inputDataFolder} parameters {'YFramesToProcess'} {ii} {'dimensions'} {dimensions}]);
     
     %Convert to scan
-    scanCpx = yOCTInterfToScanCpx([{interf},{dim.lambda.k_n},parameters]);
+    scanCpx = yOCTInterfToScanCpx([{interf},{dim},parameters]);
+    scanAbs = abs(scanCpx);
     
-    %Which dimensions should the mean be computed for
-    dim2Avg = [];
-    if(isfield(dim,'BScanAvg'))
-        dim2Avg(end+1) = dim.BScanAvg.order; 
+    %Process data
+    tmp = zeros(tmpSize);
+    for j=1:length(func)
+        tmp(:,:,:,j) = single(func{j}(scanCpx,scanAbs,dim));
     end
-    if(isfield(dim,'AScanAvg'))
-        dim2Avg(end+1) = dim.AScanAvg.order; 
-    end
-    
-    %Compute mean
-    scanCpx = abs(scanCpx);
-    m = scanCpx;
-    s = [];
-    for j=1:length(dim2Avg)
-        if (isComputeScanVar && j==(length(dim2Avg)-1))
-            %Speckle Variance on the last averaging dimension
-            s = std(m,[],dim2Avg(j));
-        end
-        
-        m = mean(m,dim2Avg(j));
-    end
-        
-    %Save data
-    scanAbs(:,:,:,i) = single(m);
-    if (isComputeScanVar)   
-        scanVar(:,:,:,i) = single(s);
-    end
+    datOut(:,:,:,:,i) = tmp;
     
     %Profiling
     ld = prof.totalFrameLoadTimeSec + prof.headerLoadTimeSec;
     profData_dataLoadFrameTime(i) = prof.totalFrameLoadTimeSec;
     profData_dataLoadHeaderTime(i) = prof.headerLoadTimeSec;
     profData_processingTime(i)   = toc(tw)-ld;
+    
+    if (any(starI==i))
+        fprintf('* ');
+        pause(0.01);
+    end
 end
+fprintf('] Done! (Took %.1fmin)\n',toc(myT)/60);
 
-scanAbs = reshape(scanAbs,[size(scanAbs,1) size(scanAbs,2) sizeY]); %Reshape matrix to a form which is independent of parallelization
-varargout{1} = scanAbs;
-if (isComputeScanVar)   
-   scanVar = reshape(scanVar,[size(scanVar,1) size(scanVar,2) sizeY]); %Reshape matrix to a form which is independent of parallelization
-   varargout{2} = scanVar;
+%% Reshape and output
+varargout = cell(length(func)+1,1);
+for j=1:length(func)
+    varargout{j} = reshape(datOut(:,:,:,j,:),[size(datOut,1) size(datOut,2) sizeY]); %Reshape matrix to a form which is independent of parallelization
 end
+varargout{end}=dimensions;
 
 %Profiling
 profData_totalRunTime = toc(tt);
@@ -147,14 +165,6 @@ meanIterationTime = meanIterationLoadDataFrameTime + meanIterationProcessingTime
 totalRunTime = profData_totalRunTime;
 totalWorkTime = nIterations/NumWorkers*meanIterationTime;%Time spent in sequential work (assuming work load of all workers is equal)
 totalOverheadTime = totalRunTime - totalWorkTime;
-
-nScanAvg = 1; %How many frames were averaged per location (B Scan Avg or A Scan Avg)
-if (isfield(dimensions,'AScanAvg'))
-    nScanAvg = nScanAvg*length(dimensions.AScanAvg.values);
-end
-if (isfield(dimensions,'BScanAvg'))
-    nScanAvg = nScanAvg*length(dimensions.BScanAvg.values);
-end
 
 if showStats
     %General Data
@@ -179,4 +189,38 @@ if showStats
     fprintf('\t\tOverhead equivalent baud rate: %.2f[MBytes/sec]\n',...
        (sum(profData_totalBytesTransfer)/1024/1024)/totalOverheadTime);
     fprintf('\tTotal\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t%.1f\n',totalRunTime);
+end
+
+end
+%% Some Default Functions
+function out = meanAbs(scan, scanAbs, dim)
+    %Which dimensions should the mean be computed for
+    dim2Avg = [];
+    if(isfield(dim,'BScanAvg'))
+        dim2Avg(end+1) = dim.BScanAvg.order; 
+    end
+    if(isfield(dim,'AScanAvg'))
+        dim2Avg(end+1) = dim.AScanAvg.order; 
+    end
+
+    %Compute mean
+    m = scanAbs;
+    for j=1:length(dim2Avg)
+        m = mean(m,dim2Avg(j));
+    end
+    out = m;
+end
+    
+function out = speckleVariance(scan, scanAbs, dim)
+    %Which dimensions should the mean be computed for
+    dim2Avg = [];
+    if(isfield(dim,'BScanAvg'))
+        dim2Avg(end+1) = dim.BScanAvg.order; 
+    end
+    if(isfield(dim,'AScanAvg'))
+        dim2Avg(end+1) = dim.AScanAvg.order; 
+    end
+
+    %Compute Speckle Variance
+    out = std(scanAbs,[],dim2Avg(1));    
 end
