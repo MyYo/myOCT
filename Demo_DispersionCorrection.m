@@ -2,7 +2,7 @@ function Demo_DispersionCorrection
 %Run this demo to find dispersionParameter. It will also demonstrate how to
 %interpolate interferogram data for faster excecution of yOCTInterfToScanCpx
 
-%close all;
+close all;
 
 %% Inputs
 %Ganymede
@@ -11,11 +11,8 @@ function Demo_DispersionCorrection
 
 %Wasatch
 filePath = 's3://delazerdalab2/CodePackage/TestVectors/Wasatch2D_BScanAvg/';
+filePath = '\\171.65.17.174\MATLAB_Share\Itamar\2018_06_13_14-59-16\';
 OCTSystem = 'Wasatch';
-
-%Where should we look for a sharp edge?
-ROIx = 300 + (-5:5); %[pixels]
-ROIz = 50:150; %[pixels]
 
 %% What values of dispersion parameter a should we try
 a = 10.^(linspace(-8,2,30));
@@ -39,12 +36,22 @@ scanCpxe = yOCTInterfToScanCpx( interfe ,dimensionse ...
 scanCpxAbs = mean(mean(abs(scanCpxe),3),4);
 
 figure(1);
+
+%Ask user to mark an interface
 imagesc(log(scanCpxAbs));
 colormap gray;
+title(sprintf('Please Mark What Area a Air-Tissue Interface Should Be'));
+rct = getrect;
+ROIx = round(rct(1)+rct(3)/2+(-5:5));
+ROIz = round(rct(2)+(0:rct(4)));
+
+subplot(2,1,1);
+imagesc(log(scanCpxAbs));
 hold on;
 plot(ROIx([1 end end 1 1]),ROIz([1 1 end end 1]));
 hold off;
-title('ROI, Make sure an interface is visible in the ROI');
+legend('ROI');
+title(sprintf('Before Dispersion, A=%.4e',a(round(end/2))));
 
 %% Loop Over Dispersion Parameters
 figure(2);
@@ -95,6 +102,21 @@ for iteration = 1:4
 
 end
 fprintf('Best A Parameter: %.3e\n',aBest);
+
+%% Plot an "After" Image
+%Compute B-Scan
+scanCpxe = yOCTInterfToScanCpx( interfe ,dimensionse ...
+    ,'dispersionParameterA', aBest );
+scanCpxAbs = mean(mean(abs(scanCpxe),3),4);
+
+figure(1);
+subplot(2,1,2);
+imagesc(log(scanCpxAbs));
+hold on;
+plot(ROIx([1 end end 1 1]),ROIz([1 1 end end 1]));
+hold off;
+legend('ROI');
+title(sprintf('After Dispersion, A=%.4e',aBest));
 
 function myplot(iteration,ROIz,a,scanCpxAbs,val)
 subplot(2,2,iteration);
