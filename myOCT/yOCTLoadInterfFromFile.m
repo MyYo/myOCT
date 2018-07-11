@@ -58,6 +58,12 @@ for i=2:2:length(varargin)
     end
 end
 
+%% Fix input data folder if required
+inputDataFolder = varargin{1};
+if (inputDataFolder(end) ~='/' && inputDataFolder(end) ~='\')
+    inputDataFolder = [inputDataFolder '/'];
+end
+
 %% Load Header file, get dimensions
 tt = tic;
 if ~exist('dimensions','var')

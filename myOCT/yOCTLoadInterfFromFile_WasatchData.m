@@ -16,9 +16,6 @@ if (iscell(varargin{1}))
 end 
 
 inputDataFolder = varargin{1};
-if (inputDataFolder(end) ~='/' && inputDataFolder(end) ~='\')
-    inputDataFolder = [inputDataFolder '/'];
-end
 if (strcmpi(inputDataFolder(1:3),'s3:'))
     %Load Data from AWS
     yOCTSetAWScredentials;
