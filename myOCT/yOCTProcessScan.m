@@ -66,9 +66,11 @@ if (sizeY == 1)
     %2D
     ys = 1; %Only the first image
     nYPerIteration = 1; %One scan per iteration, as we don't have additional ones
+    is3DMode = false;
 else
     %3D
     ys = dimensions.y.index;
+    is3DMode = true;
 end
 nScanAvg = AScanAvgN*BScanAvgN;
 
@@ -80,7 +82,8 @@ end
 %% Generate Output Structure & Execution Functions
 func = cell(size(processFunc));
 datOut = ...
-        zeros(length(dimensions.lambda.values)/2,length(dimensions.x.values),nYPerIteration,length(func),nIterations,'single'); %z,x,y,iteration, function
+    zeros(length(dimensions.lambda.values)/2,length(dimensions.x.values),nYPerIteration,length(func),nIterations,'single'); %z,x,y,iteration, function
+
 for i=1:length(processFunc)  
     if(ischar(processFunc{i}))
         switch(processFunc{i})

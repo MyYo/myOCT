@@ -4,12 +4,11 @@
 %% Iputs
 %Wasatch
 filePath = 's3://delazerdalab2/CodePackage/TestVectors/Wasatch3D/';
+filePath = '\\171.65.17.174\MATLAB_Share\Itamar\2018_06_13_14-59-16\';
 OCTSystem = 'Wasatch';
 
-%Dispersion Parameter A
-%dispersionParameterA = 0.0058; Ganymede
-%dispersionParameterA = -7.814e-04; %Telesto
-dispersionParameterA = 2.271e-02; %Wasatch
+%Dispersion Parameter A [nm^2/rad], Quadratic Term
+dispersionParameterA = 100;
 
 yFramesPerBatch = 1; %How many Y frames to load in a single batch, optimzie this parameter to save computational time
 
@@ -20,6 +19,7 @@ tic;
     'OCTSystem', OCTSystem, ...
     'dispersionParameterA', dispersionParameterA, ...
     'nYPerIteration', yFramesPerBatch, ...
+    'YFramesToProcess',1,...
     'showStats',true);
 toc;
 

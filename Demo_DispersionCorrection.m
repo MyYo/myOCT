@@ -9,13 +9,20 @@ close all;
 %filePath = 's3://delazerdalab2/CodePackage/TestVectors/Ganymede2D_BScanAvg/';
 %OCTSystem = 'Ganymede';
 
+%Telesto
+filePath = '\\171.65.17.174\Telesto\Peng\2018\20180622\3D\IT1450_0009_ModeSpeckle';
+OCTSystem = 'Telesto';
+
 %Wasatch
-filePath = 's3://delazerdalab2/CodePackage/TestVectors/Wasatch2D_BScanAvg/';
-filePath = '\\171.65.17.174\MATLAB_Share\Itamar\2018_06_13_14-59-16\';
-OCTSystem = 'Wasatch';
+%filePath = 's3://delazerdalab2/CodePackage/TestVectors/Wasatch2D_BScanAvg/';
+%filePath = '\\171.65.17.174\MATLAB_Share\Itamar\2018_06_13_14-59-16\';
+%OCTSystem = 'Wasatch';
+
+
 
 %% What values of dispersion parameter a should we try
-a = 10.^(linspace(-8,2,30));
+%a = 10.^(linspace(-8,2,30));
+a = 10.^(linspace(-2,8,30)); %[nm^2/rad]
 a = [-a a];
 a = sort(a);
 
@@ -32,7 +39,7 @@ a = sort(a);
 %% Plot ROI
 %Compute B-Scan
 scanCpxe = yOCTInterfToScanCpx( interfe ,dimensionse ...
-    ,'dispersionParameterA', a(round(end/2)) );
+    ,'dispersionParameterA', a(round(3*end/4)) );
 scanCpxAbs = mean(mean(abs(scanCpxe),3),4);
 
 figure(1);
@@ -51,11 +58,12 @@ hold on;
 plot(ROIx([1 end end 1 1]),ROIz([1 1 end end 1]));
 hold off;
 legend('ROI');
-title(sprintf('Before Dispersion, A=%.4e',a(round(end/2))));
+title(sprintf('Before Dispersion, A=%.4e [nm^2/rad]',a(round(3*end/4))));
+aa(1) = gca;
 
 %% Loop Over Dispersion Parameters
 figure(2);
-for iteration = 1:4
+for iteration = 1:3
     aBest = [];
     iBest = [];
     scanCpxAbsBest = [];
@@ -81,7 +89,7 @@ for iteration = 1:4
         %Plot
         myplot(iteration,ROIz,a(i),scanCpxAbs,val)
         if (iteration == 1)
-            pause(0.5);
+            pause(0.2);
         else
             pause(0.01);
         end
@@ -93,7 +101,7 @@ for iteration = 1:4
     else
         %Edge case
         d = diff(a);
-        d = d(min([iBest length(a)]));
+        d = d(min([iBest (length(a)-1)]));
         a = linspace(a(iBest)-d,a(iBest)+d,length(a));
     end
     
@@ -101,7 +109,7 @@ for iteration = 1:4
     myplot(iteration,ROIz,aBest,scanCpxAbsBest,valBest)
 
 end
-fprintf('Best A Parameter: %.3e\n',aBest);
+fprintf('Best A Parameter: %.3e [nm^2/rad]\n',aBest);
 
 %% Plot an "After" Image
 %Compute B-Scan
@@ -116,14 +124,15 @@ hold on;
 plot(ROIx([1 end end 1 1]),ROIz([1 1 end end 1]));
 hold off;
 legend('ROI');
-title(sprintf('After Dispersion, A=%.4e',aBest));
+title(sprintf('After Dispersion, A=%.4e [nm^2/rad]',aBest));
+aa(2) = gca;
+linkaxes(aa);
 
 function myplot(iteration,ROIz,a,scanCpxAbs,val)
 subplot(2,2,iteration);
 z = 1:length(scanCpxAbs);
 plot(z,scanCpxAbs,z(ROIz),scanCpxAbs(ROIz));
 legend('Average A-Scan','ROI');
-%title(sprintf('Dispersion Parameter A=%.3e\niteration=%d (%.3e to %.3e)',a(i),iteration,min(a),max(a)));
 title(sprintf('Dispersion Parameter A=%.3e\niteration=%d, Maximization Val: %.1f',a,iteration,val));
 grid on;
 xlim(z([1 end]));

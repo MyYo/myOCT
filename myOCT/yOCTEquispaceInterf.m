@@ -23,9 +23,9 @@ function [interfe,dimensionse] = yOCTEquispaceInterf(interf,dimensions)
 %% Data Structure
 s = size(interf);
 lambda = dimensions.lambda.values;
-kn = (lambda-min(lambda))/(max(lambda)-min(lambda)).*(length(lambda)-1);
 
-knLin = linspace(min(kn),max(kn),length(kn)); %Linear kns
+k = 2*pi./(lambda); %Get wave lumber in [1/nm]
+kLin = linspace(max(k),min(k),length(k)); %Linear
 
 %% Interferogram
 
@@ -33,14 +33,14 @@ knLin = linspace(min(kn),max(kn),length(kn)); %Linear kns
 interf = reshape(interf,s(1),[]);
 
 %Interpolate
-interfe = myInterp(kn,interf,knLin);
+interfe = myInterp(k,interf,kLin);
 
 %Reshape back
 interfe = reshape(interfe,[size(interfe,1) s(2:end)]);
 
 %% Dimensions
 dimensionse = dimensions;
-dimensionse.lambda.values = myInterp(kn,lambda,knLin);
+dimensionse.lambda.values = myInterp(k,lambda,kLin);
 
 function out = myInterp(x,v,xq)
 out = interp1(x,v,xq,'pchip');

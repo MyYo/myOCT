@@ -22,11 +22,8 @@ if (strcmpi(inputDataFolder(1:3),'s3:'))
 end
 
 %Optional Parameters
-OCTSystem = 'Wasatch';
 for i=2:2:length(varargin)
     switch(lower(varargin{i}))
-        case 'octsystem'
-            OCTSystem = varargin{i+1};
         case 'dimensions'
             dimensions = varargin{i+1};
         otherwise
@@ -77,7 +74,7 @@ for fI=1:length(fileIndex)
     end
     prof.totalFrameLoadTimeSec = prof.totalFrameLoadTimeSec + toc(td);
     
-    interferogram(:,:,fI) = temp;
+    interferogram(:,:,yI(fI),1,BScanAvgI(fI)) = temp;
 end
 
 %% Load apodization

@@ -15,6 +15,7 @@ if (iscell(varargin{1}))
     varargin = varargin{1};
 end 
 
+inputDataFolder = varargin{1};
 if (strcmpi(inputDataFolder(1:3),'s3:'))
     %Load Data from AWS
     yOCTSetAWScredentials;
@@ -31,17 +32,6 @@ for i=2:2:length(varargin)
         otherwise
             %error('Unknown parameter');
     end
-end
-
-%% System Specific Information
-switch(OCTSystem)
-    case 'Ganymede'
-        filt = ones(size(length(dimensions.lambda.values)));
-    case 'Telesto'
-        filt = hann(length(dimensions.lambda.values));
-
-    otherwise
-        error('ERROR: Wrong OCTSystem name! (yOCTLoadInterfFromFile)')
 end
 
 %% Determine dimensions
@@ -100,10 +90,6 @@ for fi=1:length(fileIndex)
     else
         interfAvg = interf;
     end
-    
-    % Apply fliter specific to OCT System
-    interfAvg = interfAvg.*filt;
-    apod = apod.*filt;
     
     %Save
     apodization(:,:,fi) = apod;

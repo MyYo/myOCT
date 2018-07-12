@@ -7,7 +7,7 @@ filePath = 's3://delazerdalab2/CodePackage/TestVectors/Ganymede2D_BScanAvg/';
 OCTSystem = 'Ganymede';
 band1 = [800 900]; %[nm]
 band2 = [900 1000]; %[nm]
-dispersionParameterA = 0.0058; %Use this dispersion Parameter for air-water interface
+dispersionParameterA = 0.0058; %Use Demo_DispersionCorrection to find the term
 
 %% Process
 tic;

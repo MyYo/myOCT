@@ -36,8 +36,6 @@ if (iscell(varargin{1}))
     varargin = varargin{1};
 end 
 
-inputDataFolder = varargin{1};
-
 %Optional Parameters
 OCTSystem = 'Ganymede';
 peakOnly = false;
@@ -82,18 +80,27 @@ end
 
 %Correct dimensions according to what user asks to process
 if exist('YFramesToProcess','var')
-    %Process only subset of Y frames
-    dimensions.y.values = dimensions.y.values(YFramesToProcess);
-    dimensions.y.index = dimensions.y.index(YFramesToProcess);
-    dimensions.y.index = dimensions.y.index(:)';
-    
-    if (length(YFramesToProcess)==1) %Practically, we don't have a Y dimenson
-        dimensions.y.order = NaN;
-        if isfield(dimensions,'AScanAvg')
-            dimensions.AScanAvg.order = dimensions.AScanAvg.order - 1;
+    if (length(dimensions.y.index) == 1)
+        %Only y frame to process already
+        if (dimensions.y.index ~= YFramesToProcess)
+            error('Asking to process non existant frame');
+        else
+            %We already have one frame to process, nothing to do..
         end
-        if isfield(dimensions,'BScanAvg')
-            dimensions.BScanAvg.order = dimensions.BScanAvg.order - 1;
+    else
+        %Process only subset of Y frames
+        dimensions.y.values = dimensions.y.values(YFramesToProcess);
+        dimensions.y.index = dimensions.y.index(YFramesToProcess);
+        dimensions.y.index = dimensions.y.index(:)';
+
+        if (length(YFramesToProcess)==1) %Practically, we don't have a Y dimenson
+            dimensions.y.order = NaN;
+            if isfield(dimensions,'AScanAvg')
+                dimensions.AScanAvg.order = dimensions.AScanAvg.order - 1;
+            end
+            if isfield(dimensions,'BScanAvg')
+                dimensions.BScanAvg.order = dimensions.BScanAvg.order - 1;
+            end
         end
     end
 end

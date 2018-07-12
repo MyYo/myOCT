@@ -9,8 +9,8 @@ function scanCpx = yOCTInterfToScanCpx (varargin)
 %       should be (lambda,x,...)
 %   - dimensions - Dimensions structure as loaded by yOCTLoadInterfFromFile.
 %   - Optional Parameters
-%       - 'dispersionParameterA',value - linear phase dispersion. 
-%           if set to 0 cancels. Default value is water imesed sample value
+%       - 'dispersionParameterA', quadradic phase correction units of
+%          [nm^2/rad]
 %       - 'band',[start end] - Use a Hann filter to filter out part of the
 %          spectrum. Units are [nm] 
 %OUTPUT
@@ -36,20 +36,19 @@ end
 
 %% Check if interferogram is equispaced. If not, equispace it before processing
 lambda = dimensions.lambda.values;
-kn = (lambda-min(lambda))/(max(lambda)-min(lambda)).*(length(lambda)-1);
+k = 2*pi./(lambda); %Get wave lumber in [1/nm]
 
-if (abs((max(diff(kn)) - min(diff(kn)))/max(kn)) > 1e-10)
+if (abs((max(diff(k)) - min(diff(k)))/max(k)) > 1e-10)
     %Not equispaced, equispacing needed
     [interferogram,dimensions] = yOCTEquispaceInterf(interferogram,dimensions);
     
     lambda = dimensions.lambda.values;
-    kn = (lambda-min(lambda))/(max(lambda)-min(lambda)).*(length(lambda)-1);
+    k = 2*pi./(lambda); %Get wave lumber in [1/nm]
 end
-N = length(kn);
 s = size(interferogram);
 
-%% Filter bands if required
-filter = zeros(size(kn));
+%% Filter bands
+filter = zeros(size(k));
 filter = filter(:);
 if ~isempty(band)
     %Band filter to select sub band
@@ -59,29 +58,26 @@ if ~isempty(band)
     filter(i) = hann(length(i));
     filter = filter * (length(filter)/sum(filter)); %Normalization
 else
-    %No band filter
-    filter = filter+1;
+    %No band filter, so apply Hann filter on the entire sample
+    filter = hann(length(filter));
 end
 
 %% Reshape interferogram for easy parallelization
 interf = reshape(interferogram,s(1),[]);
 
-%% Dispersion & Filter
+%% Dispersion & Overall filter
 if ~exist('dispersionParameterA','var') || isempty(dispersionParameterA)
-    disp('Please Enter dispersionParameterA, recomendations:')
-    disp('Thorlabs Ganymede: +5.800e-03');
-    disp('Thorlabs Telesto:  -7.814e-04');
-    disp('Wasatch Ganymede:  +2.271e-02');
+    disp('Please Enter dispersionParameterA (quadratic correction), recomendations [nm^2/rad]:')
+    disp('100 is a good value to start from');
     disp('You can also try running Demo_DispersionCorrection, to figure out the best Value for you');
     return;
 end
-dispersionComp = exp(1i*(dispersionParameterA*kn(:)'.^2/N))';
-dispersionComp = repmat(dispersionComp,[1 size(interf,2)]);
+dispersionComp = exp(1i*(dispersionParameterA*k(:).^2)).*hann(length(k));
 
-filter = repmat(filter,[1 size(interf,2)]);
+filter = repmat(dispersionComp.*filter,[1 size(interf,2)]);
 
 %% Generate Cpx 
-ft = ifft((interf.*dispersionComp.*filter));
+ft = ifft((interf.*filter));
 scanCpx = ft(1:(size(interf,1)/2),:);
 
 %% Reshape back
