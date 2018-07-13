@@ -72,7 +72,9 @@ if ~exist('dispersionParameterA','var') || isempty(dispersionParameterA)
     disp('You can also try running Demo_DispersionCorrection, to figure out the best Value for you');
     return;
 end
-dispersionComp = exp(1i*(dispersionParameterA*k(:).^2)).*hann(length(k));
+%dispersionComp should be exp(1i*(dispersionParameterA*k(:).^2))
+%But since we multiply by interf (real double), only real part is effected.
+dispersionComp = cos(dispersionParameterA*k(:).^2);
 
 filter = repmat(dispersionComp.*filter,[1 size(interf,2)]);
 
