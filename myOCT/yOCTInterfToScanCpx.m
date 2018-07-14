@@ -72,14 +72,22 @@ if ~exist('dispersionParameterA','var') || isempty(dispersionParameterA)
     disp('You can also try running Demo_DispersionCorrection, to figure out the best Value for you');
     return;
 end
-%dispersionComp should be exp(1i*(dispersionParameterA*k(:).^2))
-%But since we multiply by interf (real double), only real part is effected.
-dispersionComp = cos(dispersionParameterA*k(:).^2);
 
-filter = repmat(dispersionComp.*filter,[1 size(interf,2)]);
+%Quadratic term only omega
+dispersionPhase = -dispersionParameterA .* (k(:)-k(1)).^2; %[rad]
+%Technically dispersionPhase = -A*k^2. We added the term -A*(k-k0)^2
+%because when doing the ifft, ifft assumes that the first term is DC. which
+%in our case is not true. Thus by applying phase=-A*k^2 we introduce a
+%multiplicative phase term: A*k0^2 which does not effect the final result
+%however, if we run over A the phase term changes and in the fft world it
+%translates to translation that move our image up & down. To Avoid it we
+%subtract -A*(k-k0)^2
+dispersionComp = exp(1i*dispersionPhase);
+
+filterAll = repmat(dispersionComp.*filter,[1 size(interf,2)]);
 
 %% Generate Cpx 
-ft = ifft((interf.*filter));
+ft = ifft((interf.*filterAll));
 scanCpx = ft(1:(size(interf,1)/2),:);
 
 %% Reshape back
