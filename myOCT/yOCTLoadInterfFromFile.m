@@ -104,7 +104,7 @@ if exist('YFramesToProcess','var')
         end
     end
 end
-if exist('BScanAvgFramesToProcess','var')
+if exist('BScanAvgFramesToProcess','var') && isfield(dimensions,'BScanAvg')
     %Process only subset of BScanAvgFramesToProcess frames
     dimensions.BScanAvg.index = dimensions.BScanAvg.index(BScanAvgFramesToProcess);
     dimensions.BScanAvg.index = dimensions.BScanAvg.index(:)';
