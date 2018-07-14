@@ -1,7 +1,7 @@
 %This tester loads OCT files and check preformances and imagery 
 
 %To generate a parameters file
-%parameters = {'OCTSystem','Ganymede','dispersionParameterA',100};
+%parameters = {'OCTSystem','Ganymede','dispersionParameterA',100,'BScanAvgFramesToProcess',1:2};
 %save('parameters.mat','parameters');
 
 %clear;
