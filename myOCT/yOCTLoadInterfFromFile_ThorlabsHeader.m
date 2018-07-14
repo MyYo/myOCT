@@ -35,7 +35,7 @@ end
 %% Figure out lambda
 
 %Load chirp 
-currentFileFolder = fileparts(mfilename());
+currentFileFolder = fileparts(mfilename('fullpath'));
 if exist([currentFileFolder chirpFileName]','file')
     ds=fileDatastore([currentFileFolder chirpFileName],'ReadFcn',@readChirpTxt);
 else
