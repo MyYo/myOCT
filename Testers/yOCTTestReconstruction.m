@@ -45,7 +45,7 @@ for i=1:length(folders)
         parameters{:}, ...
         'showStats',true});
     totalRunTime = toc;
-    testDate = today();
+    testDate = datenum(datetime);
     
     %Load results from prev run (if they exist), and compare
     testResultFile = [testNames{i} 'TestResult.mat'];
