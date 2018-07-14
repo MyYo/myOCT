@@ -13,27 +13,43 @@ else
     isAWS = false;
 end
 
+%Get OCT Chirp file and lambda min & max
+%Original chirp files are installed with Thorlabs software at: C:\Program Files\Thorlabs\SpectralRadar\Config\Chirp.dat
+%They can also be extracted from the OCT Folder at [inputDataFolder '\data\Chirp.data']. 
+%To load file from OCT folder use chirp = fread(fid, 2048, 'float32');
+%To get lambda min & max we contacted thorlabs
 switch(OCTSystem)
     case 'Ganymede'
-        chirpFileName = 'Chirp_Ganymede.mat';
-        lambda = @(chrip_vect)(chrip_vect*0.10448+824.16); %Nominal lambda values run from 824.16 nm to 1038.03 nm
+        chirpFileName = 'ChirpGanymede.dat';
+        lambdaMin = 824.16;%[nm]
+        lambdaMax = 1038.03;%[nm]
     case 'Telesto'
-        chirpFileName ='Chirp_Telesto.mat';
-        lambda = @(chrip_vect)(chrip_vect*0.16344+1200.56); %Nominal lambda values run from 1200.56 nm to 1367.75 nm
-
+        chirpFileName = 'ChirpTelesto.dat';
+        lambdaMin = 1200.56;%[nm]
+        lambdaMax = 1367.75;%[nm]
+    
     otherwise
         error('ERROR: Wrong OCTSystem name! (yOCTLoadInterfFromFile)')
 end
 
 %% Figure out lambda
-if ~isAWS
-    currentFileFolder = fileparts(mfilename());
-    load([currentFileFolder chirpFileName],'chirp_vect');
+
+%Load chirp 
+currentFileFolder = fileparts(mfilename());
+if exist([currentFileFolder chirpFileName]','file')
+    ds=fileDatastore([currentFileFolder chirpFileName],'ReadFcn',@readChirpTxt);
 else
-    ds=fileDatastore(['s3://delazerdalab1/CodePackage/' chirpFileName],'ReadFcn',@load);
-    tmp = ds.read;
-    chirp_vect = tmp.chirp_vect;
+    %Cannot find file locally, read it from data folder
+    ds=fileDatastore([inputDataFolder '/data/chirp.data'],'ReadFcn',@readChirpBin);
 end
+chirp = ds.read;
+
+%We belive that chirp describes the corrections for k. meaning
+%k(i) = chirp(i)*A+B. Since lambda = 2*pi/k = 2*pi/(chirp*A+B) then
+lambda = 1./( ...
+            chirp .* ( 1/(length(chirp)-1)*(1/lambdaMax-1/lambdaMin) )+... chirp*A/2pi
+            1/lambdaMin ... B/2pi
+        );
 
 %% Load Xml
 
@@ -46,7 +62,7 @@ order = 1;
 
 %Lambda Size
 dimensions.lambda.order  = order;
-dimensions.lambda.values = lambda(chirp_vect);
+dimensions.lambda.values = lambda;
 dimensions.lambda.values = dimensions.lambda.values(:)';
 dimensions.lambda.units = 'nm';
 order = order + 1;
@@ -146,3 +162,17 @@ dimensions.aux.apodSize = str2double(xDoc.DataFiles.DataFile{spectralInd}.Attrib
 
 %A Scan Binning if relevant
 dimensions.aux.AScanBinning = str2double(xDoc.Acquisition.IntensityAveraging.Spectra.Text);
+
+end
+
+function chirp = readChirpTxt(fp)
+fid = fopen(fp);
+chirp = textscan(fid,'%f');
+chirp = chirp{1};
+fclose(fid);
+end
+function chirp = readChirpBin(fp)
+fid = fopen(fp);
+chirp  = fread(fid, 'float32');
+fclose(fid);
+end
