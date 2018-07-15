@@ -7,6 +7,7 @@ currentFileFolder = fileparts(mfilename('fullpath'));
 yOCTMainFolder = [currentFileFolder '\..\'];
 addpath(genpath(yOCTMainFolder)); %Add current files to path
 gcp; %Start Parallel Processs
+opengl('save', 'software'); %Increase stubility in OPEN GL
 
 %% Test Reconstruction
 disp('Reconstruction Tests');
@@ -25,7 +26,8 @@ end
 
 %% Done!
 disp('All Tests Completed');
-catch
+catch(ME)
+    disp(ME); %Write
     exit(1); %Problem Happend
 end
 exit(0); %Safe exist
