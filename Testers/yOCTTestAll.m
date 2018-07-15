@@ -13,7 +13,8 @@ disp('Reconstruction Tests');
 yOCTTestReconstruction;
 
 %% Test that Demos are working
-exit(1);return;
+disp('Exiting');
+exit(0);return;
 disp('Demo Tests');
 d = dir([yOCTMainFolder 'Demo*']);
 for i=1:length(d)
@@ -25,6 +26,6 @@ end
 %% Done!
 disp('All Tests Completed');
 catch
-    exit(0); %Problem Happend
+    exit(1); %Problem Happend
 end
-exit(1); %Safe exist
+exit(0); %Safe exist
