@@ -81,7 +81,7 @@ for i=1:length(folders)
     imagesc(log(squeeze(meanAbs(:,:,round(end/2)))));
     xlabel('x direction');
     ylabel('z direction');
-    title(sprintf('%s\nCurent Result, runtime of %.1f[sec]\n',testNames{i},totalRunTime(end)));
+    title(sprintf('%s\nCurent Result, runtime of %.1f[sec]',testNames{i},totalRunTime(end)));
     colormap gray;
     saveas(gcf,['Test_' testNames{i} '.png']);
     
