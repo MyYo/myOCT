@@ -27,7 +27,7 @@ tic;
 %Equispace interferogram to save computation time while re-processing
 [interfe,dimensionse] = yOCTEquispaceInterf(interf,dimensions);
 
-bandCenter = mean(dimensionse.lambda.values);
+bandCenter = 1/2*sum(dimensionse.lambda.values([1 end]));
 bandWidth = 1/2*abs(diff(dimensionse.lambda.values([end 1])));
 
 figure(1);

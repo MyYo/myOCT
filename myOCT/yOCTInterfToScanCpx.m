@@ -51,6 +51,10 @@ s = size(interferogram);
 filter = zeros(size(k));
 filter = filter(:);
 if ~isempty(band)
+    %Provide a warning if band is out of lambda range
+    if (band(1) < min(dimensions.lambda.values) || band(2) > max(dimensions.lambda.values))
+        warning('Requested band is outside data borders, shrinking band size');
+    end
     %Band filter to select sub band
     bandStartI = find(dimensions.lambda.values >= band(1),1,'first');
     bandEndI = find(dimensions.lambda.values <= band(2),1,'last');
