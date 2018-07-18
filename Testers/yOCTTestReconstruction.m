@@ -66,7 +66,7 @@ for i=1:length(folders)
         end
         
         %Plot meanAbs
-        subplot(2,1,1);
+        subplot(2,1,2);
         imagesc(log(squeeze(testResult.meanAbs(:,:,round(end/2)))));
         xlabel('x direction');
         ylabel('z direction');
@@ -77,11 +77,11 @@ for i=1:length(folders)
     end
             
     %Plot meanAbs
-    subplot(2,1,2);
+    subplot(2,1,1);
     imagesc(log(squeeze(meanAbs(:,:,round(end/2)))));
     xlabel('x direction');
     ylabel('z direction');
-    title(sprintf('Curent Result, runtime of %.1f[min]\n',totalRunTime(end)/60));
+    title(sprintf('%s\nCurent Result, runtime of %.1f[min]\n',testNames{i},totalRunTime(end)/60));
     colormap gray;
     saveas(gcf,['Test_' testNames{i} '.png']);
     
