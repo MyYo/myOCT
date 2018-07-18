@@ -3,8 +3,9 @@
 
 %% Iputs
 %Wasatch
-filePath = 's3://delazerdalab2/CodePackage/TestVectors/Wasatch3D/';
-filePath = '\\171.65.17.174\MATLAB_Share\Itamar\2018_06_13_14-59-16\';
+filePath = ['\\171.65.17.174\MATLAB_Share\Jenkins\myOCT Build\TestVectors\' ...
+    'Wasatch2D_BScanAvg\'];
+dispersionParameterA = 100; %Use Demo_DispersionCorrection to find the term
 OCTSystem = 'Wasatch';
 
 %Dispersion Parameter A [nm^2/rad], Quadratic Term

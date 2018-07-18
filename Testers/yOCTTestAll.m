@@ -14,12 +14,10 @@ disp('Reconstruction Tests');
 yOCTTestReconstruction;
 
 %% Test that Demos are working
-disp('Exiting');
-exit(0);return;
 disp('Demo Tests');
 d = dir([yOCTMainFolder 'Demo*']);
 for i=1:length(d)
-    [~,functionName] = fileparts(d(i).name)
+    [~,functionName] = fileparts(d(i).name);
     disp(functionName);
     eval(functionName);
 end

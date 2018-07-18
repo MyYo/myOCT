@@ -1,15 +1,11 @@
 %Run this demo to load and process 2D OCT Images
 
 %% Iputs
-%Ganymede
-%filePath = 's3://delazerdalab2/CodePackage/TestVectors/Ganymede2D_BScanAvg/';
-%OCTSystem = 'Ganymede';
-%dispersionParameterA = 0.0058; %Use Demo_DispersionCorrection to find the term
-
 %Wasatch
-filePath = 's3://delazerdalab2/CodePackage/TestVectors/Wasatch2D_BScanAvg/';
+filePath = ['\\171.65.17.174\MATLAB_Share\Jenkins\myOCT Build\TestVectors\' ...
+    'Wasatch2D_BScanAvg\'];
 OCTSystem = 'Wasatch';
-dispersionParameterA = 1.22e7; %Use Demo_DispersionCorrection to find the term
+dispersionParameterA = 100; %Use Demo_DispersionCorrection to find the term
 
 %% Process
 tic;

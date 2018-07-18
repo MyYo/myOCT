@@ -5,18 +5,10 @@ close all;
 
 %% Inputs
 %Ganymede
-filePath = 's3://delazerdalab2/CodePackage/TestVectors/Ganymede2D_BScanAvg/';
-OCTSystem = 'Ganymede';
-
-%Telesto
-%filePath = '\\171.65.17.174\Telesto\Peng\2018\20180622\3D\IT1450_0009_ModeSpeckle';
-%OCTSystem = 'Telesto';
-
-%Wasatch
-%filePath = 's3://delazerdalab2/CodePackage/TestVectors/Wasatch2D_BScanAvg/';
-%filePath = '\\171.65.17.174\MATLAB_Share\Itamar\2018_06_13_14-59-16\';
-%filePath = 'Y:\Work\_de la Zerda Lab Scripts\yOCTRef\Wasatch-Processing-Code-master\2d\tiffs\';
-%OCTSystem = 'Wasatch';
+filePath = ['\\171.65.17.174\MATLAB_Share\Jenkins\myOCT Build\TestVectors\' ...
+    'Wasatch2D_BScanAvg\'];
+OCTSystem = 'Wasatch';
+dispersionParameterA = 100; %Use Demo_DispersionCorrection to find the term
 
 %% Pre-Process
 %Load Intef From file
