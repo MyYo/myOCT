@@ -6,7 +6,7 @@ close all;
 %% Inputs
 %Ganymede
 filePath = ['\\171.65.17.174\MATLAB_Share\Jenkins\myOCT Build\TestVectors\' ...
-    'Wasatch2D_BScanAvg\'];
+    'Wasatch_3D'];
 OCTSystem = 'Wasatch';
 dispersionParameterA = 100; %Use Demo_DispersionCorrection to find the term
 

@@ -3,7 +3,8 @@
 
 %% Iputs
 %Ganymede
-filePath = 's3://delazerdalab2/CodePackage/TestVectors/Ganymede2D_BScanAvg/';
+filePath = ['\\171.65.17.174\MATLAB_Share\Jenkins\myOCT Build\TestVectors\' ...
+    'Ganymede_2D_BScanAvg\'];
 OCTSystem = 'Ganymede';
 band1 = [800 900]; %[nm]
 band2 = [900 1000]; %[nm]

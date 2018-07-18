@@ -4,12 +4,9 @@
 %% Iputs
 %Wasatch
 filePath = ['\\171.65.17.174\MATLAB_Share\Jenkins\myOCT Build\TestVectors\' ...
-    'Wasatch2D_BScanAvg\'];
+    'Wasatch_3D\'];
 dispersionParameterA = 100; %Use Demo_DispersionCorrection to find the term
 OCTSystem = 'Wasatch';
-
-%Dispersion Parameter A [nm^2/rad], Quadratic Term
-dispersionParameterA = 100;
 
 yFramesPerBatch = 1; %How many Y frames to load in a single batch, optimzie this parameter to save computational time
 

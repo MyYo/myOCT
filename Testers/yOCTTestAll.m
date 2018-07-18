@@ -20,12 +20,16 @@ for i=1:length(d)
     [~,functionName] = fileparts(d(i).name);
     disp(functionName);
     eval(functionName);
+    close all;
 end
 
 %% Done!
 disp('All Tests Completed');
-catch(ME)
-    disp(ME); %Write
+catch ME
+    for i=1:length(ME.stack)
+        ME.stack(i)
+    end
+    disp(ME.message); %Write
     exit(1); %Problem Happend
 end
 exit(0); %Safe exist
