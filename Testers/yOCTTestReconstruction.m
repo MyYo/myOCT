@@ -70,7 +70,7 @@ for i=1:length(folders)
         imagesc(log(squeeze(testResult.meanAbs(:,:,round(end/2)))));
         xlabel('x direction');
         ylabel('z direction');
-        title(sprintf('Prev Result, runtime of %.1f[min]\n%s',testResult.totalRunTime(end)/60,BA));
+        title(sprintf('Prev Result, runtime of %.1f[sec]\n%s',testResult.totalRunTime(end),BA));
         
         totalRunTime = [testResult.totalRunTime totalRunTime]; %Append runtime
         testDate =[testResult.testDate testDate]; %Append test date
@@ -81,17 +81,17 @@ for i=1:length(folders)
     imagesc(log(squeeze(meanAbs(:,:,round(end/2)))));
     xlabel('x direction');
     ylabel('z direction');
-    title(sprintf('%s\nCurent Result, runtime of %.1f[min]\n',testNames{i},totalRunTime(end)/60));
+    title(sprintf('%s\nCurent Result, runtime of %.1f[sec]\n',testNames{i},totalRunTime(end)));
     colormap gray;
     saveas(gcf,['Test_' testNames{i} '.png']);
     
     %Plot runtime
     subplot(1,1,1);
     [~, sizeX, sizeY, AScanAvgN, BScanAvgN] = yOCTLoadInterfFromFile_DataSizing(dimensions);
-    plot(testDate-testDate(end),totalRunTime/60,'o-',0,totalRunTime(end)/60,'or');
+    plot(testDate-testDate(end),totalRunTime,'o-',0,totalRunTime(end),'or');
     title(sprintf('{%s} Runtime Evolution\nScan Size in Pixels (X-Y-#Avg): %d-%d-%d',...
         testNames{i},sizeX,sizeY,AScanAvgN*BScanAvgN));
-    ylabel('Runtime [min]');
+    ylabel('Runtime [sec]');
     xlabel('How Many Days Ago Was It Tested?');
     legend('History','Current Test');
     grid on;
