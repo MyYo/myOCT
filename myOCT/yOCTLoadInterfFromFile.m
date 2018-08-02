@@ -20,6 +20,9 @@ function [interferogram, dimensions, apodization,prof] = yOCTLoadInterfFromFile(
 % 'PeakOnly'                false       when set to true, this function will only read file header without reading all dataa
 %                                       and return data dimensions without computing the interferogram
 %                                       Usage: dimensions = yOCTLoadInterfFromFile(...)
+% 'ApodizationCorrection'   'Subtract'  What kind apodization correction to do. Can be
+%                                       'Subtract' - Subtract apodization signal from interferogram
+%                                       'None' - No ApodizationCorrection. Raw data is loaded.
 % OUTPUTS:
 %   - interferogram - interferogram data, apodization corrected. 
 %       Dimensions order (lambda,x,y,AScanAvg,BScanAvg). 
@@ -38,6 +41,7 @@ end
 
 %Optional Parameters
 OCTSystem = 'Ganymede';
+apodizationCorrection = 'subtract';
 peakOnly = false;
 for i=2:2:length(varargin)
     switch(lower(varargin{i}))
@@ -53,6 +57,8 @@ for i=2:2:length(varargin)
             BScanAvgFramesToProcess = BScanAvgFramesToProcess(:);
         case 'peakonly'
             peakOnly = varargin{i+1};
+        case 'apodizationcorrection'
+            apodizationCorrection = lower(varargin{i+1});
     end
 end
 
@@ -129,12 +135,19 @@ switch(OCTSystem)
 end
 
 %% Correct For Apodization
-[~, sizeX, sizeY, AScanAvgN, BScanAvgN] = yOCTLoadInterfFromFile_DataSizing(dimensions);   
-apod = mean(apodization,2); %Mean across x axis
-s = size(apod);
-s = [s 1 1 1 1 1]; %Pad with ones
+switch (apodizationCorrection)
+    case 'subtract'
+        [~, sizeX, sizeY, AScanAvgN, BScanAvgN] = yOCTLoadInterfFromFile_DataSizing(dimensions);   
+        apod = mean(apodization,2); %Mean across x axis
+        s = size(apod);
+        s = [s 1 1 1 1 1]; %Pad with ones
 
-interferogram = interferogram - repmat(apod,[1 sizeX sizeY/s(3) AScanAvgN BScanAvgN/s(5)]);
+        interferogram = interferogram - repmat(apod,[1 sizeX sizeY/s(3) AScanAvgN BScanAvgN/s(5)]);
+    case 'none'
+        %No correction required
+    otherwise
+        error(['No such Apodization Correction Method Implemented: ' apodizationCorrection]);
+end
 
 %% Finish
 interferogram = squeeze(interferogram);
