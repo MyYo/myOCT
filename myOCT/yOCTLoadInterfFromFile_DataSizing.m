@@ -10,7 +10,7 @@ else
     BScanAvgN = 1;
 end
 if isfield(dimensions,'AScanAvg')
-    AScanAvgN = length(dimensions.BScanAvg.index);
+    AScanAvgN = length(dimensions.AScanAvg.index);
 else
     AScanAvgN = 1;
 end   
