@@ -137,6 +137,9 @@ end
 %% Correct For Apodization
 switch (apodizationCorrection)
     case 'subtract'
+        if isnan(apodization)
+            error('No Apodization Data, Cannot Correct. Please set ''ApodizationCorrection'' to ''None''');
+        end
         [~, sizeX, sizeY, AScanAvgN, BScanAvgN] = yOCTLoadInterfFromFile_DataSizing(dimensions);   
         apod = mean(apodization,2); %Mean across x axis
         s = size(apod);

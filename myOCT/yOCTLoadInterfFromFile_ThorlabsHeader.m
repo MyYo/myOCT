@@ -35,7 +35,7 @@ end
 %% Figure out lambda
 
 %Load chirp 
-currentFileFolder = fileparts(mfilename('fullpath'));
+currentFileFolder = [fileparts(mfilename('fullpath')) '/'];
 if exist([currentFileFolder chirpFileName]','file')
     ds=fileDatastore([currentFileFolder chirpFileName],'ReadFcn',@readChirpTxt);
 else
@@ -66,6 +66,34 @@ dimensions.lambda.values = lambda;
 dimensions.lambda.values = dimensions.lambda.values(:)';
 dimensions.lambda.units = 'nm';
 order = order + 1;
+
+try
+    %See if Data was aquired in 1D mode
+    ds=fileDatastore([inputDataFolder '/data/SpectralFloat.data'],'ReadFcn',@fread);
+    oneDMode = true;
+catch
+    oneDMode = false;
+end
+if (oneDMode)
+    %x,y, B Scan Averaging are all 1
+    dimensions.x.order  = NaN;
+    dimensions.x.values = 0;
+    dimensions.x.units  = 'NaN';
+    dimensions.x.index  = 1;
+    dimensions.y.order  = NaN;
+    dimensions.y.values = 0;
+    dimensions.y.units  = 'NaN';
+    dimensions.y.index  = 1;
+    dimensions.y.indexMax = 1;
+    dimensions.AScanAvg.order = 2;
+    AScanAvgN = str2double(xDoc.Image.SizePixel.SizeX.Text);
+    dimensions.AScanAvg.index = 1:AScanAvgN;
+    dimensions.AScanAvg.index = dimensions.AScanAvg.index(:)';
+    dimensions.AScanAvg.indexMax = AScanAvgN;
+    return;
+end
+
+%2D or 3D Modes
 
 %Along B Scan Axis (x)
 sizeX = str2double(xDoc.Image.SizePixel.SizeX.Text);
@@ -118,7 +146,7 @@ AScanAvgN = str2double(xDoc.Acquisition.IntensityAveraging.AScans.Text);
 if (AScanAvgN > 1)
     dimensions.AScanAvg.order = order;
     dimensions.AScanAvg.index = 1:AScanAvgN;
-    dimensions.AScanAvg.index = dimensions.AScanAvg.values(:)';
+    dimensions.AScanAvg.index = dimensions.AScanAvg.index(:)';
     dimensions.AScanAvg.indexMax = AScanAvgN;
 
     order = order + 1;

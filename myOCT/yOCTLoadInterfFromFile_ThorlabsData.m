@@ -37,6 +37,21 @@ end
 %% Determine dimensions
 [sizeLambda, sizeX, sizeY, AScanAvgN, BScanAvgN] = yOCTLoadInterfFromFile_DataSizing(dimensions);   
 
+if (sizeX == 1)
+    %% 1D Mode, Different loading scheme
+    
+    prof.numberOfFramesLoaded = 1;
+    tic;
+    ds=fileDatastore([inputDataFolder '/data/SpectralFloat.data'],'ReadFcn',@(a)(DSRead(a,'float32')));
+    temp = double(ds.read);
+    prof.totalFrameLoadTimeSec = toc;
+    temp = reshape(temp,[sizeLambda,AScanAvgN]);
+    interferogram = zeros(sizeLambda,sizeX,sizeY, AScanAvgN, BScanAvgN);
+    interferogram(:,1,1,:,1) = temp;
+    apodization = NaN; %No Apodization in file
+    return;
+end
+
 interfSize = dimensions.aux.interfSize;
 apodSize = dimensions.aux.apodSize;
 AScanBinning = dimensions.aux.AScanBinning;
