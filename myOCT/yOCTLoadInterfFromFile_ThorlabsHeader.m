@@ -86,7 +86,8 @@ if (oneDMode)
     dimensions.y.index  = 1;
     dimensions.y.indexMax = 1;
     dimensions.AScanAvg.order = 2;
-    AScanAvgN = str2double(xDoc.Image.SizePixel.SizeX.Text);
+    dataFile = xDoc.DataFiles.DataFile{4}; %This is the xml file specifing 'SpectralFloat.data' file
+    AScanAvgN = str2double(dataFile.Attributes.RangeX);
     dimensions.AScanAvg.index = 1:AScanAvgN;
     dimensions.AScanAvg.index = dimensions.AScanAvg.index(:)';
     dimensions.AScanAvg.indexMax = AScanAvgN;
