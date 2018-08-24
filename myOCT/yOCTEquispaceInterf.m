@@ -22,10 +22,10 @@ function [interfe,dimensionse] = yOCTEquispaceInterf(interf,dimensions)
 
 %% Data Structure
 s = size(interf);
-lambda = dimensions.lambda.values;
+lambda = dimensions.lambda.values(:);
 
 k = 2*pi./(lambda); %Get wave lumber in [1/nm]
-kLin = linspace(max(k),min(k),length(k)); %Linear
+kLin = linspace(max(k),min(k),length(k))'; %Linear
 
 %% Interferogram
 
@@ -40,7 +40,7 @@ interfe = reshape(interfe,[size(interfe,1) s(2:end)]);
 
 %% Dimensions
 dimensionse = dimensions;
-dimensionse.lambda.values = myInterp(k,lambda,kLin);
+dimensionse.lambda.values = (myInterp(k,lambda,kLin))';
 
 function out = myInterp(x,v,xq)
 out = interp1(x,v,xq,'pchip');
