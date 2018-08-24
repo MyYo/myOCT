@@ -22,8 +22,8 @@ toc;
 
 %% Save To File
 tic;
-yOCT2Tif(log(meanAbs),'tmp.tif');
-meanAbs2 = yOCTFromTif('tmp.tif');
+yOCT2Tif(log(meanAbs),'tmp.tif'); %Save to File
+%meanAbs2 = yOCTFromTif('tmp.tif'); %Load From File
 toc;
 
 %% Visualization - example
