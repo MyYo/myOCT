@@ -230,6 +230,23 @@ function out = speckleVariance(scan, scanAbs, dim)
         dim2Avg = 100;
     end
 
-    %Compute Speckle Variance
-    out = std(scanAbs,[],dim2Avg(1));    
+    %Compute Speckle Variance.
+    %We can compute speckle variance in 2 ways:
+    %   - Take variance of the entire dataset, will yield the most accurate
+    %     estimation of variance, however if a slight movement exists in
+    %     the data (animal breathing for example), then the entire tissue
+    %     will have high speckle variance. 
+    %   - Take variance of a few samples at a time in a sliding window and
+    %     average. This will make sure that we are sensitive only to fast
+    %     moving objects (like blood), but not to overall tissue movements.
+    %     Estimation of variance however, will be worst. SSE of variance is
+    %     2*sigma^4/(N-1). And if we average K samples overall estimator
+    %     noise is 2*sigma^4/((N-1)*K). Since N*K=M const then
+    %     2*sigma^4/((N-1)/N*M). Meaning the higher N, the more acurate the
+    %     estimation is. A good compramise however is N=3.
+    
+    %Compute Speckle Variance in a moving window
+    wSize = 3; %Window Size
+    m = movvar(scanAbs,wSize,[],dim2Avg(1));
+    out = sqrt(mean(m,dim2Avg(1)));    
 end
