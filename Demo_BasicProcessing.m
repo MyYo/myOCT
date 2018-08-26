@@ -10,7 +10,7 @@ filePaths = {...
     ...'\\171.65.17.174\MATLAB_Share\Jenkins\myOCT Build\TestVectors\Wasatch_3D\' ...
     };
 dispersionParameterA = 100; %Use Demo_DispersionCorrection to find the term
-OCTSystem = 'Telesto';
+OCTSystem = 'Wasatch';
 
 isSaveSpeckleVariance = true; %Set to false to skip speckle variance
 
