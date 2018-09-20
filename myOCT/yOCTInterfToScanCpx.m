@@ -49,22 +49,29 @@ s = size(interferogram);
 
 %% Filter bands
 filter = zeros(size(k));
-filter = filter(:);
 if ~isempty(band)
     %Provide a warning if band is out of lambda range
     if (band(1) < min(dimensions.lambda.values) || band(2) > max(dimensions.lambda.values))
         warning('Requested band is outside data borders, shrinking band size');
     end
+    
     %Band filter to select sub band
-    bandStartI = find(dimensions.lambda.values >= band(1),1,'first');
-    bandEndI = find(dimensions.lambda.values <= band(2),1,'last');
-    i = bandStartI:bandEndI;
-    filter(i) = hann(length(i));
-    filter = filter * (length(filter)/sum(filter)); %Normalization
+    fLambda = linspace(band(1),band(2),100);
+    fVal = hann(length(fLambda)); 
+    filter = interp1(fLambda,fVal,dimensions.lambda.values,'linear',0); %Extrapolation is 0 for values outside
+    
+    %bandStartI = find(dimensions.lambda.values >= band(1),1,'first');
+    %bandEndI = find(dimensions.lambda.values <= band(2),1,'last');
+    %i = bandStartI:bandEndI;
+    %filter(i) = hann(length(i));
 else
     %No band filter, so apply Hann filter on the entire sample
     filter = hann(length(filter));
 end
+
+%Normalize filter
+filter = filter(:);
+filter = filter * (length(filter)/sum(filter)); %Normalization
 
 %% Reshape interferogram for easy parallelization
 interf = reshape(interferogram,s(1),[]);
