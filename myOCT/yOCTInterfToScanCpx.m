@@ -58,12 +58,7 @@ if ~isempty(band)
     %Band filter to select sub band
     fLambda = linspace(band(1),band(2),length(dimensions.lambda.values));
     fVal = hann(length(fLambda)); 
-    filter = interp1(fLambda,fVal,dimensions.lambda.values,'linear',0); %Extrapolation is 0 for values outside
-    
-    %bandStartI = find(dimensions.lambda.values >= band(1),1,'first');
-    %bandEndI = find(dimensions.lambda.values <= band(2),1,'last');
-    %i = bandStartI:bandEndI;
-    %filter(i) = hann(length(i));
+    filter = interp1(fLambda,fVal,dimensions.lambda.values,'linear',0); %Extrapolation is 0 for values outside the filter
 else
     %No band filter, so apply Hann filter on the entire sample
     filter = hann(length(filter));
