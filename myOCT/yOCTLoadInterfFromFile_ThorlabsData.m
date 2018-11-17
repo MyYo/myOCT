@@ -22,11 +22,8 @@ if (strcmpi(inputDataFolder(1:3),'s3:'))
 end
 
 %Optional Parameters
-OCTSystem = 'Ganymede';
 for i=2:2:length(varargin)
     switch(lower(varargin{i}))
-        case 'octsystem'
-            OCTSystem = varargin{i+1};
         case 'dimensions'
             dimensions = varargin{i+1};
         otherwise

@@ -1,10 +1,9 @@
-function dimensions = yOCTLoadInterfFromFile_ThorlabsHeader (inputDataFolder,OCTSystem)
+function dimensions = yOCTLoadInterfFromFile_ThorlabsHeader (inputDataFolder)
 %This function loads dimensions structure from xml header
 % INPUTS:
 %   - inputDataFolder - OCT folder with header.xml file
 %   - OCTSystem - OCT System name
 
-%% Figure Out basic Parameters
 if (strcmpi(inputDataFolder(1:3),'s3:'))
     %Load Data from AWS
     isAWS = true;
@@ -12,6 +11,23 @@ if (strcmpi(inputDataFolder(1:3),'s3:'))
 else
     isAWS = false;
 end
+
+%% Figure out which of the Thorlabs systems are we using
+
+%LoadXML
+ds=fileDatastore([inputDataFolder '/Header.xml'],'ReadFcn',@xml2struct);
+xDoc = ds.read;
+xDoc = xDoc.Ocity;
+
+if ~isempty(regexp(xDoc.Instrument.Model.Text,'Ganymed','once'))
+    OCTSystem = 'Ganymede';
+elseif ~isempty(regexp(xDoc.Instrument.Model.Text,'Telesto','once'))
+    OCTSystem = 'Telesto';
+else
+    OCTSystem = 'Unknown';
+end
+
+%% Figure out basic Parameters
 
 %Get OCT Chirp file and lambda min & max
 %Original chirp files are installed with Thorlabs software at: C:\Program Files\Thorlabs\SpectralRadar\Config\Chirp.dat
@@ -29,7 +45,7 @@ switch(OCTSystem)
         lambdaMax = 1367.75;%[nm]
     
     otherwise
-        error('ERROR: Wrong OCTSystem name! (yOCTLoadInterfFromFile)')
+        error('ERROR: Wrong OCTSystem name! (yOCTLoadInterfFromFile_ThorlabsHeader)')
 end
 
 %% Figure out lambda
@@ -51,12 +67,7 @@ lambda = 1./( ...
             1/lambdaMin ... B/2pi
         );
 
-%% Load Xml
-
-%LoadXML
-ds=fileDatastore([inputDataFolder '/Header.xml'],'ReadFcn',@xml2struct);
-xDoc = ds.read;
-xDoc = xDoc.Ocity;
+%% Process Xml
 
 order = 1;
 

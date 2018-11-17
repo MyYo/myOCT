@@ -10,9 +10,9 @@ function scanCpx = yOCTInterfToScanCpx (varargin)
 %   - dimensions - Dimensions structure as loaded by yOCTLoadInterfFromFile.
 %   - Optional Parameters
 %       - 'dispersionParameterA', quadradic phase correction units of
-%          [nm^2/rad]
+%          [nm^2/rad]. Default value is 100
 %       - 'band',[start end] - Use a Hann filter to filter out part of the
-%          spectrum. Units are [nm] 
+%          spectrum. Units are [nm]. Default is all spectrum
 %OUTPUT
 %   BScanCpx - where lambda dimension is replaced by z
 %
@@ -28,7 +28,7 @@ interferogram = varargin{1};
 dimensions = varargin{2};
 
 %Optional Parameters
-dispersionParameterA = [];
+dispersionParameterA = 100; %Default Value
 band = [];
 for i=3:2:length(varargin)
    eval([varargin{i} ' = varargin{i+1};']); %<-TBD - there should be a safer way

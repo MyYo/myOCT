@@ -10,7 +10,8 @@ function [interferogram, dimensions, apodization,prof] = yOCTLoadInterfFromFile(
 %   - inputDataFolder - OCT data folder / AWS data folder
 % LIST OF OPTIONAL PARAMETERS AND VALUES
 % Parameter                 Default     Information & Values
-% 'OCTSystem'               'Ganymede'  OCT System Name, can be 'Ganymede' or 'Telesto'
+% 'OCTSystem'               ''          OCT System Name, can be 'Ganymede' or 'Telesto'. 
+%                                       If set to '', will try to figure out system from the file type.
 % 'BScanAvgFramesToProcess' all         What B-Scan Average frame indexies to process. 
 %                                       Usefull in cases where scan size is too big to be stored in memory, thus only part of the scan is loaded    
 %                                       Index starts at 1.
@@ -40,7 +41,7 @@ if (iscell(varargin{1}))
 end 
 
 %Optional Parameters
-OCTSystem = 'Ganymede';
+OCTSystem = '';
 apodizationCorrection = 'subtract';
 peakOnly = false;
 for i=2:2:length(varargin)
@@ -68,17 +69,36 @@ if (inputDataFolder(end) ~='/' && inputDataFolder(end) ~='\')
     inputDataFolder = [inputDataFolder '/'];
 end
 
+%% Figure out OCT system manufacturer
+if isempty(OCTSystem)
+    % If OCTSystem is unknown, try to figure it out
+    try
+        yOCTLoadInterfFromFile_ThorlabsHeader(inputDataFolder);
+        OCTSystemManufacturer = 'Thorlabs'; %Header can be read by Thorlabs
+    catch
+        %This is not a thorlabs system
+        OCTSystemManufacturer = 'Wasatch';
+    end 
+else
+    switch(OCTSystem)
+        case {'Ganymede','Telesto'}
+            OCTSystemManufacturer = 'Thorlabs';
+        case {'Wasatch'}
+            OCTSystemManufacturer = 'Wasatch';
+        otherwise
+            error('ERROR: Wrong OCTSystem name! (yOCTLoadInterfFromFile)')
+    end
+end
+
 %% Load Header file, get dimensions
 tt = tic;
 if ~exist('dimensions','var')
     %Load header information
-    switch(OCTSystem)
-        case {'Ganymede','Telesto'}
-            dimensions = yOCTLoadInterfFromFile_ThorlabsHeader(inputDataFolder,OCTSystem);
+    switch(OCTSystemManufacturer)
+        case {'Thorlabs'}
+            dimensions = yOCTLoadInterfFromFile_ThorlabsHeader(inputDataFolder);
         case {'Wasatch'}
             dimensions = yOCTLoadInterfFromFile_WasatchHeader(inputDataFolder);
-        otherwise
-            error('ERROR: Wrong OCTSystem name! (yOCTLoadInterfFromFile)')
     end
 else
     %Header information given by user
@@ -127,8 +147,8 @@ if (peakOnly == true)
 end
 
 %% Load Data - System Specific Configuration
-switch(OCTSystem)
-    case {'Ganymede','Telesto'}
+switch(OCTSystemManufacturer)
+    case {'Thorlabs'}
         [interferogram, apodization, prof] = yOCTLoadInterfFromFile_ThorlabsData([varargin {'dimensions'} {dimensions}]);
     case {'Wasatch'}
         [interferogram, apodization, prof] = yOCTLoadInterfFromFile_WasatchData([varargin {'dimensions'} {dimensions}]);
