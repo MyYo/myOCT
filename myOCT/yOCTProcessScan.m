@@ -176,7 +176,7 @@ if showStats
     
     %Table
     fprintf('%d Frames per iteration = Y*ScanAvg\n',nScanAvg*nYPerIteration);
-    fprintf('Item\t\t\t\t\tData Transfer Time[sec]\tProcessing Time[sec]\tTotal\n');
+    fprintf('Item\t\t\t\t\tData Transfer Time[sec]\tProcessing Time[sec]\tTotal[sec]\n');
     
     %Mean Iteration
     fprintf('Mean Iteration:\n');
