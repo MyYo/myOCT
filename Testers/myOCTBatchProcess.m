@@ -1,12 +1,14 @@
-%function myOCTBatchProcess(OCTFolders,config)
+function myOCTBatchProcess(OCTFolders,config)
 %OCTFolders path to folder containing a single or multiple OCT folders
 %config - key - value cell array for configuration of the excecution 
 % Any parameters of yOCTLoadInterfFromFile, yOCTInterfToScanCpx can be used. 
 % outputFilePrefix can be set.
 
-OCTFolders = 's3://delazerda/Jenkins/Wasatch_3D';
-OCTFolders = '\\171.65.17.174\MATLAB_Share\Brooke\08NOV_INVIVO\Scan\Test5\';
-OCTFolders = '\\171.65.17.174\MATLAB_Share\Brooke\08NOV_INVIVO\Scan\Scan_0003_ModeSpeckle.oct';
+addpath(genpath(yOCTMainFolder)); %Add current files to path
+
+%OCTFolders = 's3://delazerda/Jenkins/Wasatch_3D';
+%OCTFolders = '\\171.65.17.174\MATLAB_Share\Brooke\08NOV_INVIVO\Scan\Test5\';
+%OCTFolders = '\\171.65.17.174\MATLAB_Share\Brooke\08NOV_INVIVO\Scan\Scan_0003_ModeSpeckle.oct';
 
 %Make sure we have AWS Cridentials
 if (strcmpi(OCTFolders(1:3),'s3:'))
@@ -43,7 +45,6 @@ try
     
     %Success, single file case
 	OCTFolders = {OCTFolders}; 
-    folderPrefix = '';
 catch
     %We failed, meaning this folder is not an OCT Folder, maybe it is a folder of folders
     %TBD in future versions
@@ -112,7 +113,7 @@ for i=1:length(OCTFolders)
 end
 
 %% Upload data to the colud
-
+%In later versions
 %Regreplace \ with /
 
 %Where files are located in the cloud

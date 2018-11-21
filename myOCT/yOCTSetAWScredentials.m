@@ -12,7 +12,7 @@ if isempty(yOCTSetAWScredentialsUsed) ... %Run only once
     if exist('yOCTSetAWScredentialsPrivate') == 2 || exist('yOCTSetAWScredentialsPrivate') == 5
         yOCTSetAWScredentialsPrivate();
     else
-        error('Cannot find yOCTSetAWScredentialsPrivate which contains AWS private keys. Please ask Yonatan to send you the file');
+        error('Cannot find yOCTSetAWScredentialsPrivate which contains AWS private keys. Please ask Yonatan to send you the file or get it at \\171.65.17.174\MATLAB_Share\Jenkins');
     end
     
     if type == 1
