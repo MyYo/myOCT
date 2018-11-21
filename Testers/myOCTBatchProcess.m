@@ -127,3 +127,6 @@ fid = fopen('WhereAreMyFiles.txt','w');
 fprintf(fid,'here');
 fclose(fid);
 %TBD
+
+%% Safe exist
+exit(0); 
