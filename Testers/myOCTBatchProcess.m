@@ -4,13 +4,19 @@ function myOCTBatchProcess(OCTFolders,config)
 % Any parameters of yOCTLoadInterfFromFile, yOCTInterfToScanCpx can be used. 
 % outputFilePrefix can be set.
 
-addpath(genpath(yOCTMainFolder)); %Add current files to path
-
 %OCTFolders = 's3://delazerda/Jenkins/Wasatch_3D';
 %OCTFolders = '\\171.65.17.174\MATLAB_Share\Brooke\08NOV_INVIVO\Scan\Test5\';
 %OCTFolders = '\\171.65.17.174\MATLAB_Share\Brooke\08NOV_INVIVO\Scan\Scan_0003_ModeSpeckle.oct';
 
-%Make sure we have AWS Cridentials
+
+%% Setup environment
+currentFileFolder = fileparts(mfilename('fullpath'));
+yOCTMainFolder = [currentFileFolder '\..\'];
+addpath(genpath(yOCTMainFolder)); %Add current files to path
+gcp; %Start Parallel Processs
+opengl('save', 'software'); %Increase stubility in OPEN GL
+
+%% Make sure we have AWS Cridentials
 if (strcmpi(OCTFolders(1:3),'s3:'))
     %Load Data from AWS
     yOCTSetAWScredentials (1); %Write cridentials are required
