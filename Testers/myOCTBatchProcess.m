@@ -8,7 +8,7 @@ function myOCTBatchProcess(OCTFolders,config)
 %OCTFolders = '\\171.65.17.174\MATLAB_Share\Brooke\08NOV_INVIVO\Scan\Test5\';
 %OCTFolders = '\\171.65.17.174\MATLAB_Share\Brooke\08NOV_INVIVO\Scan\Scan_0003_ModeSpeckle.oct';
 
-
+try
 %% Setup environment
 currentFileFolder = fileparts(mfilename('fullpath'));
 yOCTMainFolder = [currentFileFolder '\..\'];
@@ -129,4 +129,11 @@ fclose(fid);
 %TBD
 
 %% Safe exist
+catch ME
+    for i=1:length(ME.stack)
+        ME.stack(i)
+    end
+    disp(ME.message); %Write
+    exit(1); %Problem Happend
+end
 exit(0); 
