@@ -73,6 +73,10 @@ for i=1:length(OCTFolders)
             %Unzip using 7-zip
             [~,~] = system('"C:\Program Files\7-Zip\7z.exe" x "tmp.oct" -o"tmp"');
             
+            if ~exist('tmp','dir')
+                error('Faild to unzip');
+            end
+            
             %Upload to bucket
             [~,~] =system(['aws s3 sync tmp "' OCTFolders{i} '"']);
             
