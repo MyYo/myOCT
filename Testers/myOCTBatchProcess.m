@@ -3,7 +3,7 @@ function myOCTBatchProcess(OCTFolders,config)
 %config - key - value cell array for configuration of the excecution 
 % Any parameters of yOCTLoadInterfFromFile, yOCTInterfToScanCpx can be used. 
 % outputFilePrefix can be set.
-
+%OCTFolders = 's3://delazerda/Yonatan/2018-11-08 In Vivo Mouse with Particles/Scan/Scan_0005_ModeSpeckle.oct';
 %OCTFolders = 's3://delazerda/Jenkins/Wasatch_3D';
 %OCTFolders = '\\171.65.17.174\MATLAB_Share\Brooke\08NOV_INVIVO\Scan\Test5\';
 %OCTFolders = '\\171.65.17.174\MATLAB_Share\Brooke\08NOV_INVIVO\Scan\Scan_0003_ModeSpeckle.oct';
@@ -71,7 +71,13 @@ for i=1:length(OCTFolders)
             system(['aws s3 cp "' OCTFolders{i} '.oct" tmp.oct']);
             
             %Unzip using 7-zip
-            system('"C:\Program Files\7-Zip\7z.exe" x "tmp.oct" -o"tmp"');
+            if exist('C:\Program Files\7-Zip\','dir')
+                system('"C:\Program Files\7-Zip\7z.exe" x "tmp.oct" -o"tmp"');
+            elseif exist('C:\Program Files (x86)\7-Zip\','dir')
+                system('"C:\Program Files (x86)\7-Zip\7z.exe" x "tmp.oct" -o"tmp"');
+            else
+                error('Please Install 7-Zip');
+            end
             
             if ~exist('tmp','dir')
                 error('Faild to unzip');
@@ -79,6 +85,7 @@ for i=1:length(OCTFolders)
             
             %Upload to bucket
             system(['aws s3 sync tmp "' OCTFolders{i} '"']);
+            %system(['aws s3 cp tmp\data "' OCTFolders{i} '/data" --recursive']);
             
             %Remove '.oct' file
             system(['aws s3 rm "' OCTFolders{i} '.oct"']);
@@ -86,7 +93,13 @@ for i=1:length(OCTFolders)
             %Unzip to the same folder it came from
             
             %Unzip using 7-zip
-            system(['"C:\Program Files\7-Zip\7z.exe" x "' OCTFolders{i} '.oct" -o"' OCTFolders{i} '"']);
+            if exist('C:\Program Files\7-Zip\','dir')
+                system(['"C:\Program Files\7-Zip\7z.exe" x "' OCTFolders{i} '.oct" -o"' OCTFolders{i} '"']);
+            elseif exist('C:\Program Files (x86)\7-Zip\','dir')
+                system(['"C:\Program Files (x86)\7-Zip\7z.exe" x "' OCTFolders{i} '.oct" -o"' OCTFolders{i} '"']);
+            else
+                error('Please Install 7-Zip');
+            end
             
             %Delete .oct file, we don't need it
             delete([OCTFolders{i} '.oct']);
