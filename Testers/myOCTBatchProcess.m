@@ -68,20 +68,20 @@ for i=1:length(OCTFolders)
             %cloud. 
             
             %Download file from AWS
-            [~,~] = system(['aws s3 cp "' OCTFolders{i} '.oct" tmp.oct']);
+            system(['aws s3 cp "' OCTFolders{i} '.oct" tmp.oct']);
             
             %Unzip using 7-zip
-            [~,~] = system('"C:\Program Files\7-Zip\7z.exe" x "tmp.oct" -o"tmp"');
+            system('"C:\Program Files\7-Zip\7z.exe" x "tmp.oct" -o"tmp"');
             
             if ~exist('tmp','dir')
                 error('Faild to unzip');
             end
             
             %Upload to bucket
-            [~,~] =system(['aws s3 sync tmp "' OCTFolders{i} '"']);
+            system(['aws s3 sync tmp "' OCTFolders{i} '"']);
             
             %Remove '.oct' file
-            [~,~] = system(['aws s3 rm "' OCTFolders{i} '.oct"']);
+            system(['aws s3 rm "' OCTFolders{i} '.oct"']);
         else
             %Unzip to the same folder it came from
             

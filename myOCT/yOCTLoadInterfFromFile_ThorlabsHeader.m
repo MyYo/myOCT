@@ -39,10 +39,10 @@ switch(OCTSystem)
         chirpFileName = 'ChirpGanymede.dat';
         lambdaMin = 824.16;%[nm]
         lambdaMax = 1038.03;%[nm]
-    case 'Telesto'
+    case 'Telesto' 
         chirpFileName = 'ChirpTelesto.dat';
-        lambdaMin = 1200.56;%[nm]
-        lambdaMax = 1367.75;%[nm]
+        lambdaMin = 1208.69;%[nm] Manufacturer number: 1200.56, See 2018-12-04 Filter Calibration Report for more details
+        lambdaMax = 1372.50;%[nm] Manufacturer number: 1367.75, See 2018-12-04 Filter Calibration Report for more details
     
     otherwise
         error('ERROR: Wrong OCTSystem name! (yOCTLoadInterfFromFile_ThorlabsHeader)')
