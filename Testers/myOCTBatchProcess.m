@@ -3,7 +3,8 @@ function myOCTBatchProcess(OCTFolders,config)
 %config - key - value cell array for configuration of the excecution 
 % Any parameters of yOCTLoadInterfFromFile, yOCTInterfToScanCpx can be used. 
 % outputFilePrefix can be set.
-%OCTFolders = 's3://delazerda/Yonatan/2018-11-08 In Vivo Mouse with Particles/Scan/Scan_0005_ModeSpeckle.oct';
+
+%OCTFolders = 's3://delazerda/Yonatan/DiffSpeckleContrast/2018-11-08 In Vivo Mouse with Particles/Scan/Scan_0005_ModeSpeckle';
 %OCTFolders = 's3://delazerda/Jenkins/Wasatch_3D';
 %OCTFolders = '\\171.65.17.174\MATLAB_Share\Brooke\08NOV_INVIVO\Scan\Test5\';
 %OCTFolders = '\\171.65.17.174\MATLAB_Share\Brooke\08NOV_INVIVO\Scan\Scan_0003_ModeSpeckle.oct';
@@ -57,6 +58,13 @@ catch
     error('Not yet supported');
 end
 
+%Make sure we correct for AWS file names
+if isAWS
+    for i=1:length(OCTFolders)
+        OCTFolders{i} = myOCTModifyPathForAWSCompetability(OCTFolders{i});
+    end
+end
+
 %% Process
 for i=1:length(OCTFolders)
     %See if folder is an .OCT file. if so, unzip it first
@@ -66,7 +74,7 @@ for i=1:length(OCTFolders)
         if (isAWS)
             %We will need to unzip file locally then send back to the
             %cloud. 
-            
+                       
             %Download file from AWS
             system(['aws s3 cp "' OCTFolders{i} '.oct" tmp.oct']);
             
