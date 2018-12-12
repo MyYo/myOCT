@@ -76,7 +76,7 @@ for i=1:length(OCTFolders)
             %cloud. 
                        
             %Download file from AWS
-            system(['aws s3 cp "' OCTFolders{i} '.oct" tmp.oct']);
+            system(['aws s3 cp "' strrep(OCTFolders{i},'%20',' ') '.oct" tmp.oct']);
             
             if ~exist('tmp.oct','file')
                 error('File did not download from AWS');
@@ -96,11 +96,11 @@ for i=1:length(OCTFolders)
             end
             
             %Upload to bucket
-            system(['aws s3 sync tmp "' OCTFolders{i} '"']);
+            system(['aws s3 sync tmp "' strrep(OCTFolders{i},'%20',' ') '"']);
             %system(['aws s3 cp tmp\data "' OCTFolders{i} '/data" --recursive']);
             
             %Remove '.oct' file
-            system(['aws s3 rm "' OCTFolders{i} '.oct"']);
+            system(['aws s3 rm "' strrep(OCTFolders{i},'%20',' ') '.oct"']);
         else
             %Unzip to the same folder it came from
             
@@ -162,6 +162,7 @@ fclose(fid);
 
 %% Safe exist
 catch ME
+    disp('Error Happened');
     for i=1:length(ME.stack)
         ME.stack(i)
     end
