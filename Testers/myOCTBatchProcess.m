@@ -78,6 +78,10 @@ for i=1:length(OCTFolders)
             %Download file from AWS
             system(['aws s3 cp "' OCTFolders{i} '.oct" tmp.oct']);
             
+            if ~exist('tmp.oct','file')
+                error('File did not download from AWS');
+            end
+            
             %Unzip using 7-zip
             if exist('C:\Program Files\7-Zip\','dir')
                 system('"C:\Program Files\7-Zip\7z.exe" x "tmp.oct" -o"tmp"');
