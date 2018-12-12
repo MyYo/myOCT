@@ -14,7 +14,6 @@ try
 currentFileFolder = fileparts(mfilename('fullpath'));
 yOCTMainFolder = [currentFileFolder '\..\'];
 addpath(genpath(yOCTMainFolder)); %Add current files to path
-gcp; %Start Parallel Processs
 opengl('save', 'software'); %Increase stubility in OPEN GL
 
 %% Make sure we have AWS Cridentials
@@ -65,7 +64,7 @@ if isAWS
     end
 end
 
-%% Process
+%% Preprocess
 for i=1:length(OCTFolders)
     %See if folder is an .OCT file. if so, unzip it first
     if (strcmpi(OCTFolders{i}(end+(-3:0)),'.oct'))
@@ -117,6 +116,11 @@ for i=1:length(OCTFolders)
             delete([OCTFolders{i} '.oct']);
         end
     end
+end
+
+%% Process
+gcp; %Start Parallel Processs
+for i=1:length(OCTFolders)
     
     %Find folder's name
     folderName = split(OCTFolders{i},{'/','\'});
