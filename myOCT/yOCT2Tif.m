@@ -17,7 +17,7 @@ if (strcmpi(filepath(1:3),'s3:'))
     isAWS = true;
     yOCTSetAWScredentials(1); %Use the advanced version as uploading is more challenging
     awsFilePath = filepath;
-    awsFilePath = myOCTModifyPathForAWSCompetability(awsFilePath);
+    awsFilePath = myOCTModifyPathForAWSCompetability(awsFilePath,true); %We will use this path for AWS CLI
     filepath = [tempname '.tif'];
 else
     isAWS = false;

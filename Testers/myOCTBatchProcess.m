@@ -57,15 +57,13 @@ catch
     error('Not yet supported');
 end
 
-%Make sure we correct for AWS file names
-if isAWS
-    for i=1:length(OCTFolders)
-        OCTFolders{i} = myOCTModifyPathForAWSCompetability(OCTFolders{i});
-    end
-end
-
 %% Preprocess
 for i=1:length(OCTFolders)
+    if isAWS
+        %Make sure we correct for AWS file names
+        OCTFolders{i} = myOCTModifyPathForAWSCompetability(OCTFolders{i},true); %Used for CLI
+    end
+    
     %See if folder is an .OCT file. if so, unzip it first
     if (strcmpi(OCTFolders{i}(end+(-3:0)),'.oct'))
         disp(['Unzipping ' OCTFolders{i}]);
@@ -75,7 +73,7 @@ for i=1:length(OCTFolders)
             %cloud. 
                        
             %Download file from AWS
-            system(['aws s3 cp "' strrep(OCTFolders{i},'%20',' ') '.oct" tmp.oct']);
+            system(['aws s3 cp "' OCTFolders{i} '.oct" tmp.oct']);
             
             if ~exist('tmp.oct','file')
                 error('File did not download from AWS');
@@ -95,11 +93,11 @@ for i=1:length(OCTFolders)
             end
             
             %Upload to bucket
-            system(['aws s3 sync tmp "' strrep(OCTFolders{i},'%20',' ') '"']);
+            system(['aws s3 sync tmp "' OCTFolders{i} '"']);
             %system(['aws s3 cp tmp\data "' OCTFolders{i} '/data" --recursive']);
             
             %Remove '.oct' file
-            system(['aws s3 rm "' strrep(OCTFolders{i},'%20',' ') '.oct"']);
+            system(['aws s3 rm "' OCTFolders{i} '.oct"']);
         else
             %Unzip to the same folder it came from
             
