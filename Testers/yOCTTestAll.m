@@ -1,7 +1,8 @@
 %This is the master tester, runs all!
 %Designed to be run using Jenkins
 
-try
+%try
+
 %% Setup environment
 currentFileFolder = fileparts(mfilename('fullpath'));
 yOCTMainFolder = [currentFileFolder '\..\'];
@@ -24,12 +25,12 @@ for i=1:length(d)
 end
 
 %% Done!
-disp('All Tests Completed');
-catch ME
-    for i=1:length(ME.stack)
-        ME.stack(i)
-    end
-    disp(ME.message); %Write
-    exit(1); %Problem Happend
-end
-exit(0); %Safe exist
+%disp('All Tests Completed');
+%catch ME
+%    for i=1:length(ME.stack)
+%        ME.stack(i)
+%    end
+%    disp(ME.message); %Write
+%    exit(1); %Problem Happend
+%end
+%exit(0); %Safe exist
