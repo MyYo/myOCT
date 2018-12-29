@@ -4,12 +4,13 @@ function myOCTBatchProcess(OCTFolders,config)
 % Any parameters of yOCTLoadInterfFromFile, yOCTInterfToScanCpx can be used. 
 % outputFilePrefix can be set.
 
-%OCTFolders = 's3://delazerda/Yonatan/DiffSpeckleContrast/2018-11-08 In Vivo Mouse with Particles/Scan/Scan_0005_ModeSpeckle';
-%OCTFolders = 's3://delazerda/Jenkins/Wasatch_3D';
+%OCTFolders = 's3://delazerda\Yonatan\DiffSpeckleContrast\2018-11-08 In Vivo Mouse with Particles/PreScan/PreScan_0002_ModeSpeckle';
+%config = [{'band'} {1320 + 5 + [-25 +25]} {'outputFilePrefix'} {'1325nm_WindowSize50'}];
 %OCTFolders = '\\171.65.17.174\MATLAB_Share\Brooke\08NOV_INVIVO\Scan\Test5\';
 %OCTFolders = '\\171.65.17.174\MATLAB_Share\Brooke\08NOV_INVIVO\Scan\Scan_0003_ModeSpeckle.oct';
 
-try
+%try
+
 %% Setup environment
 currentFileFolder = fileparts(mfilename('fullpath'));
 yOCTMainFolder = [currentFileFolder '\..\'];
@@ -162,13 +163,13 @@ fprintf(fid,'here');
 fclose(fid);
 %TBD
 
-%% Safe exist
-catch ME
-    disp('Error Happened');
-    for i=1:length(ME.stack)
-        ME.stack(i)
-    end
-    disp(ME.message); %Write
-    exit(1); %Problem Happend
-end
+
+%catch ME
+%    disp('Error Happened');
+%    for i=1:length(ME.stack)
+%        ME.stack(i)
+%    end
+%    disp(ME.message); %Write
+%    exit(1); %Problem Happend
+%end
 exit(0); 
