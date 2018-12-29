@@ -140,8 +140,8 @@ for i=1:length(OCTFolders)
     speckleVariance = speckleVariance./meanAbs;
 
     %Save data
-    yOCT2Tif(mag2db(meanAbs),[OCTFolders{i} '/' outputFilePrefix 'scanAbs.tif'],[],true); %Save to File
-    yOCT2Tif(meanAbs,        [OCTFolders{i} '/' outputFilePrefix 'scanAbs.mat'],[],true); %Save raw data to File
+    yOCT2Tif(mag2db(meanAbs),[OCTFolders{i} '/' outputFilePrefix 'scanAbs.tif']); %Save to File
+    yOCT2Mat(meanAbs,        [OCTFolders{i} '/' outputFilePrefix 'scanAbs.mat']); %Save raw data to File
     yOCT2Tif(speckleVariance,[OCTFolders{i} '/' outputFilePrefix 'speckleVariance.tif']); %Save to File
     
     %Save Overview files
