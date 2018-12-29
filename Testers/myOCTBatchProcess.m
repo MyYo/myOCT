@@ -172,4 +172,4 @@ fclose(fid);
 %    disp(ME.message); %Write
 %    exit(1); %Problem Happend
 %end
-exit(0); 
+%exit(0); 
