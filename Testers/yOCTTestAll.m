@@ -25,7 +25,7 @@ for i=1:length(d)
 end
 
 %% Done!
-%disp('All Tests Completed');
+disp('All Tests Completed');
 %catch ME
 %    for i=1:length(ME.stack)
 %        ME.stack(i)
