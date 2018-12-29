@@ -1,4 +1,4 @@
-function yOCT2Mat(filepath,data)
+function yOCT2Mat(data,filepath)
 %This function saves data to mat file (local or in cloud)
 %INPUTS
 %   filepath - filepath of output tif file
