@@ -1,0 +1,18 @@
+#This file is an example how to write an Execute Windows Batch Command in Jenkins to make a runme file that runs the stuff you want
+
+#Build runme file
+echo try > runme.m
+
+#Actual thing to run:
+echo yOCTTestAll; >> runme.m
+
+#Error handeling
+echo exit(0); >> runme.m
+echo catch ME >> runme.m
+echo disp('Error Happened'); >> runme.m
+echo for i=1:length(ME.stack) >> runme.m
+echo  ME.stack(i) >> runme.m
+echo end >> runme.m
+echo disp(ME.message); >> runme.m
+echo exit(1); >> runme.m
+echo end >> runme.m
