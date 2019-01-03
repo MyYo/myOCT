@@ -4,14 +4,13 @@
 %Wasatch
 filePath = ['\\171.65.17.174\MATLAB_Share\Jenkins\myOCT Build\TestVectors\' ...
     'Wasatch_2D_BScanAvg\'];
-OCTSystem = 'Wasatch';
 dispersionParameterA = 100; %Use Demo_DispersionCorrection to find the term
 
 %% Process
 tic;
 
 %Load Intef From file
-[interf,dimensions] = yOCTLoadInterfFromFile(filePath,'OCTSystem',OCTSystem);
+[interf,dimensions] = yOCTLoadInterfFromFile(filePath);
 
 %Generate BScans
 scanCpx = yOCTInterfToScanCpx(interf,dimensions ...

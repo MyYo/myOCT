@@ -135,8 +135,6 @@ for i=1:length(OCTFolders)
         'showStats',true} config]);
     
     %Modify Speckle Variance
-    speckleVariance(meanAbs<3) = 0; %Threshlod
-    speckleVariance(1:50,:,:) = 0; %Top of the image is usually noise
     speckleVariance = speckleVariance./meanAbs;
 
     %Save data
@@ -150,7 +148,10 @@ for i=1:length(OCTFolders)
     yOCT2Tif(mag2db(squeeze(meanAbs(:,:,end))),[folderName outputFilePrefix sprintf('BScan_%d.tif',size(meanAbs,3))]);
     
     %Max Projection
-    mp = squeeze(max(speckleVariance,[],1)); %Project along z
+    mpSV = speckleVariance;
+    mpSV(meanAbs<1) = 0; %Threshlod
+    mpSV(1:50,:,:) = 0; %Top of the image is usually noise
+    mp = squeeze(max(mpSV,[],1)); %Project along z
     yOCT2Tif(mp,[folderName outputFilePrefix 'speckleVarMaxProjection.tif']);
 end
 
