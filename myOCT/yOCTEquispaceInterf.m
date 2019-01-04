@@ -1,4 +1,4 @@
-function [interfe,dimensionse] = yOCTEquispaceInterf(varargin)
+function [interfe,dimensionse] = yOCTEquispaceInterf(interf,dimensions,interpMethod)
 %In most cases, the interferogram recorded by OCT system is not equispaced
 %in k. Therefore yOCTInterfToScanCpx has to preform DFT which is slower
 %then FFT (run speed of n^2 instead of n*log n. yOCTEquispaceInterf
@@ -24,17 +24,8 @@ function [interfe,dimensionse] = yOCTEquispaceInterf(varargin)
 %   - dimensions - dimensions structure corrected to acount for equispacing
 
 %% Input
-if (iscell(varargin{1}))
-    %the first varible contains a cell with the rest of the varibles, open it
-    varargin = varargin{1};
-end 
-interf = varargin{1};
-dimensions = varargin{2};
-
-if length(varagin)<3
+if ~exist('interpMethod','var') || isempty(interpMethod)
     interpMethod = 'pchip';
-else
-    interpMethod = varargin{3};
 end
 
 %% Data Structure

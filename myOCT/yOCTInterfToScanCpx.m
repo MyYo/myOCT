@@ -13,6 +13,8 @@ function scanCpx = yOCTInterfToScanCpx (varargin)
 %          [nm^2/rad]. Default value is 100
 %       - 'band',[start end] - Use a Hann filter to filter out part of the
 %          spectrum. Units are [nm]. Default is all spectrum
+%       - 'interpMethod', see help yOCTEquispaceInterf for interpetation
+%           methods
 %OUTPUT
 %   BScanCpx - where lambda dimension is replaced by z
 %
@@ -28,11 +30,11 @@ interferogram = varargin{1};
 dimensions = varargin{2};
 
 %Optional Parameters
-optionalParameters = varargin(3:end);
 dispersionParameterA = 100; %Default Value
 band = [];
-for i=1:2:length(optionalParameters)
-   eval([optionalParameters{i} ' = optionalParameters{i+1};']); %<-TBD - there should be a safer way
+interpMethod = []; %Default
+for i=3:2:length(varargin)
+   eval([varargin{i} ' = varargin{i+1};']); %<-TBD - there should be a safer way
 end
 
 %% Check if interferogram is equispaced. If not, equispace it before processing
@@ -41,7 +43,7 @@ k = 2*pi./(lambda); %Get wave lumber in [1/nm]
 
 if (abs((max(diff(k)) - min(diff(k)))/max(k)) > 1e-10)
     %Not equispaced, equispacing needed
-    [interferogram,dimensions] = yOCTEquispaceInterf([{interferogram},{dimensions},optionalParameters]);
+    [interferogram,dimensions] = yOCTEquispaceInterf(interferogram,dimensions,interpMethod);
     
     lambda = dimensions.lambda.values;
     k = 2*pi./(lambda); %Get wave lumber in [1/nm]
