@@ -28,10 +28,11 @@ interferogram = varargin{1};
 dimensions = varargin{2};
 
 %Optional Parameters
+optionalParameters = varargin(3:end);
 dispersionParameterA = 100; %Default Value
 band = [];
-for i=3:2:length(varargin)
-   eval([varargin{i} ' = varargin{i+1};']); %<-TBD - there should be a safer way
+for i=1:2:length(optionalParameters)
+   eval([optionalParameters{i} ' = optionalParameters{i+1};']); %<-TBD - there should be a safer way
 end
 
 %% Check if interferogram is equispaced. If not, equispace it before processing
@@ -40,7 +41,7 @@ k = 2*pi./(lambda); %Get wave lumber in [1/nm]
 
 if (abs((max(diff(k)) - min(diff(k)))/max(k)) > 1e-10)
     %Not equispaced, equispacing needed
-    [interferogram,dimensions] = yOCTEquispaceInterf(interferogram,dimensions);
+    [interferogram,dimensions] = yOCTEquispaceInterf([{interferogram},{dimensions},optionalParameters]);
     
     lambda = dimensions.lambda.values;
     k = 2*pi./(lambda); %Get wave lumber in [1/nm]
