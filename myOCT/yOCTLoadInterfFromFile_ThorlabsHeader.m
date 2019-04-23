@@ -30,10 +30,6 @@ end
 
 %% Figure out basic Parameters
 
-%Get OCT Chirp file and lambda min & max
-%Original chirp files are installed with Thorlabs software at: C:\Program Files\Thorlabs\SpectralRadar\Config\Chirp.dat
-%They can also be extracted from the OCT Folder at [inputDataFolder '\data\Chirp.data']. 
-%To load file from OCT folder use chirp = fread(fid, 2048, 'float32');
 %To get lambda min & max we contacted thorlabs
 switch(OCTSystem)
     case 'Ganymede'
@@ -52,13 +48,7 @@ end
 %% Figure out lambda
 
 %Load chirp 
-currentFileFolder = [fileparts(mfilename('fullpath')) '/'];
-if exist([currentFileFolder chirpFileName]','file')
-    ds=fileDatastore([currentFileFolder chirpFileName],'ReadFcn',@readChirpTxt);
-else
-    %Cannot find file locally, read it from data folder
-    ds=fileDatastore([inputDataFolder '/data/chirp.data'],'ReadFcn',@readChirpBin);
-end
+ds=fileDatastore([inputDataFolder '/data/chirp.data'],'ReadFcn',@readChirpBin);
 chirp = ds.read;
 
 %We belive that chirp describes the corrections for k. meaning
