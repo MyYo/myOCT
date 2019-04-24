@@ -48,8 +48,20 @@ end
 %% Figure out lambda
 
 %Load chirp 
-ds=fileDatastore([inputDataFolder '/data/chirp.data'],'ReadFcn',@readChirpBin);
-chirp = ds.read;
+try
+    ds=fileDatastore([inputDataFolder '/data/chirp.data'],'ReadFcn',@readChirpBin);
+    chirp = ds.read;
+catch
+    %Couldn't load chirp file, try loading a local file instead
+    warning('Could not find chirp file in OCT folder, loading local file instead');
+    currentFileFolder = [fileparts(mfilename('fullpath')) '/'];
+    if exist([currentFileFolder chirpFileName]','file')
+        ds=fileDatastore([currentFileFolder chirpFileName],'ReadFcn',@readChirpTxt);
+        chirp = ds.read;
+    else
+        error('Did not find chirp file');
+    end
+end
 
 %We belive that chirp describes the corrections for k. meaning
 %k(i) = chirp(i)*A+B. Since lambda = 2*pi/k = 2*pi/(chirp*A+B) then
