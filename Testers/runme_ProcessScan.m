@@ -1,7 +1,6 @@
 function runme_ProcessScan(OCTFolderPath,executionConfiguration)
 %Jenkins will run this to process scans:
-%OCTFolderPath='%OCT_FOLDER_PATH%',
-%executionConfiguration = {%EXECUTION_CONFIGURATION%}
+%Jenkins executable: runme_ProcessScan('%OCT_FOLDER_PATH%',{%EXECUTION_CONFIGURATION%})
 
 try 
 	myOCTBatchProcess(OCTFolderPath,executionConfiguration); 
