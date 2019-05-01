@@ -54,8 +54,35 @@ try
 	OCTFolders = {OCTFolders}; 
 catch
     %We failed, meaning this folder is not an OCT Folder, maybe it is a folder of folders
-    %TBD in future versions
-    error('Not yet supported');
+	
+	%Get All Uncompressed OCT Files
+	try
+		ds=fileDatastore(OCTFolders,'ReadFcn',@(x)(x),'IncludeSubfolders',true,'FileExtensions','.oct');
+		OCTFolders_Out = ds.Files(:);
+	catch
+		%No .oct
+		OCTFolders_Out = {};
+	end
+
+	%Get All OCT Folders in that subfoler
+	try
+		ds=fileDatastore(OCTFolders,'ReadFcn',@(x)(x),'IncludeSubfolders',true,'FileExtensions',...
+			{...
+			'.xml' ... Thorlabs
+			'.bin','.tif' ... Wasatch
+			});
+		xmls = ds.Files(:);
+		tmp = cellfun(@(x)(fileparts(x)),xmls,'UniformOutput',false);
+		OCTFolders_Out = [OCTFolders_Out ; tmp];
+		OCTFolders_Out = unique(OCTFolders_Out);
+	catch
+		%No other files
+	end
+	
+	if (isempty(OCTFolders_Out))
+		error([ OCTFolders 'Does not have any OCT files or folders']);
+	end
+	OCTFolders = OCTFolders_Out;
 end
 
 %% Preprocess
