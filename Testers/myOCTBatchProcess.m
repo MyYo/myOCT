@@ -157,7 +157,7 @@ for i=1:length(OCTFolders)
     fprintf('Processing File: %s (%d of %d) ...\n',folderName,i,length(OCTFolders));
 	
 	%Make sure this is atleast a 2D scan, otherwise we don't sopport it
-	pk = yOCTLoadInterfFromFile(OCTFolders{i},'PeakOnly',true)
+	pk = yOCTLoadInterfFromFile(OCTFolders{i},'PeakOnly',true);
 	if (length(pk.x.values) == 1)
 		fprintf('This is a 1D file, not supported as we might not have apodization data\n');
 		continue;
