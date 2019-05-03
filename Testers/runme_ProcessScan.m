@@ -1,4 +1,4 @@
-function runme_ProcessScan(OCTFolderPath,executionConfiguration)
+function runme_ProcessScan(OCTFolderPath,executionConfiguration,isClusterConnect)
 %This function process scans in a folder, is executed by Jenkins. 
 %Its roal is to handle errors, exit
 %after execution and handeling execution of parallel cluster.
@@ -20,12 +20,22 @@ try
     %   C:\Users\<My User>\AppData\Roaming\MathWorks\MATLAB\<Which Matlab>\
     %Copy files to:
     %   C:\Windows\System32\config\systemprofile\AppData\Roaming\MathWorks\MATLAB\<Which Matlab>\
-    if false %Do we need to connect to cluster
-        
+    if isClusterConnect %Do we need to connect to cluster
+        myCluster = parcluster('delazerdatrial1');
+        start(myCluster);
+        wait(myCluster); % Wait for the cluster to be ready to accept job submissions
+        myPool=parpool(myCluster); %Create parallel pool on cluster
     end
     
     %Process all OCT scans in the folder
 	myOCTBatchProcess(OCTFolderPath,executionConfiguration); 
+    
+    %If Cluster is on, shut it down
+    if isClusterConnect
+        delete(myPool)
+        shutdown(myCluster) 
+        wait(myCluster)
+    end
 catch ME 
     %Error Hendle
 	disp(' '); 
