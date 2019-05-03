@@ -6,7 +6,6 @@ function Demo_Spectral
 %Ganymede
 filePath = ['\\171.65.17.174\MATLAB_Share\Jenkins\myOCT Build\TestVectors\' ...
     'Ganymede_2D_BScanAvg\'];
-OCTSystem = 'Ganymede';
 
 global dispersionParameterA
 dispersionParameterA = 100; %Use Demo_DispersionCorrection to find the term
@@ -20,7 +19,7 @@ global bandWidth
 tic;
 
 %Load Intef From file
-[interf,dimensions,apodization] = yOCTLoadInterfFromFile(filePath,'OCTSystem',OCTSystem ...
+[interf,dimensions,apodization] = yOCTLoadInterfFromFile(filePath ...
     ,'BScanAvgFramesToProcess', 1 ... To save time, load first few BScans. Comment out this line to load all BScans
     );
 

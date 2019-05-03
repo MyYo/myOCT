@@ -7,12 +7,10 @@ close all;
 %Ganymede
 filePath = ['\\171.65.17.174\MATLAB_Share\Jenkins\myOCT Build\TestVectors\' ...
     'Wasatch_3D'];
-OCTSystem = 'Wasatch';
-dispersionParameterA = 100; %Use Demo_DispersionCorrection to find the term
 
 %% Pre-Process
 %Load Intef From file
-[interf,dimensions] = yOCTLoadInterfFromFile(filePath,'OCTSystem',OCTSystem ...
+[interf,dimensions] = yOCTLoadInterfFromFile(filePath ...
     ,'BScanAvgFramesToProcess', 1 ... To compute dispersion correction only 1 frame is required
     ,'YFramesToProcess',1         ... To compute dispersion correction only 1 frame is required
     );
