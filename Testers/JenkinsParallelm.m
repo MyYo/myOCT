@@ -1,3 +1,4 @@
+function JenkinsParallelm(a,b,c) 
 myCluster = parcluster('delazerdatrial1')
 start(myCluster)
 wait(myCluster) % Wait for the cluster to be ready to accept job submissions
@@ -10,3 +11,4 @@ wait(myCluster)
 myCluster
 myPool
 exit(0)
+end
