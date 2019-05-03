@@ -3,6 +3,7 @@ function myOCTBatchProcess(OCTFolders,config)
 %config - key - value cell array for configuration of the excecution 
 % Any parameters of yOCTLoadInterfFromFile, yOCTInterfToScanCpx can be used. 
 % outputFilePrefix can be set.
+%Can process 2D or 3D volumes
 
 %OCTFolders = 's3://delazerda\Yonatan\DiffSpeckleContrast\2018-11-08 In Vivo Mouse with Particles/PreScan/PreScan_0002_ModeSpeckle';
 %config = [{'band'} {1320 + 5 + [-25 +25]} {'outputFilePrefix'} {'1325nm_WindowSize50'}];
@@ -154,6 +155,13 @@ for i=1:length(OCTFolders)
     folderName = folderName{end};
     
     fprintf('Processing File: %s (%d of %d) ...\n',folderName,i,length(OCTFolders));
+	
+	%Make sure this is atleast a 2D scan, otherwise we don't sopport it
+	pk = yOCTLoadInterfFromFile(OCTFolders{i},'PeakOnly',true)
+	if (length(pk.x.values) == 1)
+		fprintf('This is a 1D file, not supported as we might not have apodization data\n');
+		continue;
+	end	
         
     %Load OCT Data, parllel computing style
     [meanAbs,speckleVariance] = yOCTProcessScan([{OCTFolders{i}, ...
