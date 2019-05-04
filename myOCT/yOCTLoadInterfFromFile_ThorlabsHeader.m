@@ -49,7 +49,12 @@ end
 
 %Load chirp 
 try
-    ds=fileDatastore([inputDataFolder '/data/chirp.data'],'ReadFcn',@readChirpBin);
+    try
+        ds=fileDatastore([inputDataFolder '/data/Chirp.data'],'ReadFcn',@readChirpBin);
+    catch
+        %Try with lower case
+        ds=fileDatastore([inputDataFolder '/data/chirp.data'],'ReadFcn',@readChirpBin);
+    end
     chirp = ds.read;
 catch
     %Couldn't load chirp file, try loading a local file instead
