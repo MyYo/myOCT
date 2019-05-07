@@ -25,18 +25,22 @@ try
         start(myCluster);
         wait(myCluster); % Wait for the cluster to be ready to accept job submissions
         myPool=parpool(myCluster); %Create parallel pool on cluster
+    else
+        %Start a local pool
+        myPool=parpool('local'); 
     end
     
     %Process all OCT scans in the folder
 	myOCTBatchProcess(OCTFolderPath,executionConfiguration); 
     
     %If Cluster is on, shut it down
+    delete(myPool)
     if isClusterConnect
-        delete(myPool)
         shutdown(myCluster) 
         wait(myCluster)
     end
 catch ME 
+    
     %Error Hendle
 	disp(' '); 
 	disp('Error Happened'); 
