@@ -81,7 +81,7 @@ catch
 	end
 	
 	if (isempty(OCTFolders_Out))
-		error([ OCTFolders 'Does not have any OCT files or folders']);
+		error([ OCTFolders ' Does not have any OCT files or folders']);
 	end
 	OCTFolders = OCTFolders_Out;
 end
