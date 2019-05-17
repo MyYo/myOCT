@@ -20,28 +20,60 @@ try
     %   C:\Users\<My User>\AppData\Roaming\MathWorks\MATLAB\<Which Matlab>\
     %Copy files to:
     %   C:\Windows\System32\config\systemprofile\AppData\Roaming\MathWorks\MATLAB\<Which Matlab>\
+    
     if isClusterConnect %Do we need to connect to cluster
-        myCluster = parcluster('delazerdatrial1');
-        start(myCluster);
-        wait(myCluster); % Wait for the cluster to be ready to accept job submissions
-        myPool=parpool(myCluster); %Create parallel pool on cluster
-    else
-        %Start a local pool
-        myPool=parpool('local'); 
+        myCluster = parcluster('delaZerdaParallel');
+        switch myCluster.State %All Cluster's scenarios
+            case 'offline'
+                start(myCluster);
+                wait(myCluster); %Wait for the cluster to be ready to accept job submissions
+                myPool=parpool(myCluster); %Create parallel pool on cluster
+            case 'starting'
+                wait(myCluster); %Wait for the cluster to be ready to accept job submissions
+                myPool=parpool(myCluster); %Create parallel pool on cluster
+            case 'stopping'
+                wait(myCluster); %Wait for the cluster to stop
+                start(myCluster);
+                wait(myCluster);
+                myPool=parpool(myCluster); %Create parallel pool on cluster
+            case 'online'
+                mypool=gcp;
+                if (mypool.Connected ~= 1)
+                    myPool=parpool(myCluster);
+                end
+        end
     end
     
     %Process all OCT scans in the folder
 	myOCTBatchProcess(OCTFolderPath,executionConfiguration); 
     
-    %If Cluster is on, shut it down
-    delete(myPool)
-    if isClusterConnect
-        shutdown(myCluster) 
-        wait(myCluster)
+    %If Cluster is on shut it down
+     if isClusterConnect 
+        switch myCluster.State %All the scenarios the cluster can be in
+            case 'starting'
+                wait(myCluster);
+                shutdown(myCluster);
+            case 'stopping'
+                wait(myCluster); %Wait for the cluster to stop
+            case 'online'
+                shutdown(myCluster);
+                wait(myCluster);
+            case 'offline' 
+                %do nothing
+        end
     end
-catch ME 
     
+catch ME 
     %Error Hendle
+    if isClusterConnect
+        if ((strcmp(myCluster.State,'offline')==0) && strcmp(myCluster.State,'stopping')==0) %If Cluster is on/starting
+            delete(myPool);
+            wait(myCluster);
+            shutdown(myCluster);
+            wait(myCluster);
+        end
+    end
+       
 	disp(' '); 
 	disp('Error Happened'); 
 	for i=1:length(ME.stack) 
