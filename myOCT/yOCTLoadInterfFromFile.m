@@ -7,7 +7,7 @@ function [interferogram, dimensions, apodization,prof] = yOCTLoadInterfFromFile(
 %       yOCTLoadInterfFromFile(inputDataFolder,'param1',value1,'param2',value2,...)
 %
 % INPUTS:
-%   - inputDataFolder - OCT data folder / AWS data folder
+%   - inputDataFolder - OCT data folder / AWS data folder (s3:\)
 % LIST OF OPTIONAL PARAMETERS AND VALUES
 % Parameter                 Default     Information & Values
 % 'OCTSystem'               ''          OCT System Name, can be 'Ganymede', 'Telesto' or 'Wasatch'. 

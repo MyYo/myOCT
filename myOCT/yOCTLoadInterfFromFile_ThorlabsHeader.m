@@ -1,7 +1,7 @@
 function dimensions = yOCTLoadInterfFromFile_ThorlabsHeader (inputDataFolder)
-%This function loads dimensions structure from xml header
+%This function loads dimensions structure header
 % INPUTS:
-%   - inputDataFolder - OCT folder with header.xml file
+%   - inputDataFolder - OCT folder with header.xml file or srr files
 %   - OCTSystem - OCT System name
 
 if (strcmpi(inputDataFolder(1:3),'s3:'))
@@ -28,62 +28,13 @@ else
     OCTSystem = 'Unknown';
 end
 
-%% Figure out basic Parameters
-
-%To get lambda min & max we contacted thorlabs
-switch(OCTSystem)
-    case 'Ganymede'
-        chirpFileName = 'ChirpGanymede.dat';
-        lambdaMin = 824.16;%[nm]
-        lambdaMax = 1038.03;%[nm]
-    case 'Telesto' 
-        chirpFileName = 'ChirpTelesto.dat';
-        lambdaMin = 1208.69;%[nm] Manufacturer number: 1200.56, See 2018-12-04 Filter Calibration Report for more details
-        lambdaMax = 1372.50;%[nm] Manufacturer number: 1367.75, See 2018-12-04 Filter Calibration Report for more details
-    
-    otherwise
-        error('ERROR: Wrong OCTSystem name! (yOCTLoadInterfFromFile_ThorlabsHeader)')
-end
-
-%% Figure out lambda
-
-%Load chirp 
-try
-    try
-        ds=fileDatastore([inputDataFolder '/data/Chirp.data'],'ReadFcn',@readChirpBin);
-    catch
-        %Try with lower case
-        ds=fileDatastore([inputDataFolder '/data/chirp.data'],'ReadFcn',@readChirpBin);
-    end
-    chirp = ds.read;
-catch
-    %Couldn't load chirp file, try loading a local file instead
-    warning('Could not find chirp file in OCT folder, loading local file instead');
-    currentFileFolder = [fileparts(mfilename('fullpath')) '/'];
-    if exist([currentFileFolder chirpFileName]','file')
-        ds=fileDatastore([currentFileFolder chirpFileName],'ReadFcn',@readChirpTxt);
-        chirp = ds.read;
-    else
-        error('Did not find chirp file');
-    end
-end
-
-%We belive that chirp describes the corrections for k. meaning
-%k(i) = chirp(i)*A+B. Since lambda = 2*pi/k = 2*pi/(chirp*A+B) then
-lambda = 1./( ...
-            chirp .* ( 1/(length(chirp)-1)*(1/lambdaMax-1/lambdaMin) )+... chirp*A/2pi
-            1/lambdaMin ... B/2pi
-        );
 
 %% Process Xml
 
 order = 1;
 
 %Lambda Size
-dimensions.lambda.order  = order;
-dimensions.lambda.values = lambda;
-dimensions.lambda.values = dimensions.lambda.values(:)';
-dimensions.lambda.units = 'nm';
+dimensions = yOCTLoadInterfFromFile_ThorlabsHeaderLambda(inputDataFolder,OCTSystem);
 order = order + 1;
 
 try
@@ -211,16 +162,4 @@ dimensions.aux.apodSize = str2double(xDoc.DataFiles.DataFile{spectralInd}.Attrib
 %A Scan Binning if relevant
 dimensions.aux.AScanBinning = str2double(xDoc.Acquisition.IntensityAveraging.Spectra.Text);
 
-end
-
-function chirp = readChirpTxt(fp)
-fid = fopen(fp);
-chirp = textscan(fid,'%f');
-chirp = chirp{1};
-fclose(fid);
-end
-function chirp = readChirpBin(fp)
-fid = fopen(fp);
-chirp  = fread(fid, 'float32');
-fclose(fid);
 end
