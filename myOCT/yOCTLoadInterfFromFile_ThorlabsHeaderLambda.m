@@ -49,7 +49,7 @@ lambda = 1./( ...
             1/lambdaMin ... B/2pi
         );
 
-dimensions.lambda.order  = order;
+dimensions.lambda.order  = 1;
 dimensions.lambda.values = lambda;
 dimensions.lambda.values = dimensions.lambda.values(:)';
 dimensions.lambda.units = 'nm';
