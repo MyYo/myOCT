@@ -76,8 +76,14 @@ if isempty(OCTSystem)
         yOCTLoadInterfFromFile_ThorlabsHeader(inputDataFolder);
         OCTSystemManufacturer = 'Thorlabs'; %Header can be read by Thorlabs
     catch
-        %This is not a thorlabs system
-        OCTSystemManufacturer = 'Wasatch';
+        try 
+            %Is this a Thorlabs system but loads SRR?
+            yOCTLoadInterfFromFile_ThorlabsSRRHeader(inputDataFolder);
+            OCTSystemManufacturer = 'Thorlabs_SRR'; %Header can be read by Thorlabs SRR Mode            
+        catch
+            %This is not a thorlabs system
+            OCTSystemManufacturer = 'Wasatch';
+        end
     end 
 else
     switch(OCTSystem)
@@ -96,7 +102,17 @@ if ~exist('dimensions','var')
     %Load header information
     switch(OCTSystemManufacturer)
         case {'Thorlabs'}
-            dimensions = yOCTLoadInterfFromFile_ThorlabsHeader(inputDataFolder);
+            try
+                dimensions = yOCTLoadInterfFromFile_ThorlabsHeader(inputDataFolder);
+            catch
+                %This can be read by SRR file maybe?
+                dimensions = yOCTLoadInterfFromFile_ThorlabsSRRHeader(inputDataFolder);
+                OCTSystemManufacturer = 'Thorlabs_SRR'; %Yep, change system to SRR
+            end
+        
+        case {'Thorlabs_SRR'}
+            dimensions = yOCTLoadInterfFromFile_ThorlabsSRRHeader(inputDataFolder);
+                
         case {'Wasatch'}
             dimensions = yOCTLoadInterfFromFile_WasatchHeader(inputDataFolder);
     end
@@ -150,6 +166,8 @@ end
 switch(OCTSystemManufacturer)
     case {'Thorlabs'}
         [interferogram, apodization, prof] = yOCTLoadInterfFromFile_ThorlabsData([varargin {'dimensions'} {dimensions}]);
+    case {'Thorlabs_SRR'}
+        [interferogram, apodization, prof] = yOCTLoadInterfFromFile_ThorlabsSRRData([varargin {'dimensions'} {dimensions}]);
     case {'Wasatch'}
         [interferogram, apodization, prof] = yOCTLoadInterfFromFile_WasatchData([varargin {'dimensions'} {dimensions}]);
 end

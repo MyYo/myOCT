@@ -1,5 +1,6 @@
-function [interferogram, apodization,prof] = yOCTLoadInterfFromFile_ThorlabsData(varargin)
+function [interferogram, apodization,prof] = yOCTLoadInterfFromFile_ThorlabsSRRData(varargin)
 %Interface implementation of yOCTLoadInterfFromFile. See help yOCTLoadInterfFromFile
+%Reads SRR files
 % OUTPUTS:
 %   - interferogram - interferogram data, apodization corrected. 
 %       Dimensions order (lambda,x,y,AScanAvg,BScanAvg). 
@@ -35,38 +36,14 @@ end
 %% Determine dimensions
 [sizeLambda, sizeX, sizeY, AScanAvgN, BScanAvgN] = yOCTLoadInterfFromFile_DataSizing(dimensions);   
 
-if (sizeX == 1)
-    %% 1D Mode, Different loading scheme
-    
-    prof.numberOfFramesLoaded = 1;
-    tic;
-    ds=fileDatastore([inputDataFolder '/data/SpectralFloat.data'],'ReadFcn',@(a)(DSRead(a,'float32')));
-    temp = double(ds.read);
-    prof.totalFrameLoadTimeSec = toc;
-    temp = reshape(temp,[sizeLambda,AScanAvgN]);
-    interferogram = zeros(sizeLambda,sizeX,sizeY, AScanAvgN, BScanAvgN);
-    interferogram(:,1,1,:,1) = temp;
-    apodization = NaN; %No Apodization in file
-    return;
-end
-
-interfSize = dimensions.aux.interfSize;
-apodSize = dimensions.aux.apodSize;
-AScanBinning = dimensions.aux.AScanBinning;
+interfSize = dimensions.aux.scanend - dimensions.aux.scanstart +1;
+apodSize = dimensions.aux.apodend - dimensions.aux.apodstart + 1;
 
 %% Generate File Grid
 %What frames to load
 [yI,BScanAvgI] = meshgrid(1:sizeY,1:BScanAvgN);
 yI = yI(:)';
 BScanAvgI = BScanAvgI(:)';
-
-%fileIndex is organized such as beam scans B scan avg, then moves to the
-%next y position
-if (isfield(dimensions,'BScanAvg'))
-    fileIndex = (dimensions.y.index(yI)-1)*dimensions.BScanAvg.indexMax + dimensions.BScanAvg.index(BScanAvgI)-1;
-else
-    fileIndex = (dimensions.y.index(yI)-1);
-end
 
 %% Loop over all frames and extract data
 %Define output structure
@@ -75,34 +52,29 @@ apodization   = zeros(sizeLambda,apodSize,sizeY,1,BScanAvgN);
 N = sizeLambda;
 prof.numberOfFramesLoaded = length(fileIndex);
 prof.totalFrameLoadTimeSec = 0;
-for fi=1:length(fileIndex)
+for fi=1:length(yI)
     td=tic;
-    spectralFilePath = [inputDataFolder '/data/Spectral' num2str(fileIndex(fi)) '.data'];
- 
+    spectralFilePath = sprintf('%s/Data_Y%04d_Total%d_B%04d_Total%d_%s.srr',...
+        inputDataFolder,...
+        yI(fi),dimensions.y.indexMax,...
+        BScanAvgI(fi),dimensions.BScanAvg.indexMax,...
+        dimensions.aux.OCTSystem);
+    
     %Load Data
-    ds=fileDatastore(spectralFilePath,'ReadFcn',@(a)(DSRead(a,'short')));
+    ds=fileDatastore(spectralFilePath,'ReadFcn',@(a)(DSRead(a,dimensions.aux.headerTotalBytes)));
     temp=double(ds.read);
 
     if (isempty(temp))
         error(['Missing file / file size wrong' spectralFilePath]);
     end
     prof.totalFrameLoadTimeSec = prof.totalFrameLoadTimeSec + toc(td);
-    temp = reshape(temp,[N,interfSize]);
+    temp = reshape(temp,[N,interfSize]); %TBD - dimentions might be flipped
 
     %Read apodization
-    apod = temp(:,1:apodSize);
+    apod = temp(:,dimensions.aux.apodstart:dimensions.aux.apodend);
     
     %Read interferogram
-    interf = temp(:,apodSize+1:end); 
-    
-    %Average over AScanBinning
-    if (AScanBinning > 1)
-        avgFilt = ones(1,AScanBinning)/(AScanBinning);
-        interfAvg = filter2(avgFilt,interf);
-        interfAvg = interfAvg(:,max(1,floor((AScanBinning)/2)):AScanBinning:end);    
-    else
-        interfAvg = interf;
-    end
+    interf = temp(:,dimensions.aux.scanstart:dimensions.aux.scanend); 
     
     %Save
     apodization(:,:,fi) = apod;
@@ -112,11 +84,21 @@ for fi=1:length(fileIndex)
                 [sizeLambda,AScanAvgN,sizeX]);
         interferogram(:,:,yI(fi),:,BScanAvgI(fi)) = permute(tmpR,[1 3 2]);
     else
-        interferogram(:,:,yI(fi),:,BScanAvgI(fi)) = interfAvg;
+        interferogram(:,:,yI(fi),:,BScanAvgI(fi)) = interf;
     end
 end
 
-function temp = DSRead(fileName, dataType) %dataType can be 'short','float32'
+function temp = DSRead(fileName, headerTotalBytes) 
 fid = fopen(fileName);
-temp = fread(fid,inf,dataType);
+
+%Skip header
+fseek(fid, headerTotalBytes, 'cof'); 
+
+%Read
+data = fread(fid,'uint16');
+
+% data is 2 bytes (2^16) but really only ranges from 0-4096 (2^12)
+temp = uint16(rem(data, 4096));
+
+%Cleanup
 fclose(fid);
