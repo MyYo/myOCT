@@ -24,8 +24,13 @@ try
     try
         ds=fileDatastore([inputDataFolder '/data/Chirp.data'],'ReadFcn',@readChirpBin);
     catch
-        %Try with lower case
-        ds=fileDatastore([inputDataFolder '/data/chirp.data'],'ReadFcn',@readChirpBin);
+        try
+            %Try another name
+            ds=fileDatastore([inputDataFolder 'Chirp.dat'],'ReadFcn',@readChirpTxt);
+        catch
+            %Try with lower case
+            ds=fileDatastore([inputDataFolder '/data/chirp.data'],'ReadFcn',@readChirpBin);
+        end
     end
     chirp = ds.read;
 catch

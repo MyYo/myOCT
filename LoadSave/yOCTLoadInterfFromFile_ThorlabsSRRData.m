@@ -36,56 +36,43 @@ end
 %% Determine dimensions
 [sizeLambda, sizeX, sizeY, AScanAvgN, BScanAvgN] = yOCTLoadInterfFromFile_DataSizing(dimensions);   
 
-interfSize = dimensions.aux.scanend - dimensions.aux.scanstart +1;
 apodSize = dimensions.aux.apodend - dimensions.aux.apodstart + 1;
-
-%% Generate File Grid
-%What frames to load
-[yI,BScanAvgI] = meshgrid(1:sizeY,1:BScanAvgN);
-yI = yI(:)';
-BScanAvgI = BScanAvgI(:)';
 
 %% Loop over all frames and extract data
 %Define output structure
 interferogram = zeros(sizeLambda,sizeX,sizeY, AScanAvgN, BScanAvgN);
-apodization   = zeros(sizeLambda,apodSize,sizeY,1,BScanAvgN);
-N = sizeLambda;
-prof.numberOfFramesLoaded = length(fileIndex);
+apodization   = zeros(sizeLambda,apodSize,sizeY,1,BScanAvgN); 
+prof.numberOfFramesLoaded = sizeY*dimensions.BScanAvg.indexMax; %We have to load all B-Scans, no partial load is possible as they are written in the same file
 prof.totalFrameLoadTimeSec = 0;
-for fi=1:length(yI)
+for yI=1:sizeY
     td=tic;
-    spectralFilePath = sprintf('%s/Data_Y%04d_Total%d_B%04d_Total%d_%s.srr',...
+    spectralFilePath = sprintf('%s/Data_Y%04d_YTotal%d_BTotal%d_%s.srr',...
         inputDataFolder,...
-        yI(fi),dimensions.y.indexMax,...
-        BScanAvgI(fi),dimensions.BScanAvg.indexMax,...
+        dimensions.y.index(yI),dimensions.y.indexMax,...
+        dimensions.BScanAvg.indexMax,...
         dimensions.aux.OCTSystem);
     
     %Load Data
     ds=fileDatastore(spectralFilePath,'ReadFcn',@(a)(DSRead(a,dimensions.aux.headerTotalBytes)));
-    temp=double(ds.read);
+    temp=ds.read;
 
     if (isempty(temp))
         error(['Missing file / file size wrong' spectralFilePath]);
     end
     prof.totalFrameLoadTimeSec = prof.totalFrameLoadTimeSec + toc(td);
-    temp = reshape(temp,[N,interfSize]); %TBD - dimentions might be flipped
+    
+    %Reshape, every scan end is a different frame concatinated
+    temp = reshape(temp,sizeLambda,dimensions.aux.scanend,[]); %Dimensions are (lambda,scan,frame)
 
     %Read apodization
-    apod = temp(:,dimensions.aux.apodstart:dimensions.aux.apodend);
+    apod = double(temp(:,dimensions.aux.apodstart:dimensions.aux.apodend,:));
     
     %Read interferogram
-    interf = temp(:,dimensions.aux.scanstart:dimensions.aux.scanend); 
+    interf = double(temp(:,dimensions.aux.scanstart:dimensions.aux.scanend,:)); 
     
     %Save
-    apodization(:,:,fi) = apod;
-    if (AScanAvgN > 1)
-        %Reshape to extract A scan averaging
-        tmpR = reshape(interfAvg,...
-                [sizeLambda,AScanAvgN,sizeX]);
-        interferogram(:,:,yI(fi),:,BScanAvgI(fi)) = permute(tmpR,[1 3 2]);
-    else
-        interferogram(:,:,yI(fi),:,BScanAvgI(fi)) = interf;
-    end
+    apodization(:,:,yI,1,:) = apod(:,:,dimensions.BScanAvg.index);
+    interferogram(:,:,yI,:,:) = interf(:,:,dimensions.BScanAvg.index); %Hand pick which B-Scan Avg to get
 end
 
 function temp = DSRead(fileName, headerTotalBytes) 

@@ -23,17 +23,16 @@ ds=fileDatastore(inputDataFolder,'ReadFcn',@readSRRHeader,'fileExtensions','.srr
 
 %% Parse File Name 
 [~,fName] = fileparts(info.Filename);
-t = textscan(fName,'Data_Y%04d_Total%d_B%04d_Total%d_%s');
+t = textscan(fName,'Data_Y%04d_YTotal%d_BTotal%d_%s');
 
-if (isempty(t{2}))
+if (isempty(t{2}) || isempty(t{3}) || isempty(t{end}{:}))
     %Filename formating is wrong
     error(sprintf(['SRR file formating is wrong.\n' ...
-        'This code expects this file name format: Data_Y%%04d_Total%%d_B%%04d_Total%%d_%%s.srr\n' ...
-        'For example: Data_Y0000_Total1_B0000_Total2_Telesto.srr'])); %#ok<SPERR>
+        'This code expects this file name format: %s.srr\n'] ...
+        ,'Data_Y%04d_YTotal%d_BTotal%d_%s')); %#ok<SPERR>
 end
 
 sizeY = t{2};
-BScanAvgN = t{4};
 OCTSystem = t{end}{:};
 
 %% Lambda
@@ -47,11 +46,12 @@ if length(dimensions.lambda.values) ~= headerFile.size1
     error('Size of lambda in chirp does not match data on SRR file');
 end
 
-order = order + 1;
-
 %% All Other Dimensions
 
-sizeX=headerFile.scanend-headerFile.scanstart;
+sizeX=(headerFile.scanend-headerFile.scanstart);
+if sizeX ~= round(sizeX)
+    error('B scan file size is wired');
+end
 dimensions.x.order = order;
 dimensions.x.values = linspace(0,1,sizeX);
 dimensions.x.values = dimensions.x.values(:)';
@@ -71,6 +71,7 @@ dimensions.y.indexMax = sizeY;
 order = order + 1;
 
 %% Add B Scan Average+
+BScanAvgN = headerFile.size3;
 dimensions.BScanAvg.order = order;
 dimensions.BScanAvg.index = (1:BScanAvgN);
 dimensions.BScanAvg.index = dimensions.BScanAvg.index(:)';
