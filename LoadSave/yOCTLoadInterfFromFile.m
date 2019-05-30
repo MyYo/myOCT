@@ -75,14 +75,28 @@ if isempty(OCTSystem)
     try
         yOCTLoadInterfFromFile_ThorlabsHeader(inputDataFolder);
         OCTSystemManufacturer = 'Thorlabs'; %Header can be read by Thorlabs
-    catch
+    catch e
+        ThorlabsHeaderAnswer = e.message;
         try 
             %Is this a Thorlabs system but loads SRR?
             yOCTLoadInterfFromFile_ThorlabsSRRHeader(inputDataFolder);
             OCTSystemManufacturer = 'Thorlabs_SRR'; %Header can be read by Thorlabs SRR Mode            
-        catch
-            %This is not a thorlabs system
-            OCTSystemManufacturer = 'Wasatch';
+        catch e
+            ThorlabsSRRHeaderAnswer = e.message;
+            try
+                %Is this a Wasatch System?
+                yOCTLoadInterfFromFile_WasatchHeader(inputDataFolder);
+                OCTSystemManufacturer = 'Wasatch';
+            catch e
+                WasatchAnswer = e.message;
+                %Don't know what system is this, notify user
+                error(sprintf(['Cannot determine OCT system for %s.\n' ...
+                    'ThorlabsHeader Said:\n %s\n' ...
+                    'ThorlabsSRRHeader Said:\n %s\n' ...
+                    'WasatchHeader Said:\n %s\n' ...
+                    ], ...
+                    inputDataFolder,ThorlabsHeaderAnswer,ThorlabsSRRHeaderAnswer,WasatchAnswer)); %#ok<SPERR>
+            end
         end
     end 
 else
