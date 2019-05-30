@@ -23,7 +23,14 @@ ds=fileDatastore(inputDataFolder,'ReadFcn',@readSRRHeader,'fileExtensions','.srr
 
 %% Parse File Name 
 [~,fName] = fileparts(info.Filename);
-t = textscan(fName,'Data_Y%d_Total%d_B%d_Total%d_%s');
+t = textscan(fName,'Data_Y%04d_Total%d_B%04d_Total%d_%s');
+
+if (isempty(t{2}))
+    %Filename formating is wrong
+    error(sprintf(['SRR file formating is wrong.\n' ...
+        'This code expects this file name format: Data_Y%%04d_Total%%d_B%%04d_Total%%d_%%s.srr\n' ...
+        'For example: Data_Y0000_Total1_B0000_Total2_Telesto.srr'])); %#ok<SPERR>
+end
 
 sizeY = t{2};
 BScanAvgN = t{4};
