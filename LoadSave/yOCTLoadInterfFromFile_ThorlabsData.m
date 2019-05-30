@@ -5,7 +5,7 @@ function [interferogram, apodization,prof] = yOCTLoadInterfFromFile_ThorlabsData
 %       Dimensions order (lambda,x,y,AScanAvg,BScanAvg). 
 %       If dimension size is 1 it does not appear at the final matrix
 %   - apodization - OCT baseline intensity, without the tissue scatterers.
-%       Dimensions order (lambda,podization #,y,BScanAvg). 
+%       Dimensions order (lambda,apodization #,y,BScanAvg). 
 %       If dimension size is 1 it does not appear at the final matrix
 %   - prof - profiling data - for debug purposes 
 
