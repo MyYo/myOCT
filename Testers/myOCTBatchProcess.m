@@ -10,14 +10,6 @@ function myOCTBatchProcess(OCTFolders,config)
 %OCTFolders = '\\171.65.17.174\MATLAB_Share\Brooke\08NOV_INVIVO\Scan\Test5\';
 %OCTFolders = '\\171.65.17.174\MATLAB_Share\Brooke\08NOV_INVIVO\Scan\Scan_0003_ModeSpeckle.oct';
 
-%try
-
-%% Setup environment
-currentFileFolder = fileparts(mfilename('fullpath'));
-yOCTMainFolder = [currentFileFolder '\..\'];
-addpath(genpath(yOCTMainFolder)); %Add current files to path
-opengl('save', 'software'); %Increase stubility in OPEN GL
-
 %% Make sure we have AWS Cridentials
 if (strcmpi(OCTFolders(1:3),'s3:'))
     %Load Data from AWS
@@ -199,14 +191,3 @@ fid = fopen('WhereAreMyFiles.txt','w');
 fprintf(fid,'here');
 fclose(fid);
 %TBD
-
-
-%catch ME
-%    disp('Error Happened');
-%    for i=1:length(ME.stack)
-%        ME.stack(i)
-%    end
-%    disp(ME.message); %Write
-%    exit(1); %Problem Happend
-%end
-%exit(0); 

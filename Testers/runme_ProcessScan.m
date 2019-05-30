@@ -43,6 +43,12 @@ try
                 end
         end
     end
+	
+	%% Setup environment
+	currentFileFolder = fileparts(mfilename('fullpath'));
+	yOCTMainFolder = [currentFileFolder '\..\'];
+	addpath(genpath(yOCTMainFolder)); %Add current files to path
+	opengl('save', 'software'); %Increase stubility in OPEN GL
     
     %Process all OCT scans in the folder
 	myOCTBatchProcess(OCTFolderPath,executionConfiguration); 
