@@ -62,7 +62,8 @@ catch
 		ds=fileDatastore(OCTFolders,'ReadFcn',@(x)(x),'IncludeSubfolders',true,'FileExtensions',...
 			{...
 			'.xml' ... Thorlabs
-			'.bin','.tif' ... Wasatch
+			'.srr' ... Thorlabs SRR
+ 			'.bin','.tif' ... Wasatch
 			});
 		xmls = ds.Files(:);
 		tmp = cellfun(@(x)(fileparts(x)),xmls,'UniformOutput',false);
