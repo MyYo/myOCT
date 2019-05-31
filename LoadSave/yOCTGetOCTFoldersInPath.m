@@ -60,3 +60,12 @@ for i=1:length(folderNames)
     
     folderNames{i} = folderName;
 end
+
+%% Add Last '/' At the end of the folder
+for i=1:length(OCTFolders)
+    if (isAWS)
+        OCTFolders{i} = [OCTFolders{i} '/'];
+    else
+        OCTFolders{i} = [OCTFolders{i} '\'];
+    end
+end

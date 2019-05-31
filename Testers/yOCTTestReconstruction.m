@@ -10,7 +10,7 @@ close all;
 %% Inputs
 
 %Get List of Test Vectors
-TestVectorFolder = '\\171.65.17.174\MATLAB_Share\Jenkins\myOCT Build\TestVectors\';
+TestVectorFolder = '\\171.65.17.174\s3\Users\Jenkins\TestVectors\';
 
 %% Get list of tests
 [folders,testNames] = yOCTGetOCTFoldersInPath (TestVectorFolder);
