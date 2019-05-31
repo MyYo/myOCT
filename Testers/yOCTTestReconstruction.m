@@ -13,17 +13,7 @@ close all;
 TestVectorFolder = '\\171.65.17.174\MATLAB_Share\Jenkins\myOCT Build\TestVectors\';
 
 %% Get list of tests
-d = dir(TestVectorFolder);
-folders = {};
-testNames = {};
-for i=1:length(d)
-    if d(i).isdir && ~(strcmp(d(i).name,'.') || strcmp(d(i).name,'..'))
-        folders{end+1} = [d(i).folder '\' d(i).name '\'];
-        testNames{end+1} = d(i).name;
-    end
-end
-folders = folders(:);
-testNames = testNames(:);
+[folders,testNames] = yOCTGetOCTFoldersInPath (TestVectorFolder);
 
 %% Loop for each folder, and test
 for i=1:length(folders)
