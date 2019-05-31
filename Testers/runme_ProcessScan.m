@@ -15,7 +15,7 @@ try
     %However, Jenkins runs as a "SYSTEM" user, which we are unable to open
     %a Matlab instance. Therefore we 'hack' and copy the matlab user files
     %from one of our users to System folder.
-    %To do so, you need to copy (once) the files: matlab.prf, parallel.settings  -- after logging in to Matlab Cluster from my user --
+    %To do so, you need to copy (once) the files: matlab.prf, parallel.settings, connector.settings  -- after logging in to Matlab Cluster from my user --
     %Files are located at:
     %   C:\Users\<My User>\AppData\Roaming\MathWorks\MATLAB\<Which Matlab>\
     %Copy files to:
