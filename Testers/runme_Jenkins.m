@@ -1,16 +1,20 @@
-function runme_ProcessScan(OCTFolderPath,executionConfiguration,isClusterConnect)
-%This function process scans in a folder, is executed by Jenkins. 
-%Its roal is to handle errors, exit
-%after execution and handeling execution of parallel cluster.
-%Jenkins will execute this command:
-%   Jenkins executable: runme_ProcessScan('%OCT_FOLDER_PATH%',{%EXECUTION_CONFIGURATION%})
-%Architecture:
-%   runme_ProcessScan handels Jenkins and calls myOCTBatchProcess
-%   myOCTBatchProcess loops for every OCT scan in the folder and runs yOCTProcessScan
-%   yOCTProcessScan loads and process each slice of the OCT scan in a parallel way
+function runme_Jenkins(functionHendle,isConnectToCluster)
+%This function does all the environment settings to run a function or a
+%script (add to path, cluster, error handeling etc) when executed by Jenkins. 
+%INPUTS:
+%   - functionHendle - function to run. No inputs: functionHendle=@()(myfun())
+%   - isConnectToCluster - connect to Matlab / AWS cluster prior to
+%       execution. Default: false
+%EXAMPLES:
+%   - Running myOCTBatchProcess:
+%       runme_Jenkins(@()(myOCTBatchProcess('%OCT_FOLDER_PATH%',{%EXECUTION_CONFIGURATION%})),%IS_CLUSTER_RUN%);
 
 try 
-    %Connect to cluster if needed. Matlab Parallel Server
+    if ~exist('isConnectToCluster','var')
+        isConnectToCluster = false;
+    end
+    
+    %% Connect to cluster if needed. Matlab Parallel Server
     %To Start a cluster, we need to have a Matlab user logged in to Matlab.
     %However, Jenkins runs as a "SYSTEM" user, which we are unable to open
     %a Matlab instance. Therefore we 'hack' and copy the matlab user files
@@ -21,7 +25,7 @@ try
     %Copy files to:
     %   C:\Windows\System32\config\systemprofile\AppData\Roaming\MathWorks\MATLAB\<Which Matlab>\
     
-    if isClusterConnect %Do we need to connect to cluster
+    if isConnectToCluster %Do we need to connect to cluster
         myCluster = parcluster('delaZerdaParallel');
         switch myCluster.State %All Cluster's scenarios
             case 'offline'
@@ -50,11 +54,12 @@ try
 	addpath(genpath(yOCTMainFolder)); %Add current files to path
 	opengl('save', 'software'); %Increase stubility in OPEN GL
     
-    %Process all OCT scans in the folder
+    %% Run
+    functionHendle();
 	myOCTBatchProcess(OCTFolderPath,executionConfiguration); 
     
-    %If Cluster is on shut it down
-     if isClusterConnect 
+    %% If Cluster is on shut it down
+    if isConnectToCluster 
         switch myCluster.State %All the scenarios the cluster can be in
             case 'starting'
                 wait(myCluster);
@@ -70,8 +75,8 @@ try
     end
     
 catch ME 
-    %Error Hendle
-    if isClusterConnect
+    %% Error Hendle
+    if isConnectToCluster
         if ((strcmp(myCluster.State,'offline')==0) && strcmp(myCluster.State,'stopping')==0) %If Cluster is on/starting
             delete(myPool);
             wait(myCluster);
