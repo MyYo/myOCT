@@ -23,16 +23,17 @@ ds=fileDatastore(inputDataFolder,'ReadFcn',@readSRRHeader,'fileExtensions','.srr
 
 %% Parse File Name 
 [~,fName] = fileparts(info.Filename);
-t = textscan(fName,'Data_Y%04d_YTotal%d_BTotal%d_%s');
+t = textscan(fName,'Data_Y%04d_YTotal%d_B%04d_BTotal%d_%s');
 
-if (isempty(t{2}) || isempty(t{3}) || isempty(t{end}{:}))
+if (isempty(t{2}) || isempty(t{4}) || isempty(t{end}{:}))
     %Filename formating is wrong
     error(sprintf(['SRR file formating is wrong.\n' ...
         'This code expects this file name format: %s.srr\n'] ...
-        ,'Data_Y%04d_YTotal%d_BTotal%d_%s')); %#ok<SPERR>
+        ,'Data_Y%04d_YTotal%d_B%04d_BTotal%d_%s')); %#ok<SPERR>
 end
 
 sizeY = t{2};
+BScanAvgN = t{4};
 OCTSystem = t{end}{:};
 
 %% Lambda
@@ -71,7 +72,6 @@ dimensions.y.indexMax = sizeY;
 order = order + 1;
 
 %% Add B Scan Average+
-BScanAvgN = headerFile.size3;
 dimensions.BScanAvg.order = order;
 dimensions.BScanAvg.index = (1:BScanAvgN);
 dimensions.BScanAvg.index = dimensions.BScanAvg.index(:)';

@@ -36,33 +36,46 @@ end
 %% Determine dimensions
 [sizeLambda, sizeX, sizeY, AScanAvgN, BScanAvgN] = yOCTLoadInterfFromFile_DataSizing(dimensions);   
 
-apodSize = dimensions.aux.apodend - dimensions.aux.apodstart + 1;
+apodSize =   dimensions.aux.apodend - dimensions.aux.apodstart + 1;
+
+%% Generate File Grid
+%What frames to load
+[yI,BScanAvgI] = meshgrid(1:sizeY,1:BScanAvgN);
+yI = yI(:)';
+BScanAvgI = BScanAvgI(:)';
+
+%fileIndex is organized such as beam scans B scan avg, then moves to the
+%next y position
+if (isfield(dimensions,'BScanAvg'))
+    fileIndex = (dimensions.y.index(yI)-1)*dimensions.BScanAvg.indexMax + dimensions.BScanAvg.index(BScanAvgI)-1;
+else
+    fileIndex = (dimensions.y.index(yI)-1);
+end
 
 %% Loop over all frames and extract data
 %Define output structure
 interferogram = zeros(sizeLambda,sizeX,sizeY, AScanAvgN, BScanAvgN);
-apodization   = zeros(sizeLambda,apodSize,sizeY,1,BScanAvgN); 
-prof.numberOfFramesLoaded = sizeY*dimensions.BScanAvg.indexMax; %We have to load all B-Scans, no partial load is possible as they are written in the same file
+apodization   = zeros(sizeLambda,apodSize,sizeY,1,BScanAvgN);
+N = sizeLambda;
+prof.numberOfFramesLoaded = length(fileIndex);
 prof.totalFrameLoadTimeSec = 0;
-for yI=1:sizeY
+for fi=1:length(fileIndex)
     td=tic;
-    spectralFilePath = sprintf('%s/Data_Y%04d_YTotal%d_BTotal%d_%s.srr',...
+    filePath = sprintf('%s/Data_Y%04d_YTotal%d_B%04d_BTotal%d_%s.srr',...
         inputDataFolder,...
-        dimensions.y.index(yI),dimensions.y.indexMax,...
-        dimensions.BScanAvg.indexMax,...
+        dimensions.y.index(yI(fi)),dimensions.y.indexMax,...
+        dimensions.BScanAvg.index(BScanAvgI(fi)),dimensions.BScanAvg.indexMax,...
         dimensions.aux.OCTSystem);
-    
+ 
     %Load Data
-    ds=fileDatastore(spectralFilePath,'ReadFcn',@(a)(DSRead(a,dimensions.aux.headerTotalBytes)));
+    ds=fileDatastore(filePath,'ReadFcn',@(a)(DSRead(a,dimensions.aux.headerTotalBytes)));
     temp=ds.read;
 
     if (isempty(temp))
-        error(['Missing file / file size wrong' spectralFilePath]);
+        error(['Missing file / file size wrong' filePath]);
     end
     prof.totalFrameLoadTimeSec = prof.totalFrameLoadTimeSec + toc(td);
-    
-    %Reshape, every scan end is a different frame concatinated
-    temp = reshape(temp,sizeLambda,dimensions.aux.scanend,[]); %Dimensions are (lambda,scan,frame)
+    temp = reshape(temp,N,[]);
 
     %Read apodization
     apod = double(temp(:,dimensions.aux.apodstart:dimensions.aux.apodend,:));
@@ -71,8 +84,8 @@ for yI=1:sizeY
     interf = double(temp(:,dimensions.aux.scanstart:dimensions.aux.scanend,:)); 
     
     %Save
-    apodization(:,:,yI,1,:) = apod(:,:,dimensions.BScanAvg.index);
-    interferogram(:,:,yI,:,:) = interf(:,:,dimensions.BScanAvg.index); %Hand pick which B-Scan Avg to get
+    apodization(:,:,fi) = apod;
+    interferogram(:,:,yI(fi),:,BScanAvgI(fi)) = interf;
 end
 
 function temp = DSRead(fileName, headerTotalBytes) 
