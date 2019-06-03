@@ -56,7 +56,6 @@ try
     
     %% Run
     functionHendle();
-	myOCTBatchProcess(OCTFolderPath,executionConfiguration); 
     
     %% If Cluster is on shut it down
     if isConnectToCluster 
