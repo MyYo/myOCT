@@ -1,8 +1,8 @@
 function yOCT2Mat(data,filepath)
 %This function saves data to mat file (local or in cloud)
 %INPUTS
-%   filepath - filepath of output tif file
-%   data
+%   filepath - filepath of output mat file
+%   data - OCT Volume or B scan
 
 %% Do we need AWS?
 if (strcmpi(filepath(1:3),'s3:'))
