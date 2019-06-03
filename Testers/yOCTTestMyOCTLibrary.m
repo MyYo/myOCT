@@ -1,3 +1,4 @@
+function yOCTTestMyOCTLibrary()
 %This is the master tester, runs all!
 %Designed to be run using runme_Jenkins
 
