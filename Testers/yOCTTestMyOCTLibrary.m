@@ -2,6 +2,10 @@ function yOCTTestMyOCTLibrary()
 %This is the master tester, runs all!
 %Designed to be run using runme_Jenkins
 
+%Get main OCT folder
+currentFileFolder = fileparts(mfilename('fullpath'));
+yOCTMainFolder = [currentFileFolder '\..\'];
+
 %% Test Reconstruction
 disp('Reconstruction Tests');
 yOCTTestReconstruction;
