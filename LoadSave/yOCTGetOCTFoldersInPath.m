@@ -63,6 +63,11 @@ end
 
 %% Add Last '/' At the end of the folder
 for i=1:length(OCTFolders)
+    if strcmp(OCTFolders{i}(end+(-3:0)),'.oct')
+        %This is an .OCT file don't add '\' at the end
+        continue;
+    end
+    
     if (isAWS)
         OCTFolders{i} = [OCTFolders{i} '/'];
     else

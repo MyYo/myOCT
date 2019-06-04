@@ -1,16 +1,12 @@
+function yOCTTestReconstruction(TestVectorFolder)
 %This tester loads OCT files and check preformances and imagery 
-
+%
 %To generate a parameters file
 %parameters = {'OCTSystem','Wasatch','dispersionParameterA',100,'BScanAvgFramesToProcess',1:2};
 %save('parameters.mat','parameters');
 
 %clear;
 close all;
-
-%% Inputs
-
-%Get List of Test Vectors
-TestVectorFolder = '\\171.65.17.174\s3\Users\Jenkins\SampleOCTVolumes\';
 
 %% Get list of tests
 [folders,testNames] = yOCTGetOCTFoldersInPath (TestVectorFolder);
