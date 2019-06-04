@@ -10,7 +10,7 @@ close all;
 %% Inputs
 
 %Get List of Test Vectors
-TestVectorFolder = '\\171.65.17.174\s3\Users\Jenkins\TestVectors\';
+TestVectorFolder = '\\171.65.17.174\s3\Users\Jenkins\SampleOCTVolumes\';
 
 %% Get list of tests
 [folders,testNames] = yOCTGetOCTFoldersInPath (TestVectorFolder);
