@@ -12,9 +12,9 @@ yOCTMainFolder = [currentFileFolder '\..\'];
 
 %% Test Reconstruction
 disp('Reconstruction Tests... (Local Folder Version)');
-yOCTTestReconstruction([mainTestVectorFolder1 'SampleOCTVolumes\'];
+yOCTTestReconstruction([mainTestVectorFolder1 'SampleOCTVolumes\']);
 disp('Reconstruction Tests... (S3 Version)');
-yOCTTestReconstruction([mainTestVectorFolder2 'SampleOCTVolumes/'];
+yOCTTestReconstruction([mainTestVectorFolder2 'SmallSampleOCTVolumes/']);
 
 %% Test that Demos are working
 disp('Demo Tests');
