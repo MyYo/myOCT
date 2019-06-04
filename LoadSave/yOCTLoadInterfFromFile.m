@@ -144,9 +144,11 @@ if exist('YFramesToProcess','var')
             %We already have one frame to process, nothing to do..
         end
     else
-        %Process only subset of Y frames
-        dimensions.y.values = dimensions.y.values(YFramesToProcess);
-        dimensions.y.index = dimensions.y.index(YFramesToProcess);
+        %Process only subset of Y frames. Find the right index
+        yIToUse = sum(dimensions.y.index(:)'==YFramesToProcess(:),1)>0;
+        dimensions.y.values = dimensions.y.values(yIToUse);
+        dimensions.y.values = dimensions.y.values(:)';
+        dimensions.y.index = dimensions.y.index(yIToUse);
         dimensions.y.index = dimensions.y.index(:)';
 
         if (length(YFramesToProcess)==1) %Practically, we don't have a Y dimenson
