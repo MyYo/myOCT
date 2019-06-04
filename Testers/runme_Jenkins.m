@@ -7,8 +7,7 @@ function runme_Jenkins(functionHendle,isConnectToCluster)
 %       execution. Default: false
 %EXAMPLES:
 %   - Running myOCTBatchProcess:
-%       echo
-%       runme_Jenkins(@()(myOCTBatchProcess('%OCT_FOLDER_PATH%',{%EXECUTION_CONFIGURATION%})),%IS_CLUSTER_RUN%);> runme.m
+%       echo runme_Jenkins(@()(myOCTBatchProcess('%OCT_FOLDER_PATH%',{%EXECUTION_CONFIGURATION%})),%IS_CLUSTER_RUN%);> runme.m
 %   - Running yOCTTestMyOCTLibrary
 %       echo runme_Jenkins(@()(yOCTTestMyOCTLibrary()),false);> runme.m
 
