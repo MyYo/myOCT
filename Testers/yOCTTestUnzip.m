@@ -32,7 +32,7 @@ for i=1:length(folders)
         else 
             if(exist(outFolder,'dir'))
                 disp('Unzipped folder exists, cleanup before running test')
-                delete(outFolder);
+                rmdir(outFolder);
             end
         end
         
@@ -52,7 +52,7 @@ for i=1:length(folders)
             if(~exist(outFolder,'dir'))
                 error('Unzipping was unccessfull');
             else
-                delete(outFolder); %Ok Cleanup
+                rmdir(outFolder); %Ok Cleanup
             end
         end
         

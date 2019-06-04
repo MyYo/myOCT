@@ -53,7 +53,7 @@ if (isAWS)
         system(['aws s3 rm "' OCTFolderIn '"']);
     end
     
-    delete(tmp); %Cleanup
+    rmdir('tmp'); %Cleanup
 else
     %% Unzip from localy 
     %Unzip to the same folder it came from
