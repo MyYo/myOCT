@@ -8,20 +8,34 @@ function yOCTTestReconstruction(TestVectorFolder)
 %clear;
 close all;
 
+%Determine if we are running on AWS
+if (strcmpi(TestVectorFolder(1:3),'s3:'))
+    isAWS = true;
+else
+    isAWS = false;
+end
+
 %% Get list of tests
 [folders,testNames] = yOCTGetOCTFoldersInPath (TestVectorFolder);
 
 %% Loop for each folder, and test
 for i=1:length(folders)
+    if isAWS
+        testNames{i} = [testNames{i} 'AWS'];
+    end
+    
     fprintf ('Runnig Test: %s ...\n',testNames{i});
     %Check for parmeters file
     paramFile = [folders{i} 'parameters.mat'];
-    if exist(paramFile,'file')
-        parameters = load(paramFile);
-        parameters = parameters.parameters;
-    else
-        parameters = {};
-    end
+    
+    parameters = {};
+    if ~isAWS
+        %This part doesn't work as is on AWS
+        if exist(paramFile,'file')
+            parameters = load(paramFile);
+            parameters = parameters.parameters;
+        end
+    end    
     
     %Run the test
     tic;
