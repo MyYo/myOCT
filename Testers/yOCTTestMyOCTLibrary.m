@@ -28,9 +28,9 @@ end
 
 %% Test Unzip
 disp('Unzip Tests... (Local Folder Version)');
-yOCTTestReconstruction([mainTestVectorFolder1 'ZippedOCTFolder\']);
+yOCTTestUnzip([mainTestVectorFolder1 'ZippedOCTFolder\']);
 disp('Unzip Tests... (S3 Version)');
-yOCTTestReconstruction([mainTestVectorFolder2 'ZippedOCTFolder/']);
+yOCTTestUnzip([mainTestVectorFolder2 'ZippedOCTFolder/']);
 
 %% Done!
 disp('All Tests Completed');
