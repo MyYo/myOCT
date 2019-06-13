@@ -8,7 +8,7 @@ function yOCT2Tif (data, filepath, c)
 
 %% Input check
 if ~exist('c','var') || isempty(c)
-    c = [prctile((data(:),20)), prctile((data(:),99.9))]; %min value is at percentile 20 because most of volume is empty
+    c = [prctile(data(:),20), prctile(data(:),99.9)]; %min value is at percentile 20 because most of volume has no signals
 end
 
 %% Do we need AWS?
