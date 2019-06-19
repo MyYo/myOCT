@@ -66,7 +66,7 @@ else
 end
 
 %Check unzip was successfull
-if ~exist(OCTUnzipToDirectory,'dir')
+if ~exist(isDeleteOCTZippedFile,'dir')
     error('Failed to Unzip');
 end
 
@@ -83,10 +83,7 @@ if ~strcmp(OCTUnzipToDirectory,OCTFolderOut)
         rmdir(OCTUnzipToDirectory,'s'); 
     else
         %File system copy
-        [a,b,c] = movefile(OCTUnzipToDirectory,OCTFolderOut,'f');
-        a
-        b
-        c
+        movefile(OCTUnzipToDirectory,OCTFolderOut,'f');
     end
     
 end
