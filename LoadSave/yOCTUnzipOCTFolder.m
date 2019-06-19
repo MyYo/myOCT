@@ -18,7 +18,7 @@ else
     isAWSOut = false;
 end
 
-if ~exist('isDeleteOCTFolderIn','var')
+if ~exist('isDeleteOCTZippedFile','var')
     isDeleteOCTZippedFile = true;
 end
 
@@ -66,7 +66,7 @@ else
 end
 
 %Check unzip was successfull
-if ~exist(isDeleteOCTZippedFile,'dir')
+if ~exist(OCTUnzipToDirectory,'dir')
     error('Failed to Unzip');
 end
 
