@@ -33,6 +33,7 @@ if (isAWSIn)
         error('File did not download from AWS');
     end
     
+    OCTFolderZipFileInOrig = OCTFolderZipFileIn;
     OCTFolderZipFileIn = 'tmp.oct';
 end
 
@@ -68,6 +69,12 @@ end
 %Check unzip was successfull
 if ~exist(OCTUnzipToDirectory,'dir')
     error('Failed to Unzip');
+end
+
+if exist('OCTFolderZipFileInOrig','var')
+    %OCTFolderZipFileIn is actually a temp file, delete it 
+    delete(OCTFolderZipFileIn);
+    OCTFolderZipFileIn = OCTFolderZipFileInOrig;
 end
 
 %% Upload if necessary

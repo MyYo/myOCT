@@ -11,12 +11,6 @@ mainTestVectorFolder2 = 's3://delazerdamatlab/Users/Jenkins/'; %S3 version
 currentFileFolder = fileparts(mfilename('fullpath'));
 yOCTMainFolder = [currentFileFolder '\..\'];
 
-%% Test Unzip
-disp('Unzip Tests... (Local Folder Version)');
-yOCTTestUnzip([mainTestVectorFolder1 'ZippedOCTFolder\']);
-disp('Unzip Tests... (S3 Version)');
-yOCTTestUnzip([mainTestVectorFolder2 'ZippedOCTFolder/']);
-
 %% Test Reconstruction
 disp('Reconstruction Tests... (Local Folder Version)');
 yOCTTestReconstruction([mainTestVectorFolder1 'SampleOCTVolumes\']);
@@ -32,6 +26,12 @@ for i=1:length(d)
     eval(functionName);
     close all;
 end
+
+%% Test Unzip
+disp('Unzip Tests... (Local Folder Version)');
+yOCTTestUnzip([mainTestVectorFolder1 'ZippedOCTFolder\']);
+disp('Unzip Tests... (S3 Version)');
+yOCTTestUnzip([mainTestVectorFolder2 'ZippedOCTFolder/']);
 
 %% Done!
 disp('All Tests Completed');
