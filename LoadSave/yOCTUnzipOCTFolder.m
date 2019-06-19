@@ -78,13 +78,17 @@ if ~strcmp(OCTUnzipToDirectory,OCTFolderOut)
         %Upload to bucket
         system(['aws s3 sync "' OCTUnzipToDirectory '" "' OCTFolderOut '"']);
         %system(['aws s3 cp tmp\data "' OCTFolders{i} '/data" --recursive']);
+        
+        %Cleanup, delete temporary directory
+        rmdir(OCTUnzipToDirectory,'s'); 
     else
         %File system copy
-        copyfile(OCTUnzipToDirectory,OCTFolderOut);
+        [a,b,c] = movefile(OCTUnzipToDirectory,OCTFolderOut,'f');
+        a
+        b
+        c
     end
     
-    %Cleanup, delete temporary directory
-    rmdir(OCTUnzipToDirectory,'s'); 
 end
 
 %% Remove zipped archive if required (.OCT file)
