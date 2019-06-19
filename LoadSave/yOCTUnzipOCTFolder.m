@@ -1,74 +1,97 @@
-function yOCTUnzipOCTFolder(OCTFolderIn,OCTFolderOut,isDeleteOCTFolderIn)
-%This function unzips .oct file (OCTFolderIn) into OCTFolderOut, and
-%deletes OCTFolderIn (default)
-%Notice that both OCTFolderIn and OCTFolderOut should be either both local
-%or both in AWS
+function yOCTUnzipOCTFolder(OCTFolderZipFileIn,OCTFolderOut,isDeleteOCTZippedFile)
+%This function unzips .oct file (OCTFolderZipFileIn) into OCTFolderOut, and
+%deletes OCTFolderZipFileIn (default)
 
 %% Make sure we have AWS Cridentials
-if (strcmpi(OCTFolderIn(1:3),'s3:') || strcmpi(OCTFolderOut(1:3),'s3:'))
-    yOCTSetAWScredentials (1); %Write cridentials are required
-    
-    OCTFolderIn = myOCTModifyPathForAWSCompetability(OCTFolderIn);
-    OCTFolderOut = myOCTModifyPathForAWSCompetability(OCTFolderOut);
-    isAWS = true;
+if (strcmpi(OCTFolderZipFileIn(1:3),'s3:'))
+    yOCTSetAWScredentials (1); %Write cridentials are required  
+    OCTFolderZipFileIn = myOCTModifyPathForAWSCompetability(OCTFolderZipFileIn);
+    isAWSIn = true;
 else
-    isAWS = false;
+    isAWSIn = false;
+end
+if (strcmpi(OCTFolderOut(1:3),'s3:'))
+    yOCTSetAWScredentials (1); %Write cridentials are required
+    OCTFolderOut = myOCTModifyPathForAWSCompetability(OCTFolderOut);
+    isAWSOut = true;
+else
+    isAWSOut = false;
 end
 
 if ~exist('isDeleteOCTFolderIn','var')
-    isDeleteOCTFolderIn = true;
+    isDeleteOCTZippedFile = true;
 end
 
-if (isAWS)
-    %% Unzip from cloud
-    %We will need to unzip file locally then send back to the
-    %cloud. 
+%% Setup input directory
+if (isAWSIn)
+    %We will need to unzip file locally
 
     %Download file from AWS
-    system(['aws s3 cp "' OCTFolderIn '" tmp.oct']);
+    system(['aws s3 cp "' OCTFolderZipFileIn '" tmp.oct']);
 
     if ~exist('tmp.oct','file')
         error('File did not download from AWS');
     end
+    
+    OCTFolderZipFileIn = 'tmp.oct';
+end
 
-    %Unzip using 7-zip
-    if exist('C:\Program Files\7-Zip\','dir')
-        system('"C:\Program Files\7-Zip\7z.exe" x "tmp.oct" -o"tmp"');
-    elseif exist('C:\Program Files (x86)\7-Zip\','dir')
-        system('"C:\Program Files (x86)\7-Zip\7z.exe" x "tmp.oct" -o"tmp"');
+%% Setup output directory
+OCTUnzipToDirectory = OCTFolderOut;
+if (isAWSOut)
+    %Destination is at the cloud, need to unzip locally
+    OCTUnzipToDirectory = 'tmp';
+end
+if strcmp(OCTFolderOut(1:2),'\\')
+    %We are trying to unzip to a netowrk dirve, this is not a good idea
+    %so we shall unzip to a local drive, than move to network drive
+    OCTUnzipToDirectory = 'tmp';
+end
+
+%Check Unziped to directory is empty
+if exist(OCTUnzipToDirectory,'dir')
+    %Delete directory first
+    rmdir(OCTUnzipToDirectory,'s');
+end
+
+%% Preform Unzip
+
+%Unzip using 7-zip
+if exist('C:\Program Files\7-Zip\','dir')
+    system(['"C:\Program Files\7-Zip\7z.exe" x "' OCTFolderZipFileIn '" -o"' OCTUnzipToDirectory '"']);
+elseif exist('C:\Program Files (x86)\7-Zip\','dir')
+    system(['"C:\Program Files (x86)\7-Zip\7z.exe" x "' OCTFolderZipFileIn '" -o"' OCTUnzipToDirectory '"']);
+else
+    error('Please Install 7-Zip');
+end
+
+%Check unzip was successfull
+if ~exist(OCTUnzipToDirectory,'dir')
+    error('Failed to Unzip');
+end
+
+%% Upload if necessary
+if ~strcmp(OCTUnzipToDirectory,OCTFolderOut)
+    %Unzipped directory different from output folder, it means we need to
+    %upload
+    if(isAWSOut)
+        %Upload to bucket
+        system(['aws s3 sync "' OCTUnzipToDirectory '" "' OCTFolderOut '"']);
+        %system(['aws s3 cp tmp\data "' OCTFolders{i} '/data" --recursive']);
     else
-        error('Please Install 7-Zip');
-    end
-
-    if ~exist('tmp','dir')
-        error('Faild to unzip');
-    end
-
-    %Upload to bucket
-    system(['aws s3 sync tmp "' OCTFolderOut '"']);
-    %system(['aws s3 cp tmp\data "' OCTFolders{i} '/data" --recursive']);
-
-    if isDeleteOCTFolderIn
-        %Remove '.oct' file
-        system(['aws s3 rm "' OCTFolderIn '"']);
+        %File system copy
+        copyfile(OCTUnzipToDirectory,OCTFolderOut);
     end
     
-    rmdir('tmp','s'); %Cleanup
-else
-    %% Unzip from localy 
-    %Unzip to the same folder it came from
+    %Cleanup, delete temporary directory
+    rmdir(OCTUnzipToDirectory,'s'); 
+end
 
-    %Unzip using 7-zip
-    if exist('C:\Program Files\7-Zip\','dir')
-        system(['"C:\Program Files\7-Zip\7z.exe" x "' OCTFolderIn '" -o"' OCTFolderOut '"']);
-    elseif exist('C:\Program Files (x86)\7-Zip\','dir')
-        system(['"C:\Program Files (x86)\7-Zip\7z.exe" x "' OCTFolderIn '" -o"' OCTFolderOut '"']);
+%% Remove zipped archive if required (.OCT file)
+if isDeleteOCTZippedFile  
+    if (isAWSIn)
+        system(['aws s3 rm "' OCTFolderZipFileIn '"']);
     else
-        error('Please Install 7-Zip');
-    end
-
-    if isDeleteOCTFolderIn
-        %Delete .oct file, we don't need it
-        delete(OCTFolderIn);
+        delete(OCTFolderZipFileIn);
     end
 end
