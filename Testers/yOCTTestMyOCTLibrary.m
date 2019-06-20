@@ -2,6 +2,7 @@ function yOCTTestMyOCTLibrary()
 %This is the master tester, runs all!
 %Designed to be run using runme_Jenkins
 
+%% Pre test configuration
 %Where to find files to be tested
 mainTestVectorFolder1 = '\\171.65.17.174\s3\Users\Jenkins\';
 mainTestVectorFolder2 = 's3://delazerdamatlab/Users/Jenkins/'; %S3 version
