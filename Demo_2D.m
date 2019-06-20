@@ -1,5 +1,4 @@
 %Run this demo to load and process 2D OCT Images
-% Ziv Ziv
 %% Iputs
 %Wasatch
 filePath = ['\\171.65.17.174\MATLAB_Share\Jenkins\myOCT Build\TestVectors\' ...
