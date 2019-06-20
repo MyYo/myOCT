@@ -10,7 +10,7 @@ else
 end
 
 %Get list of tests
-[folders,testNames] = yOCTGetOCTFoldersInPath (TestVectorFolder);
+folders = yOCTGetOCTFoldersInPath (TestVectorFolder);
 
 didFoundZippedFile = false;
 for i=1:length(folders)
@@ -18,7 +18,11 @@ for i=1:length(folders)
         didFoundZippedFile = true;
         
         inFolder = folders{i};
-        outFolder = [folders{i}(1:(end-4)) 'Unzipped'];
+        if isAWS
+            outFolder = [folders{i}(1:(end-4)) 'Unzipped'];
+        else
+            outFolder = 'myLocalFolder';
+        end
         disp(['Unzipping: ' inFolder]);
         disp(['To: ' outFolder]);
         
