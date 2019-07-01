@@ -9,7 +9,7 @@ if (strcmpi(filepath(1:3),'s3:'))
     %Load Data from AWS
     isAWS = true;
     yOCTSetAWScredentials; %Use the advanced version as uploading is more challenging
-    filepath = myOCTModifyPathForAWSCompetability(filepath);
+    filepath = yOCTModifyPathForAWSCompetability(filepath);
     
     %Download file locally for easy access
     ds=fileDatastore(filepath,'ReadFcn',@readfile);

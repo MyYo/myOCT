@@ -20,7 +20,7 @@ inputDataFolder = varargin{1};
 if (strcmpi(inputDataFolder(1:3),'s3:'))
     %Load Data from AWS
     yOCTSetAWScredentials;
-    inputDataFolder = myOCTModifyPathForAWSCompetability(inputDataFolder);
+    inputDataFolder = yOCTModifyPathForAWSCompetability(inputDataFolder);
 end
 
 %Optional Parameters

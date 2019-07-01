@@ -8,7 +8,7 @@ if (strcmpi(inputDataFolder(1:3),'s3:'))
     %Load Data from AWS
     isAWS = true;
     yOCTSetAWScredentials;
-    inputDataFolder = myOCTModifyPathForAWSCompetability(inputDataFolder);
+    inputDataFolder = yOCTModifyPathForAWSCompetability(inputDataFolder);
 else
     isAWS = false;
 end

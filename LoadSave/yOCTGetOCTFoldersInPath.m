@@ -13,7 +13,7 @@ function [OCTFolders,folderNames] = yOCTGetOCTFoldersInPath (p)
 %% AWS
 if (strcmpi(p(1:3),'s3:'))
     yOCTSetAWScredentials;
-    p = myOCTModifyPathForAWSCompetability(p);
+    p = yOCTModifyPathForAWSCompetability(p);
     isAWS = true;
 else
     isAWS = false;

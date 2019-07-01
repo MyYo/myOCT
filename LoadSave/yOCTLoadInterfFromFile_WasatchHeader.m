@@ -8,7 +8,7 @@ function [dimensions] = yOCTLoadInterfFromFile_WasatchHeader(inputDataFolder)
 if (strcmpi(inputDataFolder(1:3),'s3:'))
     %Load Data from AWS
     yOCTSetAWScredentials;
-    inputDataFolder = myOCTModifyPathForAWSCompetability(inputDataFolder);
+    inputDataFolder = yOCTModifyPathForAWSCompetability(inputDataFolder);
 end
 
 %% Header Information
