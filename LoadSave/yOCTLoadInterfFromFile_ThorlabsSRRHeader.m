@@ -25,7 +25,7 @@ ds=fileDatastore(inputDataFolder,'ReadFcn',@readSRRHeader,'fileExtensions','.srr
 [~,fName] = fileparts(info.Filename);
 t = textscan(fName,'Data_Y%04d_YTotal%d_B%04d_BTotal%d_%s');
 
-if (isempty(t{2}) || isempty(t{4}) || isempty(t{end}{:}))
+if (isempty(t{2}) || isempty(t{4}) || isempty(t{end}) || isempty(t{end}{:}))
     %Filename formating is wrong
     error(sprintf(['SRR file formating is wrong.\n' ...
         'This code expects this file name format: %s.srr\n'] ...
