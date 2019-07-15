@@ -12,6 +12,7 @@ function runme_Jenkins(functionHendle,isConnectToCluster)
 %       echo runme_Jenkins(@()(yOCTTestMyOCTLibrary()),false);> runme.m
 
 try 
+	fprintf('Starting up environment... ');
     if ~exist('isConnectToCluster','var')
         isConnectToCluster = false;
     end
@@ -55,10 +56,13 @@ try
 	yOCTMainFolder = [currentFileFolder '\..\'];
 	addpath(genpath(yOCTMainFolder)); %Add current files to path
 	opengl('save', 'software'); %Increase stubility in OPEN GL
+	
+	fprintf('Done!\n'); %Indicate environment is up and running
     
     %% Run
     functionHendle();
     
+	fprintf('Winding down ...');
     %% If Cluster is on shut it down
     if isConnectToCluster 
         switch myCluster.State %All the scenarios the cluster can be in
@@ -74,6 +78,7 @@ try
                 %do nothing
         end
     end
+	fprintf('Done! Goodbye\n');
     
 catch ME 
     %% Error Hendle
