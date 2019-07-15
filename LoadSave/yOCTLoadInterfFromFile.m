@@ -26,9 +26,28 @@ function [interferogram, dimensions, apodization,prof] = yOCTLoadInterfFromFile(
 %                                       'None' - No ApodizationCorrection. Raw data is loaded.
 % OUTPUTS:
 %   - interferogram - interferogram data, apodization corrected. 
-%       Dimensions order (lambda,x,y,AScanAvg,BScanAvg). 
-%       If dimension size is 1 it does not appear at the final matrix
-%   - dimensions  - interferogram dimensions structure, containing dimension order and values. 
+%   - dimensions - describing the interferogram matrix dimensions. 
+%       Structure is:
+%           dimensions.lambda
+%           dimensions.x
+%           dimensions.y
+%           dimensions.AScanAvg - optional
+%           dimensions.BScanAvg - optional
+%       For example if user done a B Scan of 1mm, pixel size 10um, 10 B scan averages.
+%       dimensions will have the following fields:
+%         * dimensions.lambda.order = 1, dimensions.x.order = 2, dimensions.BScanAvg.order = 3
+%           This means that interferogram has the following dimensions order interferogram(lambda,x,BScanAvg)
+%         * dimensions.y.order = NaN specifing no volume was taken.
+%         * dimensions.x.values = 0:10:1000, imensions.x.units = 'microns'
+%           This means that pixels along x dimension are positioned at 0:10:1000 microns
+%         * dimensions.lambda.values = chirp, imensions.lambda.units = 'nm'
+%           This specifies best wavelength estimate for pixels along lambda dimension.
+%         * dimensions.y.index - running index of the dimension, this helps track index
+%           position when loading only part of the OCT volume.
+%     NOTICE: If interferogram is a volume scan with AScan & BScan Averaging 
+%       dimensions will be interferogram(lambda,x,y,AScanAvg,BScanAvg).
+%       If dimension size (of one of the dimensions) is 1 it does not
+%       appear at the final matrix.
 %   - apodization - OCT baseline intensity, without the tissue scatterers.
 %       Dimensions order (lambda,podization #,y,BScanAvg). 
 %       If dimension size is 1 it does not appear at the final matrix
