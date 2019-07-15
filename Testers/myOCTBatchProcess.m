@@ -17,10 +17,12 @@ end
 config = config(:)';
 
 %% Get what OCT Folders are in the path provided
-[OCTFolders,folderNames] = yOCTGetOCTFoldersInPath (OCTFolders);
-if (isempty(OCTFolders))
-	error([ OCTFolders ' Does not have any OCT files or folders']);
+OCTFolders = strtrim(OCTFolders); %Delete leading and trailing whitespace charecters from path
+[OCTFolders_,folderNames] = yOCTGetOCTFoldersInPath (OCTFolders);
+if (isempty(OCTFolders_))
+	error([ '"' OCTFolders '" Does not have any OCT files or folders']);
 end
+OCTFolders_ = OCTFolders;
 
 %% Preprocess
 for i=1:length(OCTFolders)   
