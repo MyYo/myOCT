@@ -106,7 +106,9 @@
       <AdditionalDependencies>ThorMCM3000.lib;visa64.lib;TL4000_64.lib;SpectralRadar.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)ThorlabsImager.h" "$(SolutionDir)Lib\" /y</Command>
+      <Command>xcopy "$(TargetDir)$(TargetName).lib" "$(SolutionDir)Lib\" /y
+xcopy "$(TargetDir)$(TargetName).dll" "$(SolutionDir)Lib\" /y
+xcopy "$(ProjectDir)ThorlabsImager.h" "$(SolutionDir)Lib\" /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -124,7 +126,9 @@
       <AdditionalDependencies>ThorMCM3000.lib;visa64.lib;TL4000_64.lib;SpectralRadar.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)ThorlabsImager.h" "$(SolutionDir)Lib\" /y</Command>
+      <Command>xcopy "$(TargetDir)$(TargetName).lib" "$(SolutionDir)Lib\" /y
+xcopy "$(TargetDir)$(TargetName).dll" "$(SolutionDir)Lib\" /y
+xcopy "$(ProjectDir)ThorlabsImager.h" "$(SolutionDir)Lib\" /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -146,7 +150,9 @@
       <AdditionalDependencies>ThorMCM3000.lib;visa64.lib;TL4000_64.lib;SpectralRadar.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)ThorlabsImager.h" "$(SolutionDir)Lib\" /y</Command>
+      <Command>xcopy "$(TargetDir)$(TargetName).lib" "$(SolutionDir)Lib\" /y
+xcopy "$(TargetDir)$(TargetName).dll" "$(SolutionDir)Lib\" /y
+xcopy "$(ProjectDir)ThorlabsImager.h" "$(SolutionDir)Lib\" /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -168,7 +174,9 @@
       <AdditionalDependencies>ThorMCM3000.lib;visa64.lib;TL4000_64.lib;SpectralRadar.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)ThorlabsImager.h" "$(SolutionDir)Lib\" /y</Command>
+      <Command>xcopy "$(TargetDir)$(TargetName).lib" "$(SolutionDir)Lib\" /y
+xcopy "$(TargetDir)$(TargetName).dll" "$(SolutionDir)Lib\" /y
+xcopy "$(ProjectDir)ThorlabsImager.h" "$(SolutionDir)Lib\" /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -5,9 +5,9 @@ currentFileFolder = fileparts(mfilename('fullpath'));
 addpath(genpath(currentFileFolder));
 
 %% Copy Subfolders to here
-copyfile('LaserDiode\*.dll','.')
-copyfile('MotorController\*.dll','.')
-copyfile('ThorlabsOCT\*.dll','.')
+copyfile('LaserDiode\*.*','.')
+copyfile('MotorController\*.*','.')
+copyfile('ThorlabsOCT\*.*','.')
 
 %% Build Protofile
 loadlibrary('ThorlabsImager','ThorlabsImager','mfilename','ThorlabsImager');
