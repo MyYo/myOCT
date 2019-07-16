@@ -9,7 +9,8 @@ if isempty(ThorlabsImagerNETLoaded) || ~ThorlabsImagerNETLoaded
 	copyfile('ThorlabsOCT\*.*','.')
     
     %Load Assembly
-    asm = NET.addAssembly(['\\171.65.17.174\MATLAB_Share\Yonatan\Tools\yOCT\ThorlabsImager\Lib\' 'ThorlabsImagerNET.dll']);
+    currentFileFolder = fileparts(mfilename('fullpath'));
+    asm = NET.addAssembly([currentFileFolder 'ThorlabsImagerNET.dll']);
     ThorlabsImagerNETLoaded = true;
 end
 
@@ -23,7 +24,7 @@ ThorlabsImagerNET.ThorlabsImager.yOCTScan3DVolume(...
 	0,       ... rotationAngle [deg]
     100,3,   ... SizeX,sizeY [# of pixels]
     2,       ... B Scan Average
-    'scan'   ... Output directory
+    'scan'   ... Output directory, make sure it exists before running this function
     );
 
 disp('yOCTPhotobleachLine')
@@ -37,8 +38,9 @@ disp('yOCTScannerClose')
 ThorlabsImagerNET.ThorlabsImager.yOCTScannerClose();
 
 %% Move Stage
-disp('yOCTStageInit')
+
 %Initialize Stage (All Z positions will be with respect to that initial one)
+disp('yOCTStageInit')
 ThorlabsImagerNET.ThorlabsImager.yOCTStageInit();
 
 %Move

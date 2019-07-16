@@ -45,8 +45,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy "$(TargetPath)" "$(SolutionDir)\Lib\" /Y
-
-xcopy "$(SolutionDir)\Lib\*.dll" "\\171.65.17.174\MATLAB_Share\Yonatan\Tools\yOCT\ThorlabsImager\Lib\" /Y</PostBuildEvent>
+    <PostBuildEvent>xcopy "$(TargetPath)" "$(SolutionDir)\Lib\" /Y</PostBuildEvent>
   </PropertyGroup>
 </Project>
