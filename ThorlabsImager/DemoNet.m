@@ -1,18 +1,7 @@
-%This is a demo run
+%This is a demo run of the functionality in this library
 
-%% Load library
-global ThorlabsImagerNETLoaded
-if isempty(ThorlabsImagerNETLoaded) || ~ThorlabsImagerNETLoaded
-    % Copy Subfolders to here
-	copyfile('LaserDiode\*.*','.')
-	copyfile('MotorController\*.*','.')
-	copyfile('ThorlabsOCT\*.*','.')
-    
-    %Load Assembly
-    currentFileFolder = fileparts(mfilename('fullpath'));
-    asm = NET.addAssembly([currentFileFolder '\ThorlabsImagerNET.dll']);
-    ThorlabsImagerNETLoaded = true;
-end
+%% Initialize
+ThorlabsImagerNETLoadLib();
 
 %% Scan & Photobleach
 
