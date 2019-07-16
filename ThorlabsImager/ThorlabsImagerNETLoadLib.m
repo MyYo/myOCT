@@ -3,13 +3,16 @@ function ThorlabsImagerNETLoadLib()
 
 global ThorlabsImagerNETLoaded
 if isempty(ThorlabsImagerNETLoaded) || ~ThorlabsImagerNETLoaded
+
+    currentFileFolder = fileparts(mfilename('fullpath'));
+	libFolder = [currentFileFolder '\Lib\'];
+	
     % Copy Subfolders to here
-	copyfile('Lib\LaserDiode\*.*','.')
-	copyfile('Lib\MotorController\*.*','.')
-	copyfile('Lib\ThorlabsOCT\*.*','.')
+	copyfile([libFolder 'LaserDiode\*.*'],libFolder)
+	copyfile([libFolder 'MotorController\*.*'],libFolder)
+	copyfile([libFolder 'ThorlabsOCT\*.*'],libFolder)
     
     %Load Assembly
-    currentFileFolder = fileparts(mfilename('fullpath'));
-    asm = NET.addAssembly([currentFileFolder '\Lib\ThorlabsImagerNET.dll']);
+    asm = NET.addAssembly([libFolder 'ThorlabsImagerNET.dll']);
     ThorlabsImagerNETLoaded = true;
 end
