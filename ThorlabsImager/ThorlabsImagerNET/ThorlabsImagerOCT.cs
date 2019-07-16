@@ -9,6 +9,8 @@ namespace ThorlabsImagerNET
 {
     public static class ThorlabsImager
     {
+
+        #region OCT Scanner
         //Initialize OCT Scanner
         [DllImport("ThorlabsImager.dll")]
         public static extern void yOCTScannerInit(string probeFilePath); // Probe ini path.Can be usually found at: C:\\Program Files\\Thorlabs\\SpectralRadar\\Config\\ 
@@ -30,6 +32,8 @@ namespace ThorlabsImagerNET
             int nBScanAvg, //Number of B scan averages (set to 1 if non)
             string outputDirectory //Output folder, make sure it exists and empty before running this function
             );
+
+        #endregion
 
         // Photobleach a Line
         [DllImport("ThorlabsImager.dll")]

@@ -143,7 +143,10 @@ void yOCTStageSetZPosition(const double newZ)
 	}
 
 	//Wait for movement completion (for motor to move)
-	Sleep((long)(10.0 * (dz*1000.0))); // empirically determined, wait time is 10 msec for every 1um of displacement
+	long d = (long)(10.0 * (dz * 1000.0)); // empirically determined, wait time is 10 msec for every 1um of displacement
+	if (d > 200)
+		d = 200; // Cap delay
+	Sleep(d); 
 
 	//Update z position
 	zPosition = newZ;

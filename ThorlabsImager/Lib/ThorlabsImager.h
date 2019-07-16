@@ -64,4 +64,4 @@ MY_EXTERN_C THORLABSIMAGERDLL_API void yOCTPhotobleachLine(
 MY_EXTERN_C THORLABSIMAGERDLL_API void yOCTStageInit();
 
 //Get / Set Stage Position [mm]
-MY_EXTERN_C THORLABSIMAGERDLL_API void	 yOCTStageSetZPosition(const double newZ);
+MY_EXTERN_C THORLABSIMAGERDLL_API void yOCTStageSetZPosition(const double newZ);
