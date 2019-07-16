@@ -2,11 +2,15 @@
 
 %Load library
 if ~libisloaded('ThorlabsImager')
-    addpath('.');
+    currentFileFolder = fileparts(mfilename('fullpath'));
+    addpath(genpath(currentFileFolder));
+
     loadlibrary('ThorlabsImager',@ThorlabsImager);
 end
 
 %% OCT Scan (Volume)
+disp('OCT Scan');
+
 %Initialize Probe
 calllib('ThorlabsImager','yOCTScannerInit','C:\Program Files\Thorlabs\SpectralRadar\Config\Probe - Olympus 10x.ini');
 
@@ -23,6 +27,8 @@ calllib('ThorlabsImager','yOCTScan3DVolume', ...
 calllib('ThorlabsImager','yOCTScannerClose');
 
 %% Photobleach A Line
+disp('Photobleach');
+
 calllib('ThorlabsImager','yOCTPhotobleachLine', ...
     -1,0,1,0, ...startX,startY,endX,endY [mm]
 	2,        ...duration[sec]
@@ -30,6 +36,7 @@ calllib('ThorlabsImager','yOCTPhotobleachLine', ...
     );
 
 %% Move Z Stage
+disp('Z Stage');
 
 %Initialize Stage (All Z positions will be with respect to that initial one)
 calllib('ThorlabsImager','yOCTStageInit');
