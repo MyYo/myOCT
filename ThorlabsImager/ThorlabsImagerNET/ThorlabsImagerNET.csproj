@@ -47,6 +47,6 @@
   <PropertyGroup>
     <PostBuildEvent>xcopy "$(TargetPath)" "$(SolutionDir)\Lib\" /Y
 
-xcopy "$(TargetPath)" "\\171.65.17.174\MATLAB_Share\Yonatan\Tools\yOCT\ThorlabsImager\Lib" /Y</PostBuildEvent>
+xcopy "$(SolutionDir)\Lib\*.dll" "\\171.65.17.174\MATLAB_Share\Yonatan\Tools\yOCT\ThorlabsImager\Lib\" /Y</PostBuildEvent>
   </PropertyGroup>
 </Project>

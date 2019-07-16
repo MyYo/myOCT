@@ -47,7 +47,6 @@ MY_EXTERN_C THORLABSIMAGERDLL_API void yOCTScan3DVolume(
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Photobleach a Line
-/*
 MY_EXTERN_C THORLABSIMAGERDLL_API void yOCTPhotobleachLine(
 	const double xStart,	//Start position [mm]
 	const double yStart,	//Start position [mm]
@@ -66,4 +65,3 @@ MY_EXTERN_C THORLABSIMAGERDLL_API void yOCTStageInit();
 
 //Get / Set Stage Position [mm]
 MY_EXTERN_C THORLABSIMAGERDLL_API void	 yOCTStageSetZPosition(const double newZ);
-*/

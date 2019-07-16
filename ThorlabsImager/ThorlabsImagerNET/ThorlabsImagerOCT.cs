@@ -9,9 +9,11 @@ namespace ThorlabsImagerNET
 {
     public static class ThorlabsImager
     {
+        //Initialize OCT Scanner
         [DllImport("ThorlabsImager.dll")]
         public static extern void yOCTScannerInit(string probeFilePath); // Probe ini path.Can be usually found at: C:\\Program Files\\Thorlabs\\SpectralRadar\\Config\\ 
 
+        //Close OCT Scanner, Cleanup
         [DllImport("ThorlabsImager.dll")]
         public static extern void yOCTScannerClose();
         
@@ -28,6 +30,25 @@ namespace ThorlabsImagerNET
             int nBScanAvg, //Number of B scan averages (set to 1 if non)
             string outputDirectory //Output folder, make sure it exists and empty before running this function
             );
+
+        // Photobleach a Line
+        [DllImport("ThorlabsImager.dll")]
+        public static extern void yOCTPhotobleachLine(
+            double xStart,	//Start position [mm]
+            double yStart,	//Start position [mm]
+            double xEnd,		//End position [mm]
+            double yEnd,		//End position [mm]
+            double duration,	//How many seconds to photobleach
+            double repetition //How many times galvoes should go over the line to photobleach. slower is better. recomendation: 1
+            );
+
+        //Initialize Stage
+        [DllImport("ThorlabsImager.dll")]
+        public static extern void yOCTStageInit();
+
+        //Get / Set Stage Position [mm]
+        [DllImport("ThorlabsImager.dll")]
+        public static extern void yOCTStageSetZPosition(double newZ);
 
         public static void Hi()
         {
