@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27004.2010
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ThorlabsImager", "ThorlabsImagerDll\ThorlabsImagerDll.vcxproj", "{D10AC271-7A7C-4CE6-ABF4-BA2A1D54B2A4}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Demo", "Demo\Demo.vcxproj", "{9E72E543-264A-4CCE-80C4-EAC500784CAD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D10AC271-7A7C-4CE6-ABF4-BA2A1D54B2A4}.Debug|x64.ActiveCfg = Debug|x64
+		{D10AC271-7A7C-4CE6-ABF4-BA2A1D54B2A4}.Debug|x64.Build.0 = Debug|x64
+		{D10AC271-7A7C-4CE6-ABF4-BA2A1D54B2A4}.Release|x64.ActiveCfg = Release|x64
+		{D10AC271-7A7C-4CE6-ABF4-BA2A1D54B2A4}.Release|x64.Build.0 = Release|x64
+		{9E72E543-264A-4CCE-80C4-EAC500784CAD}.Debug|x64.ActiveCfg = Debug|x64
+		{9E72E543-264A-4CCE-80C4-EAC500784CAD}.Debug|x64.Build.0 = Debug|x64
+		{9E72E543-264A-4CCE-80C4-EAC500784CAD}.Release|x64.ActiveCfg = Release|x64
+		{9E72E543-264A-4CCE-80C4-EAC500784CAD}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BB382F73-573D-4F13-9CF5-667AF5BC0B75}
+	EndGlobalSection
+EndGlobal
