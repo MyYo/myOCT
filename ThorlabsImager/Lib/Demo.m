@@ -4,6 +4,11 @@
 if ~libisloaded('ThorlabsImager')
     currentFileFolder = fileparts(mfilename('fullpath'));
     addpath(genpath(currentFileFolder));
+	
+	% Copy Subfolders to here
+	copyfile('LaserDiode\*.dll','.')
+	copyfile('MotorController\*.dll','.')
+	copyfile('ThorlabsOCT\*.dll','.')
 
     loadlibrary('ThorlabsImager',@ThorlabsImager);
 end
