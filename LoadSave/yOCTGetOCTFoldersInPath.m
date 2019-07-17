@@ -10,14 +10,17 @@ function [OCTFolders,folderNames] = yOCTGetOCTFoldersInPath (p)
 %       These contain the full path of the foler
 %   folderNames - just the name of the most inner folder
 
-%% AWS
+%TBD in the future, find the comonality between the two functions (AWS and
+%no AWS and make them one!)
 if (strcmpi(p(1:3),'s3:'))
-    yOCTSetAWScredentials;
-    p = yOCTModifyPathForAWSCompetability(p);
-    isAWS = true;
+    [OCTFolders,folderNames] = yOCTGetOCTFoldersInPath_AWS(p);
 else
-    isAWS = false;
+    [OCTFolders,folderNames] = yOCTGetOCTFoldersInPath_NoAWS(p);
 end
+
+
+%% If this is not an AWS Case
+function [OCTFolders,folderNames] = yOCTGetOCTFoldersInPath_NoAWS(p)
 
 if (strcmpi(p(end+(-3:0)),'.oct'))
     %% p is a path to .OCT file
@@ -73,4 +76,71 @@ for i=1:length(OCTFolders)
     else
         OCTFolders{i} = [OCTFolders{i} '\'];
     end
+end
+
+%% If this is not an AWS Case
+function [OCTFolders,folderNames] = yOCTGetOCTFoldersInPath_AWS(p)
+
+%Set cridentials
+yOCTSetAWScredentials(1); %This will be done with CLI
+p = yOCTModifyPathForAWSCompetability(p,true);
+
+%Get bucket's name and path of initial folder
+i = find(p=='/',3,'first');
+bucket = p((i(2)+1):(i(3)-1)); %'delazerdamatlab'
+awsStartPath = [p((i(3)+1):end)]; %'Users/Jenkins/'
+
+%Make sure awsStartPath ends with '/' and only one!
+for i=1:3
+    if (awsStartPath(end) == '/' || awsStartPath(end) == '\')
+        awsStartPath(end) = [];
+    else
+        break;
+    end
+end
+awsStartPath = [awsStartPath '/'];
+
+%% Run CLI Command
+[status,output] = ...
+    system([...
+    'aws s3api list-objects-v2 --bucket ' bucket ' ' ...
+    '--prefix "' awsStartPath '" ' ...
+    '--query "Contents[?' ... Define a quarry to filter out only paths where OCT data can be found
+    'contains(Key, ''.oct'') || '      ... Thorlabs unzipped OCT folder
+    'contains(Key, ''Header.xml'') || '... Thorlabs
+    '(contains(Key, ''Y0001'') && contains(Key, ''B0001'')) || '... Thorlabs SRR, search for the first scan
+    'contains(Key, ''raw_00001.tif'') || '... Wasatch 2D
+    '(contains(Key, ''00000_raw_us'')&& contains(Key, ''.bin'')) '... Wasatch 3D
+    '].Key']); %.Key specifies we want only the paths not the full spec
+%Documentation for the operation above:
+%   list-objects-vs - see https://docs.aws.amazon.com/cli/latest/reference/s3api/list-objects-v2.html
+%   --querry - see http://jmespath.org/specification.html#or-expressions
+
+%Checkoutput
+if (status ~= 0)
+    error(['AWS CLI Failed: ' output]);
+end
+
+%% Extract Information
+%Loop over all this potential to extract folder path
+potentialDirs = jsondecode(output);
+OCTFolders = cell(size(potentialDirs));
+folderNames = OCTFolders;
+for i=1:length(potentialDirs)
+    
+    if(lower(potentialDirs{i}(end+(-3:0))) == '.oct')
+        %This is an OCT zipped folder, add as is
+        OCTFolders{i} = potentialDirs{i};
+        
+        [~,tmp] = fileparts(potentialDirs{i});
+        folderNames{i} = tmp;
+    else
+        %potentialDirs contains a pointer to a file inside the folder
+        tmp = fileparts(potentialDirs{i});
+        OCTFolders{i} = [tmp '/'];
+        
+        tmp = split(tmp,'/');
+        folderNames{i} = tmp{end};
+    end
+    
 end
