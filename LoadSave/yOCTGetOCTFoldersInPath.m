@@ -21,6 +21,7 @@ end
 
 %% If this is not an AWS Case
 function [OCTFolders,folderNames] = yOCTGetOCTFoldersInPath_NoAWS(p)
+isAWS = false;
 
 if (strcmpi(p(end+(-3:0)),'.oct'))
     %% p is a path to .OCT file
