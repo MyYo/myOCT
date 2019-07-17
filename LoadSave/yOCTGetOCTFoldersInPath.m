@@ -89,6 +89,7 @@ p = yOCTModifyPathForAWSCompetability(p,true);
 i = find(p=='/',3,'first');
 bucket = p((i(2)+1):(i(3)-1)); %'delazerdamatlab'
 awsStartPath = [p((i(3)+1):end)]; %'Users/Jenkins/'
+fullPathPrefix = p(1:(i(3)));
 
 %Make sure awsStartPath ends with '/' and only one!
 for i=1:3
@@ -130,14 +131,14 @@ for i=1:length(potentialDirs)
     
     if(lower(potentialDirs{i}(end+(-3:0))) == '.oct')
         %This is an OCT zipped folder, add as is
-        OCTFolders{i} = potentialDirs{i};
+        OCTFolders{i} = [fullPathPrefix potentialDirs{i}];
         
         [~,tmp] = fileparts(potentialDirs{i});
-        folderNames{i} = tmp;
+        folderNames{i} = [tmp];
     else
         %potentialDirs contains a pointer to a file inside the folder
         tmp = fileparts(potentialDirs{i});
-        OCTFolders{i} = [tmp '/'];
+        OCTFolders{i} = [fullPathPrefix tmp '/'];
         
         tmp = split(tmp,'/');
         folderNames{i} = tmp{end};
