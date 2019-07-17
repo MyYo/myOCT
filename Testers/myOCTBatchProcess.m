@@ -22,7 +22,7 @@ OCTFolders = strtrim(OCTFolders); %Delete leading and trailing whitespace charec
 if (isempty(OCTFolders_))
 	error([ '"' OCTFolders '" Does not have any OCT files or folders']);
 end
-OCTFolders_ = OCTFolders;
+OCTFolders = OCTFolders_;
 
 %% Preprocess
 for i=1:length(OCTFolders)   

@@ -92,15 +92,10 @@ bucket = p((i(2)+1):(i(3)-1)); %'delazerdamatlab'
 awsStartPath = [p((i(3)+1):end)]; %'Users/Jenkins/'
 fullPathPrefix = p(1:(i(3)));
 
-%Make sure awsStartPath ends with '/' and only one!
-for i=1:3
-    if (awsStartPath(end) == '/' || awsStartPath(end) == '\')
-        awsStartPath(end) = [];
-    else
-        break;
-    end
-end
+%Make sure awsStartPath ends with '/' and only one and no duplicates inside
 awsStartPath = [awsStartPath '/'];
+awsStartPath = strrep(awsStartPath,'//','/');
+awsStartPath = strrep(awsStartPath,'//','/');
 
 %% Run CLI Command
 [status,output] = ...
