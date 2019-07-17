@@ -25,7 +25,7 @@ if (strcmpi(p(end+(-3:0)),'.oct'))
 	OCTFolders = {p}; 
 else
     %% Look insite folder p
-    %Get All Uncompressed OCT Files
+    %Get All compressed OCT Files
     try
         ds=fileDatastore(p,'ReadFcn',@(x)(x),'IncludeSubfolders',true,'FileExtensions','.oct');
         OCTFolders = ds.Files(:);
@@ -34,12 +34,12 @@ else
         OCTFolders = {};
     end
 
-    %Get All OCT Folders in that subfoler
+    %Get all oct folders in that subfolder
     try
         ds=fileDatastore(p,'ReadFcn',@(x)(x),'IncludeSubfolders',true,'FileExtensions',...
             {...
-            '.xml' ... Thorlabs
-            '.srr' ... Thorlabs SRR
+            '.xml' ... Thorlabs, search for header.xml
+            '.dat' ... Thorlabs SRR, searches for chirp.dat
             '.bin','.tif' ... Wasatch
             });
         xmls = ds.Files(:);
