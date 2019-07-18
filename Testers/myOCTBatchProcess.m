@@ -106,15 +106,19 @@ gcp; %Start Parallel Processs
 overview = cell(size(OCTFolders));
 if (parallelOption == 1)
     parfor i=1:length(OCTFolders)
+        tic;
         fprintf('Processing File: %s (%d of %d) ...\n',folderNames{i},i,length(OCTFolders));
         o = process(OCTFolders{i},config,outputFilePrefix,isSaveMat);
         overview{i} = o;
+        fprintf('Done, total time: %.1f[min]\n',toc()/60);
     end
 else
     for i=1:length(OCTFolders)
+        tic
         fprintf('Processing File: %s (%d of %d) ...\n',folderNames{i},i,length(OCTFolders));
         o = process(OCTFolders{i},config,outputFilePrefix,isSaveMat);
         overview{i} = o;
+        fprintf('Done, total time: %.1f[min]\n',toc()/60);
     end
 end
 	
