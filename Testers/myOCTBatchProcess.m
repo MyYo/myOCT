@@ -141,7 +141,7 @@ fclose(fid);
 %% This function preforms the actual processing
 %It is written as a function so we can run it as parallel loop or for loop
 %depending on the configuration
-function overview = process(OCTFolder,config,outputFilePrefix)
+function overview = process(OCTFolder,config,outputFilePrefix,isSaveMat)
 
 %Make sure this is atleast a 2D scan, otherwise we don't sopport it
 pk = yOCTLoadInterfFromFile(OCTFolder,'PeakOnly',true);
