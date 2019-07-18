@@ -47,8 +47,8 @@ for i=3:2:length(varargin)
         case 'showstats'
             showStats = varargin{i+1};
         otherwise
-            parameters(end+1) = varargin(i);
-            parameters(end+1) = varargin(i+1);
+            parameters(end+1) = varargin(i); %#ok<AGROW>
+            parameters(end+1) = varargin(i+1); %#ok<AGROW>
     end
 end
 
@@ -115,8 +115,8 @@ tmpSize = [size(datOut,1) size(datOut,2) size(datOut,3) length(func)];
 starI = round(linspace(1,nIterations,10));
 fprintf('Processing, Wait for %d Stars ... [ ',length(starI));
 myT = tic;
-parfor i = 1:nIterations
-%for i = 1:nIterations
+%parfor i = 1:nIterations
+for i = 1:nIterations
     tw = tic;
     
     ii = iis(i,:);
