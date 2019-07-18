@@ -18,12 +18,14 @@ function varargout = yOCTProcessScan(varargin)
 %   - parameter1,... - parameters to be passed to yOCTLoadInterfFromFile
 %       and yOCTInterfToScanCpx or any of the parameters below
 % LIST OF OPTIONAL PARAMETERS AND VALUES
-% Parameter                 Default     Information & Values
-% 'nYPerIteration'          1           Number of Y scans to load per
+% Parameter                  Default    Information & Values
+% 'nYPerIteration'           1          Number of Y scans to load per
 %                                       iteration. Try to set such that
 %                                       nYPerIteration*scanAvg = 100 scans.
 %                                       For parallel usage. Leave default
-% 'showStats'               False       Prints execution stats
+% 'showStats'                False      Prints execution stats
+% 'runProcessScanInParallel' True       Would you like to process Y scans
+%                                       in parallel or sequential? 
 %
 %OUTPUTS:
 %   - out1, out2... same as processFunc dimensions: (z,x,y)
@@ -39,6 +41,7 @@ inputDataFolder = varargin{1};
 processFunc = varargin{2}; 
 nYPerIteration = 1;
 showStats = false;
+runProcessScanInParallel = true;
 parameters = {};
 for i=3:2:length(varargin)
     switch(lower(varargin{i}))
@@ -46,6 +49,8 @@ for i=3:2:length(varargin)
             nYPerIteration = varargin{i+1};
         case 'showstats'
             showStats = varargin{i+1};
+        case 'runProcessScanInParallel'
+            runProcessScanInParallel = varargin{i+1};
         otherwise
             parameters(end+1) = varargin(i); %#ok<AGROW>
             parameters(end+1) = varargin(i+1); %#ok<AGROW>
@@ -66,11 +71,11 @@ if (sizeY == 1)
     %2D
     ys = 1; %Only the first image
     nYPerIteration = 1; %One scan per iteration, as we don't have additional ones
-    is3DMode = false;
+    is3DMode = false; %#ok<NASGU>
 else
     %3D
     ys = dimensions.y.index;
-    is3DMode = true;
+    is3DMode = true; %#ok<NASGU>
 end
 nScanAvg = AScanAvgN*BScanAvgN;
 
@@ -112,41 +117,42 @@ for i=1:nIterations
     iis(i,:) = ys((i-1)*nYPerIteration + (1:nYPerIteration));
 end
 tmpSize = [size(datOut,1) size(datOut,2) size(datOut,3) length(func)];
-starI = round(linspace(1,nIterations,10));
-fprintf('Processing, Wait for %d Stars ... [ ',length(starI));
 myT = tic;
-%parfor i = 1:nIterations
-for i = 1:nIterations
-    tw = tic;
-    
-    ii = iis(i,:);
-    
-    %Load interf from file
-    [interf,dim,~,prof] = yOCTLoadInterfFromFile([{inputDataFolder} parameters {'YFramesToProcess'} {ii} {'dimensions'} {dimensions}]);
-    
-    %Convert to scan
-    scanCpx = yOCTInterfToScanCpx([{interf},{dim},parameters]);
-    scanAbs = abs(scanCpx);
-    
-    %Process data
-    tmp = zeros(tmpSize);
-    for j=1:length(func)
-        tmp(:,:,:,j) = single(func{j}(scanCpx,scanAbs,dim));
+if runProcessScanInParallel
+    fprintf('Parallel Processing ...');
+    parfor i = 1:nIterations
+        ii = iis(i,:);
+        [dataOutIter,prof1,prof2,prof3] = ...
+            RunIteration(ii,inputDataFolder,parameters,dimensions,func,tmpSize);
+
+        datOut(:,:,:,:,i) = dataOutIter;
+        profData_dataLoadFrameTime(i)  = prof1;
+        profData_dataLoadHeaderTime(i) = prof2;
+        profData_processingTime(i)     = prof3;
     end
-    datOut(:,:,:,:,i) = tmp;
+    fprintf(' Done! (Took %.1fmin)\n',toc(myT)/60);
+else
+    starI = round(linspace(1,nIterations,10));
+    fprintf('Processing, wait for %d Stars ... [ ',length(starI));
+    for i = 1:nIterations
     
-    %Profiling
-    ld = prof.totalFrameLoadTimeSec + prof.headerLoadTimeSec;
-    profData_dataLoadFrameTime(i) = prof.totalFrameLoadTimeSec;
-    profData_dataLoadHeaderTime(i) = prof.headerLoadTimeSec;
-    profData_processingTime(i)   = toc(tw)-ld;
-    
-    if (any(starI==i))
-        fprintf('* ');
-        pause(0.01);
+        ii = iis(i,:);
+        [dataOutIter,prof1,prof2,prof3] = ...
+            RunIteration(ii,inputDataFolder,parameters,dimensions,func,tmpSize);
+
+        datOut(:,:,:,:,i) = dataOutIter;
+        profData_dataLoadFrameTime(i)  = prof1;
+        profData_dataLoadHeaderTime(i) = prof2;
+        profData_processingTime(i)     = prof3;
+
+        if (any(starI==i))
+            fprintf('* ');
+            pause(0.01);
+        end
     end
+    fprintf('] Done! (Took %.1fmin)\n',toc(myT)/60);
 end
-fprintf('] Done! (Took %.1fmin)\n',toc(myT)/60);
+
 
 %% Reshape and output
 varargout = cell(length(func)+1,1);
@@ -195,6 +201,33 @@ if showStats
 end
 
 end
+
+%% Run a single iteration
+function [dataOutIter,profData_dataLoadFrameTime,profData_dataLoadHeaderTime,profData_processingTime] = ...
+    RunIteration(ii,inputDataFolder,parameters,dimensions,func,tmpSize)
+    tw = tic;
+    
+    %Load interf from file
+    [interf,dim,~,prof] = yOCTLoadInterfFromFile([{inputDataFolder} parameters {'YFramesToProcess'} {ii} {'dimensions'} {dimensions}]);
+    
+    %Convert to scan
+    scanCpx = yOCTInterfToScanCpx([{interf},{dim},parameters]);
+    scanAbs = abs(scanCpx);
+    
+    %Process data
+    tmp = zeros(tmpSize);
+    for j=1:length(func)
+        tmp(:,:,:,j) = single(func{j}(scanCpx,scanAbs,dim));
+    end
+    dataOutIter = tmp;
+    
+    %Profiling
+    ld = prof.totalFrameLoadTimeSec + prof.headerLoadTimeSec;
+    profData_dataLoadFrameTime  = prof.totalFrameLoadTimeSec;
+    profData_dataLoadHeaderTime = prof.headerLoadTimeSec;
+    profData_processingTime     = toc(tw)-ld;
+end
+
 %% Some Default Functions
 function out = meanAbs(scan, scanAbs, dim)
     %Which dimensions should the mean be computed for

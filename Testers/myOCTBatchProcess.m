@@ -51,6 +51,7 @@ function myOCTBatchProcess(OCTFolders,config)
 %User can select whic configuration to run:
 %   parallelOption = 1 will force Option (1).
 %   parallelOption = 2 will force Option (2).
+%   parallelOption = 3 will force no parallel at all.
 %   parallelOption = [] (default) will let this code decide which option to
 %       take
 
@@ -108,15 +109,15 @@ if (parallelOption == 1)
     parfor i=1:length(OCTFolders)
         tic;
         fprintf('Processing File: %s (%d of %d) ...\n',folderNames{i},i,length(OCTFolders));
-        o = process(OCTFolders{i},config,outputFilePrefix,isSaveMat);
+        o = process(OCTFolders{i},config,outputFilePrefix,isSaveMat,parallelOption);
         overview{i} = o;
         fprintf('Done, total time: %.1f[min]\n',toc()/60);
     end
-else
+elseif (parallelOption == 2 || parallelOption == 3)
     for i=1:length(OCTFolders)
         tic
         fprintf('Processing File: %s (%d of %d) ...\n',folderNames{i},i,length(OCTFolders));
-        o = process(OCTFolders{i},config,outputFilePrefix,isSaveMat);
+        o = process(OCTFolders{i},config,outputFilePrefix,isSaveMat,parallelOption);
         overview{i} = o;
         fprintf('Done, total time: %.1f[min]\n',toc()/60);
     end
@@ -141,7 +142,7 @@ fclose(fid);
 %% This function preforms the actual processing
 %It is written as a function so we can run it as parallel loop or for loop
 %depending on the configuration
-function overview = process(OCTFolder,config,outputFilePrefix,isSaveMat)
+function overview = process(OCTFolder,config,outputFilePrefix,isSaveMat,parallelOption)
 
 %Make sure this is atleast a 2D scan, otherwise we don't sopport it
 pk = yOCTLoadInterfFromFile(OCTFolder,'PeakOnly',true);
@@ -150,11 +151,17 @@ if (length(pk.x.values) == 1)
     return;
 end	
 
+if (parallelOption==1 || parallelOption==3)
+    runProcessScanInParallel=false;
+else
+    runProcessScanInParallel=true;
+end
+
 %Load OCT Data, parllel computing style
 [meanAbs,speckleVariance] = yOCTProcessScan([{OCTFolder, ...
     {'meanAbs','speckleVariance'}, ... Which functions would you like to process. Option exist for function hendel
     'nYPerIteration', 1, ...
-    'showStats',true} config]);
+    'showStats',true,'runProcessScanInParallel',runProcessScanInParallel} config]);
 
 %Modify Speckle Variance
 speckleVariance = speckleVariance./meanAbs;
