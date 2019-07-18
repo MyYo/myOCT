@@ -102,13 +102,13 @@ if (isempty(parallelOption))
 end
 
 %% Process
-fprintf('Starting parallel processing, option #%d\n',parallelOption);
+fprintf('Starting parallel processing, option (%d)\n',parallelOption);
 gcp; %Start Parallel Processs
 overview = cell(size(OCTFolders));
 if (parallelOption == 1)
     parfor i=1:length(OCTFolders)
         tic;
-        fprintf('Processing File: %s (%d of %d) ...\n',folderNames{i},i,length(OCTFolders));
+        fprintf('Processing OCT Folder: %s (%d of %d) ...\n',folderNames{i},i,length(OCTFolders));
         o = process(OCTFolders{i},config,outputFilePrefix,isSaveMat,parallelOption);
         overview{i} = o;
         fprintf('Done, total time: %.1f[min]\n',toc()/60);
@@ -116,7 +116,7 @@ if (parallelOption == 1)
 elseif (parallelOption == 2 || parallelOption == 3)
     for i=1:length(OCTFolders)
         tic
-        fprintf('Processing File: %s (%d of %d) ...\n',folderNames{i},i,length(OCTFolders));
+        fprintf('Processing OCT Folder: %s (%d of %d) ...\n',folderNames{i},i,length(OCTFolders));
         o = process(OCTFolders{i},config,outputFilePrefix,isSaveMat,parallelOption);
         overview{i} = o;
         fprintf('Done, total time: %.1f[min]\n',toc()/60);
