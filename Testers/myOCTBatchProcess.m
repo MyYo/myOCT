@@ -179,7 +179,6 @@ yOCT2Tif(speckleVariance,[OCTFolder '/' outputFilePrefix 'speckleVariance.tif'])
 overview.BScan_MidWay = mag2db(squeeze(meanAbs(:,:,ceil(end/2))));
 
 %Max Projection
-overview.SpeckleVarMaxProjection
 mpSV = speckleVariance;
 mpSV(meanAbs<1) = 0; %Threshlod
 mpSV(1:50,:,:) = 0; %Top of the image is usually noise
