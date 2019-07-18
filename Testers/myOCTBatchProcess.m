@@ -101,7 +101,7 @@ if (isempty(parallelOption))
 end
 
 %% Process
-
+fprintf('Starting parallel processing, option #%d\n',parallelOption);
 gcp; %Start Parallel Processs
 overview = cell(size(OCTFolders));
 if (parallelOption == 1)
