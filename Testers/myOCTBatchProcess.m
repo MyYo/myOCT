@@ -21,6 +21,9 @@ function myOCTBatchProcess(OCTFolders,config)
 %                                       generate file: band1_scanAbs.tif
 % 'parallelOption'          []          Force select which paralelization
 %                                       option to choose, see PARALLEL COMPUTING below
+% 'maxNParallelWorkers'     Inf         Max number of workers to open parallel
+%                                       pool with, if set to Inf, will use
+%                                       as many workers as suppored by cluster
 % 'isSaveMat'               false       Should save mat files as well as
 %                                       tif? set to true to recive higher
 %                                       resolution results.
@@ -59,6 +62,7 @@ function myOCTBatchProcess(OCTFolders,config)
 outputFilePrefix = '';
 parallelOption = [];
 isSaveMat = false;
+maxNParallelWorkers = Inf;
 if exist('config','var')
     for i=1:2:length(config)
        eval([config{i} ' = config{i+1};']); %<-TBD - there should be a safer way
@@ -103,10 +107,10 @@ end
 
 %% Process
 fprintf('Starting parallel processing, option (%d)\n',parallelOption);
-gcp; %Start Parallel Processs
+p = gcp; %Start Parallel Processs
 fps = cell(size(OCTFolders)); %Filepaths of all the files generated
 if (parallelOption == 1)
-    parfor i=1:length(OCTFolders)
+    parfor i=(1:length(OCTFolders),maxNParallelWorkers)
         tic;
         fprintf('Processing OCT Folder: %s (%d of %d) ...\n',folderNames{i},i,length(OCTFolders));
         o = process(OCTFolders{i},config,outputFilePrefix,isSaveMat,parallelOption);

@@ -26,6 +26,9 @@ function varargout = yOCTProcessScan(varargin)
 % 'showStats'                False      Prints execution stats
 % 'runProcessScanInParallel' True       Would you like to process Y scans
 %                                       in parallel or sequential? 
+% 'maxNParallelWorkers'     Inf         Max number of workers to open parallel
+%                                       pool with, if set to Inf, will use
+%                                       as many workers as suppored by cluster
 %
 %OUTPUTS:
 %   - out1, out2... same as processFunc dimensions: (z,x,y)
@@ -42,6 +45,7 @@ processFunc = varargin{2};
 nYPerIteration = 1;
 showStats = false;
 runProcessScanInParallel = true;
+maxNParallelWorkers = Inf;
 parameters = {};
 for i=3:2:length(varargin)
     switch(lower(varargin{i}))
@@ -51,6 +55,8 @@ for i=3:2:length(varargin)
             showStats = varargin{i+1};
         case 'runProcessScanInParallel'
             runProcessScanInParallel = varargin{i+1};
+        case 'maxNParallelWorkers'
+            maxNParallelWorkers = varargin{i+1};
         otherwise
             parameters(end+1) = varargin(i); %#ok<AGROW>
             parameters(end+1) = varargin(i+1); %#ok<AGROW>
@@ -120,7 +126,7 @@ tmpSize = [size(datOut,1) size(datOut,2) size(datOut,3) length(func)];
 myT = tic;
 if runProcessScanInParallel
     fprintf('Parallel Processing ...');
-    parfor i = 1:nIterations
+    parfor (i = 1:nIterations, maxNParallelWorkers)
         ii = iis(i,:);
         [dataOutIter,prof1,prof2,prof3] = ...
             RunIteration(ii,inputDataFolder,parameters,dimensions,func,tmpSize);
