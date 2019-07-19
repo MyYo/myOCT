@@ -11,6 +11,9 @@ function runme_Jenkins(functionHendle,isConnectToCluster)
 %   - Running yOCTTestMyOCTLibrary
 %       echo runme_Jenkins(@()(yOCTTestMyOCTLibrary()),false);> runme.m
 
+global isRunningOnJenkins; %Golbal varible stating execution status
+isRunningOnJenkins = true; 
+
 try 
 	fprintf('Starting up environment... ');
     if ~exist('isConnectToCluster','var')

@@ -104,13 +104,13 @@ end
 %% Process
 fprintf('Starting parallel processing, option (%d)\n',parallelOption);
 gcp; %Start Parallel Processs
-overview = cell(size(OCTFolders));
+fps = cell(size(OCTFolders)); %Filepaths of all the files generated
 if (parallelOption == 1)
     parfor i=1:length(OCTFolders)
         tic;
         fprintf('Processing OCT Folder: %s (%d of %d) ...\n',folderNames{i},i,length(OCTFolders));
         o = process(OCTFolders{i},config,outputFilePrefix,isSaveMat,parallelOption);
-        overview{i} = o;
+        fps{i} = o;
         fprintf('Done, total time: %.1f[min]\n',toc()/60);
     end
 elseif (parallelOption == 2 || parallelOption == 3)
@@ -118,31 +118,27 @@ elseif (parallelOption == 2 || parallelOption == 3)
         tic
         fprintf('Processing OCT Folder: %s (%d of %d) ...\n',folderNames{i},i,length(OCTFolders));
         o = process(OCTFolders{i},config,outputFilePrefix,isSaveMat,parallelOption);
-        overview{i} = o;
+        fps{i} = o;
         fprintf('Done, total time: %.1f[min]\n',toc()/60);
     end
 end
 	
 %% Generate Tiffs with overviews
-for i=1:length(overview)
-    o = overview{i};
+for i=1:length(fps)
+    o = fps{i};
     folderName = folderNames{i};
     
-    yOCT2Tif(o.BScan_MidWay,[folderName outputFilePrefix 'BScan.tif']);
-    yOCT2Tif(o.SpeckleVarMaxProjection,[folderName outputFilePrefix 'speckleVarMaxProjection.tif']);
+    %Load Generated Files and Resave them locally
+    yOCT2Tif(yOCTFromTif(o{end-1}),[folderName outputFilePrefix 'BScan.tif']);
+    yOCT2Tif(yOCTFromTif(o{end})  ,[folderName outputFilePrefix 'speckleVarMaxProjection.tif']);
 end
-
-%% Where files are located in the cloud
-fid = fopen('WhereAreMyFiles.txt','w'); 
-fprintf(fid,'here');
-fclose(fid);
-%TBD
-
 
 %% This function preforms the actual processing
 %It is written as a function so we can run it as parallel loop or for loop
 %depending on the configuration
-function overview = process(OCTFolder,config,outputFilePrefix,isSaveMat,parallelOption)
+function filepaths = process(OCTFolder,config,outputFilePrefix,isSaveMat,parallelOption)
+fpPrefix = [OCTFolder '/' outputFilePrefix];
+filepaths = {};
 
 %Make sure this is atleast a 2D scan, otherwise we don't sopport it
 pk = yOCTLoadInterfFromFile(OCTFolder,'PeakOnly',true);
@@ -167,20 +163,25 @@ end
 speckleVariance = speckleVariance./meanAbs;
 
 %Save data
-yOCT2Tif(mag2db(meanAbs),[OCTFolder '/' outputFilePrefix 'scanAbs.tif']); %Save to File
+filepaths{end+1} = [fpPrefix 'scanAbs.tif'];
+yOCT2Tif(mag2db(meanAbs),filepaths{end}); %Save to File
 if (isSaveMat)
-    yOCT2Mat(meanAbs,        [OCTFolder '/' outputFilePrefix 'scanAbs.mat']); %Save raw data to File
+    filepaths{end+1} = [fpPrefix 'scanAbs.mat'];
+    yOCT2Mat(meanAbs,filepaths{end}); %Save raw data to File
 end
-yOCT2Tif(speckleVariance,[OCTFolder '/' outputFilePrefix 'speckleVariance.tif']); %Save to File
+filepaths{end+1} = [fpPrefix 'speckleVariance.tif'];
+yOCT2Tif(speckleVariance,filepaths{end}); %Save to File
 
 %% Make overview files
 
 %Selected B Scan
-overview.BScan_MidWay = mag2db(squeeze(meanAbs(:,:,ceil(end/2))));
+filepaths{end+1} = [fpPrefix 'SelectedBScan.tif'];
+yOCT2Tif(mag2db(squeeze(meanAbs(:,:,ceil(end/2)))), filepaths{end});
 
 %Max Projection
 mpSV = speckleVariance;
 mpSV(meanAbs<1) = 0; %Threshlod
 mpSV(1:50,:,:) = 0; %Top of the image is usually noise
 mp = squeeze(max(mpSV,[],1)); %Project along z
-overview.SpeckleVarMaxProjection = mp;
+filepaths{end+1} = [fpPrefix 'speckleVarMaxProjection.tif'];
+yOCT2Tif(mp, filepaths{end});
