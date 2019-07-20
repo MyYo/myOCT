@@ -6,8 +6,8 @@ function data = yOCTFromMat (filepath)
 if (strcmpi(filepath(1:3),'s3:'))
     %Load Data from AWS
     isAWS = true;
-    yOCTSetAWScredentials; %Use the advanced version as uploading is more challenging
-    filepath = yOCTModifyPathForAWSCompetability(filepath);
+    awsSetCredentials; %Use the advanced version as uploading is more challenging
+    filepath = awsModifyPathForCompetability(filepath);
 else
     isAWS = false;
 end

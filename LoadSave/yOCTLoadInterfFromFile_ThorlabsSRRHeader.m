@@ -11,8 +11,8 @@ function dimensions = yOCTLoadInterfFromFile_ThorlabsSRRHeader (inputDataFolder)
 if (strcmpi(inputDataFolder(1:3),'s3:'))
     %Load Data from AWS
     isAWS = true;
-    yOCTSetAWScredentials;
-    inputDataFolder = yOCTModifyPathForAWSCompetability(inputDataFolder);
+    awsSetCredentials;
+    inputDataFolder = awsModifyPathForCompetability(inputDataFolder);
 else
     isAWS = false;
 end

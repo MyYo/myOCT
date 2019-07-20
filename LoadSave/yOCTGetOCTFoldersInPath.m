@@ -83,8 +83,8 @@ end
 function [OCTFolders,folderNames] = yOCTGetOCTFoldersInPath_AWS(p)
 
 %Set cridentials
-yOCTSetAWScredentials(1); %This will be done with CLI
-p = yOCTModifyPathForAWSCompetability(p,true);
+awsSetCredentials(1); %This will be done with CLI
+p = awsModifyPathForCompetability(p,true);
 
 %Get bucket's name and path of initial folder
 i = find(p=='/',3,'first');

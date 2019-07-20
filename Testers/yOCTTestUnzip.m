@@ -20,7 +20,7 @@ for i=1:length(folders)
         inFolder = folders{i};
         if isAWS
             outFolder = [folders{i}(1:(end-4)) 'Unzipped'];
-            outFolder = yOCTModifyPathForAWSCompetability(outFolder,true);
+            outFolder = awsModifyPathForCompetability(outFolder,true);
         else
             outFolder = 'myLocalFolder';
         end

@@ -1,4 +1,4 @@
-function p = yOCTModifyPathForAWSCompetability (p,isAWS_CLI)
+function p = awsModifyPathForCompetability (p,isAWS_CLI)
 %This function excepts path and output AWS compatible path.
 %INPUTS: 
 %   p - path

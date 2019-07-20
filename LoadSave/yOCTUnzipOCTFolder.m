@@ -4,15 +4,15 @@ function yOCTUnzipOCTFolder(OCTFolderZipFileIn,OCTFolderOut,isDeleteOCTZippedFil
 
 %% Make sure we have AWS Cridentials
 if (strcmpi(OCTFolderZipFileIn(1:3),'s3:'))
-    yOCTSetAWScredentials (1); %Write cridentials are required  
-    OCTFolderZipFileIn = yOCTModifyPathForAWSCompetability(OCTFolderZipFileIn,true);
+    awsSetCredentials (1); %Write cridentials are required  
+    OCTFolderZipFileIn = awsModifyPathForCompetability(OCTFolderZipFileIn,true);
     isAWSIn = true;
 else
     isAWSIn = false;
 end
 if (strcmpi(OCTFolderOut(1:3),'s3:'))
-    yOCTSetAWScredentials (1); %Write cridentials are required
-    OCTFolderOut = yOCTModifyPathForAWSCompetability(OCTFolderOut,true);
+    awsSetCredentials (1); %Write cridentials are required
+    OCTFolderOut = awsModifyPathForCompetability(OCTFolderOut,true);
     isAWSOut = true;
 else
     isAWSOut = false;
