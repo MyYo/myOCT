@@ -9,7 +9,12 @@ if ~exist('isAWS_CLI','var')
     isAWS_CLI = false;
 end
 
-p = strrep(p,'\','/'); %Replace Spaces
+p = strrep(p,'\','/'); %Repalce slashes
+
+%Replace double slashed
+p = strrep(p,'//','/'); 
+p = strrep(p,'//','/'); 
+p = strrep(p,'s3:/','s3://'); 
 
 if isAWS_CLI
     p = strrep(p,'%20',' '); %Replace Spaces
