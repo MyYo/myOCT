@@ -20,7 +20,7 @@ end
 %% Load SRR File 
 ds=fileDatastore(inputDataFolder,'ReadFcn',@readSRRHeader,'fileExtensions','.srr');
 [headerFile,info] = ds.read; %Read first file
-error('DataStoreOK');
+disp('DataStoreOK');
 
 %% Parse File Name 
 [~,fName] = fileparts(info.Filename);
@@ -47,7 +47,7 @@ order = order + 1;
 if length(dimensions.lambda.values) ~= headerFile.size1
     error('Size of lambda in chirp does not match data on SRR file');
 end
-
+disp('Lambda OK');
 %% All Other Dimensions
 
 sizeX=(headerFile.scanend-headerFile.scanstart);
@@ -61,7 +61,7 @@ dimensions.x.units = 'NA';
 dimensions.x.index = (1:sizeX);
 dimensions.x.index = dimensions.x.index(:)';
 order = order + 1;
-
+error('Lambda X Ok');
 %% Add the other direction (Y)
 dimensions.y.order = order;
 dimensions.y.values = linspace(0,1,sizeY);
