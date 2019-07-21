@@ -107,9 +107,9 @@ end
 
 %% Process
 fprintf('Starting parallel processing, option (%d)\n',parallelOption);
-p = gcp; %Start Parallel Processs
 fps = cell(size(OCTFolders)); %Filepaths of all the files generated
 if (parallelOption == 1)
+    p = gcp; %Start Parallel Processs
     parfor (i=1:length(OCTFolders),maxNParallelWorkers)
         tic;
         fprintf('Processing OCT Folder: %s (%d of %d) ...\n',folderNames{i},i,length(OCTFolders));
