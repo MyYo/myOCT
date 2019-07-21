@@ -20,6 +20,7 @@ end
 %% Load SRR File 
 ds=fileDatastore(inputDataFolder,'ReadFcn',@readSRRHeader,'fileExtensions','.srr');
 [headerFile,info] = ds.read; %Read first file
+error('DataStoreOK');
 
 %% Parse File Name 
 [~,fName] = fileparts(info.Filename);
