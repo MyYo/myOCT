@@ -112,7 +112,6 @@ if (parallelOption == 1)
     p = gcp; %Start Parallel Processs
     parfor (i=1:length(OCTFolders),maxNParallelWorkers)
         tic;
-        parallelOption
         fprintf('Processing OCT Folder: %s (%d of %d) ...\n',folderNames{i},i,length(OCTFolders));
         o = process(OCTFolders{i},config,outputFilePrefix,isSaveMat,parallelOption);
         fps{i} = o;
@@ -157,9 +156,6 @@ if (parallelOption==1 || parallelOption==3)
 else
     runProcessScanInParallel=true;
 end
-
-disp('myOCTBatch runProcessScanInParallel')
-runProcessScanInParallel
 
 %Load OCT Data, parllel computing style
 [meanAbs,speckleVariance] = yOCTProcessScan([{OCTFolder, ...

@@ -48,14 +48,14 @@ runProcessScanInParallel = true;
 maxNParallelWorkers = Inf;
 parameters = {};
 for i=3:2:length(varargin)
-    switch(lower(varargin{i}))
+    switch(lower(varargin{i})) %Remember all processes in lower case!
         case 'nyperiteration'
             nYPerIteration = varargin{i+1};
         case 'showstats'
             showStats = varargin{i+1};
-        case 'runProcessScanInParallel'
+        case 'runprocessscaninparallel'
             runProcessScanInParallel = varargin{i+1};
-        case 'maxNParallelWorkers'
+        case 'maxnparallelworkers'
             maxNParallelWorkers = varargin{i+1};
         otherwise
             parameters(end+1) = varargin(i); %#ok<AGROW>
@@ -117,7 +117,9 @@ profData_dataLoadFrameTime = zeros(nIterations,1);
 profData_dataLoadHeaderTime = zeros(nIterations,1);
 profData_processingTime   = zeros(nIterations,1);
 tt = tic;
-ticBytes(p);
+if (runProcessScanInParallel)
+    ticBytes(p);
+end
 
 %% Loop over all files
 iis = zeros(nIterations,nYPerIteration);
@@ -126,7 +128,7 @@ for i=1:nIterations
 end
 tmpSize = [size(datOut,1) size(datOut,2) size(datOut,3) length(func)];
 myT = tic;
-runProcessScanInParallel
+
 if runProcessScanInParallel
     fprintf('Parallel Processing ...');
     parfor (i = 1:nIterations, maxNParallelWorkers)
@@ -144,10 +146,19 @@ else
     starI = round(linspace(1,nIterations,10));
     fprintf('Processing, wait for %d Stars ... [ ',length(starI));
     for i = 1:nIterations
-        disp(i); %TBD
+        i
         ii = iis(i,:);
+        try
         [dataOutIter,prof1,prof2,prof3] = ...
             RunIteration(ii,inputDataFolder,parameters,dimensions,func,tmpSize);
+        catch ME
+            disp(' '); 
+            disp('Error Happened'); 
+            for j=1:length(ME.stack) 
+                ME.stack(j) 
+            end 
+            disp(ME.message); 
+        end
 
         datOut(:,:,:,:,i) = dataOutIter;
         profData_dataLoadFrameTime(i)  = prof1;
@@ -172,10 +183,18 @@ varargout{end}=dimensions;
 
 %Profiling
 profData_totalRunTime = toc(tt);
-profData_totalBytesTransfer = sum(tocBytes(p)); %Total bytes sent, total recived
+if (runProcessScanInParallel)
+    profData_totalBytesTransfer = sum(tocBytes(p)); %Total bytes sent, total recived
+else
+    profData_totalBytesTransfer = 0;
+end
 
 %% Compute statistics
-NumWorkers = min(p.NumWorkers,nIterations); %To acount for a situation where number of workers larger then number of iterations
+if(profData_totalBytesTransfer)
+    NumWorkers = min(p.NumWorkers,nIterations); %To acount for a situation where number of workers larger then number of iterations
+else
+    NumWorkers = 1;
+end
 meanIterationLoadDataFrameTime = mean(profData_dataLoadFrameTime);
 meanIterationLoadDataHeaderTime = mean(profData_dataLoadHeaderTime);
 meanIterationProcessingTime = mean(profData_processingTime);
@@ -216,6 +235,7 @@ function [dataOutIter,profData_dataLoadFrameTime,profData_dataLoadHeaderTime,pro
     RunIteration(ii,inputDataFolder,parameters,dimensions,func,tmpSize)
     tw = tic;
     
+    disp('load iter');
     %Load interf from file
     [interf,dim,~,prof] = yOCTLoadInterfFromFile([{inputDataFolder} parameters {'YFramesToProcess'} {ii} {'dimensions'} {dimensions}]);
     

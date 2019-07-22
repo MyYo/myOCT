@@ -20,7 +20,6 @@ end
 %% Load SRR File 
 ds=fileDatastore(inputDataFolder,'ReadFcn',@readSRRHeader,'fileExtensions','.srr');
 [headerFile,info] = ds.read; %Read first file
-disp('DataStoreOK');
 
 %% Parse File Name 
 [~,fName] = fileparts(info.Filename);
@@ -61,7 +60,7 @@ dimensions.x.units = 'NA';
 dimensions.x.index = (1:sizeX);
 dimensions.x.index = dimensions.x.index(:)';
 order = order + 1;
-disp('X Ok');
+
 %% Add the other direction (Y)
 dimensions.y.order = order;
 dimensions.y.values = linspace(0,1,sizeY);
@@ -71,14 +70,14 @@ dimensions.y.index = (1:sizeY);
 dimensions.y.index = dimensions.y.index(:)';
 dimensions.y.indexMax = sizeY;
 order = order + 1;
-disp('Y Ok');
+
 %% Add B Scan Average+
 dimensions.BScanAvg.order = order;
 dimensions.BScanAvg.index = (1:BScanAvgN);
 dimensions.BScanAvg.index = dimensions.BScanAvg.index(:)';
 dimensions.BScanAvg.indexMax = BScanAvgN;
 order = order + 1;
-disp('B ok');
+
 %% Auxilery parameters
 dimensions.aux.headerTotalBytes = headerFile.headerTotalBytes;
 dimensions.aux.scanstart = headerFile.scanstart+1;
@@ -86,7 +85,7 @@ dimensions.aux.scanend = headerFile.scanend;
 dimensions.aux.apodstart = headerFile.apodstart+1;
 dimensions.aux.apodend = headerFile.apodend;
 dimensions.aux.OCTSystem = OCTSystem;
-disp('Aux Ok');
+
 end
 
 function header = readSRRHeader(fName)
