@@ -68,7 +68,9 @@ if ~iscell(processFunc)
 end
 
 %% Gather Data
-p = gcp;
+if (runProcessScanInParallel)
+    p = gcp;
+end
 dimensions = yOCTLoadInterfFromFile([{inputDataFolder}, parameters {'PeakOnly'},{true}]);
 [~, ~, sizeY, AScanAvgN, BScanAvgN] = yOCTLoadInterfFromFile_DataSizing(dimensions);
 
@@ -124,6 +126,7 @@ for i=1:nIterations
 end
 tmpSize = [size(datOut,1) size(datOut,2) size(datOut,3) length(func)];
 myT = tic;
+runProcessScanInParallel
 if runProcessScanInParallel
     fprintf('Parallel Processing ...');
     parfor (i = 1:nIterations, maxNParallelWorkers)
@@ -141,7 +144,7 @@ else
     starI = round(linspace(1,nIterations,10));
     fprintf('Processing, wait for %d Stars ... [ ',length(starI));
     for i = 1:nIterations
-    
+        disp(i); %TBD
         ii = iis(i,:);
         [dataOutIter,prof1,prof2,prof3] = ...
             RunIteration(ii,inputDataFolder,parameters,dimensions,func,tmpSize);
