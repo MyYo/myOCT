@@ -118,7 +118,7 @@ if (parallelOption == 1)
         fps{i} = o;
         fprintf('Done, total time: %.1f[min]\n',toc()/60);
         catch ME
-            fprintf('Error Happened, iteration %d',i); 
+            fprintf('Error happened in parfor, iteration %d',i); 
             for j=1:length(ME.stack) 
                 ME.stack(j) 
             end 

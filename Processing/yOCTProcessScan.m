@@ -146,7 +146,6 @@ else
     starI = round(linspace(1,nIterations,10));
     fprintf('Processing, wait for %d Stars ... [ ',length(starI));
     for i = 1:nIterations
-        disp(i)
         ii = iis(i,:);
         
         [dataOutIter,prof1,prof2,prof3] = ...
