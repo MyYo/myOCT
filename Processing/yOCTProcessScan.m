@@ -168,7 +168,6 @@ end
 %% Reshape and output
 varargout = cell(length(func)+1,1);
 for j=1:length(func)
-    memory
     varargout{j} = reshape(datOut(:,:,:,j,:),[size(datOut,1) size(datOut,2) sizeY]); %Reshape matrix to a form which is independent of parallelization
 end
 varargout{end}=dimensions;
