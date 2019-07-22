@@ -146,20 +146,12 @@ else
     starI = round(linspace(1,nIterations,10));
     fprintf('Processing, wait for %d Stars ... [ ',length(starI));
     for i = 1:nIterations
-        i
+        disp(i)
         ii = iis(i,:);
-        try
+        
         [dataOutIter,prof1,prof2,prof3] = ...
             RunIteration(ii,inputDataFolder,parameters,dimensions,func,tmpSize);
-        catch ME
-            disp(' '); 
-            disp('Error Happened'); 
-            for j=1:length(ME.stack) 
-                ME.stack(j) 
-            end 
-            disp(ME.message); 
-        end
-
+        
         datOut(:,:,:,:,i) = dataOutIter;
         profData_dataLoadFrameTime(i)  = prof1;
         profData_dataLoadHeaderTime(i) = prof2;
@@ -180,6 +172,7 @@ for j=1:length(func)
     varargout{j} = reshape(datOut(:,:,:,j,:),[size(datOut,1) size(datOut,2) sizeY]); %Reshape matrix to a form which is independent of parallelization
 end
 varargout{end}=dimensions;
+disp('Reshape Output done');
 
 %Profiling
 profData_totalRunTime = toc(tt);
@@ -235,7 +228,6 @@ function [dataOutIter,profData_dataLoadFrameTime,profData_dataLoadHeaderTime,pro
     RunIteration(ii,inputDataFolder,parameters,dimensions,func,tmpSize)
     tw = tic;
     
-    disp('load iter');
     %Load interf from file
     [interf,dim,~,prof] = yOCTLoadInterfFromFile([{inputDataFolder} parameters {'YFramesToProcess'} {ii} {'dimensions'} {dimensions}]);
     

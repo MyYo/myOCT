@@ -111,11 +111,20 @@ fps = cell(size(OCTFolders)); %Filepaths of all the files generated
 if (parallelOption == 1)
     p = gcp; %Start Parallel Processs
     parfor (i=1:length(OCTFolders),maxNParallelWorkers)
+        try
         tic;
         fprintf('Processing OCT Folder: %s (%d of %d) ...\n',folderNames{i},i,length(OCTFolders));
         o = process(OCTFolders{i},config,outputFilePrefix,isSaveMat,parallelOption);
         fps{i} = o;
         fprintf('Done, total time: %.1f[min]\n',toc()/60);
+        catch ME
+            fprintf('Error Happened, iteration %d',i); 
+            for j=1:length(ME.stack) 
+                ME.stack(j) 
+            end 
+            disp(ME.message); 
+            error('Error in parfor');
+        end
     end
 elseif (parallelOption == 2 || parallelOption == 3)
     for i=1:length(OCTFolders)
