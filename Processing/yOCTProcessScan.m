@@ -26,7 +26,7 @@ function varargout = yOCTProcessScan(varargin)
 % 'showStats'                False      Prints execution stats
 % 'runProcessScanInParallel' True       Would you like to process Y scans
 %                                       in parallel or sequential? 
-% 'maxNParallelWorkers'     Inf         Max number of workers to open parallel
+% 'maxNParallelWorkers'      Inf        Max number of workers to open parallel
 %                                       pool with, if set to Inf, will use
 %                                       as many workers as suppored by cluster
 %
