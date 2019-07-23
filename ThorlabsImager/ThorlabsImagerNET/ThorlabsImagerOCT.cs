@@ -22,15 +22,30 @@ namespace ThorlabsImagerNET
         // Scan a 3D Volume
         [DllImport("ThorlabsImager.dll")]
         public static extern void yOCTScan3DVolume(
-            double xStart, //Scan start position [mm]
-            double yStart, //Scan start position [mm]
+            double xCenter, //Scan center position [mm] 
+            double yCenter, //Scan center position [mm]
             double rangeX, //fast direction length [mm]
             double rangeY, //slow direction length [mm]
             double rotationAngle, //Scan angle [deg]
             int sizeX,  //Number of pixels on the fast direction
             int sizeY,  //Number of pixels on the slow direction
             int nBScanAvg, //Number of B scan averages (set to 1 if non)
-            string outputDirectory //Output folder, make sure it exists and empty before running this function
+            string outputDirectory //Output folder, make sure it doesn't exists, otherwise will return an error
+            );
+
+        // Scan a Processed 3D Volume
+        [DllImport("ThorlabsImager.dll")]
+        public static extern void yOCTScan3DVolumeProcessed(
+            double xCenter, //Scan center position [mm] 
+            double yCenter, //Scan center position [mm]
+            double rangeX, //fast direction length [mm]
+            double rangeY, //slow direction length [mm]
+            double rotationAngle, //Scan angle [deg]
+            int sizeX,  //Number of pixels on the fast direction
+            int sizeY,  //Number of pixels on the slow direction
+            int nBScanAvg, //Number of B scan averages (set to 1 if non)
+            string outputDirectory, //Output folder, make sure it doesn't exists, otherwise will return an error
+            double dispA // Dispersion parameter from ThorImage Software, units unkown
             );
 
         #endregion
@@ -48,15 +63,21 @@ namespace ThorlabsImagerNET
 
         //Initialize Stage
         [DllImport("ThorlabsImager.dll")]
-        public static extern void yOCTStageInit();
+        public static extern double yOCTStageInit(char axes);
 
         //Get / Set Stage Position [mm]
         [DllImport("ThorlabsImager.dll")]
-        public static extern void yOCTStageSetZPosition(double newZ);
+        public static extern void yOCTStageSetPosition(char axes, double position);
+
+        //Close Stage
+        [DllImport("ThorlabsImager.dll")]
+        public static extern double yOCTStageClose(char axes);
 
         public static void Hi()
         {
             return;
         }
+
+ 
     }
 }

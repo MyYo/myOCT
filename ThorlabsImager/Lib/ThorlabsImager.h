@@ -31,15 +31,29 @@ MY_EXTERN_C THORLABSIMAGERDLL_API void yOCTScannerClose();
 
 // Scan a 3D Volume
 MY_EXTERN_C THORLABSIMAGERDLL_API void yOCTScan3DVolume(
-	const double xStart, //Scan start position [mm]
-	const double yStart, //Scan start position [mm]
+	const double xCenter, //Scan center position [mm] 
+	const double yCenter, //Scan center position [mm]
 	const double rangeX, //fast direction length [mm]
 	const double rangeY, //slow direction length [mm]
 	const double rotationAngle, //Scan angle [deg]
 	const int    sizeX,  //Number of pixels on the fast direction
 	const int    sizeY,  //Number of pixels on the slow direction
 	const int    nBScanAvg, //Number of B scan averages (set to 1 if non)
-	const char   outputDirectory[] //Output folder, make sure it exists and empty before running this function
+	const char   outputDirectory[] //Output folder, make sure it doesn't exists, otherwise will return an error
+);
+
+// Scan a Processed 3D Volume 
+MY_EXTERN_C THORLABSIMAGERDLL_API void yOCTScan3DVolumeProcessed(
+	const double xCenter, //Scan center position [mm] 
+	const double yCenter, //Scan center position [mm]
+	const double rangeX, //fast direction length [mm]
+	const double rangeY, //slow direction length [mm]
+	const double rotationAngle, //Scan angle [deg]
+	const int    sizeX,  //Number of pixels on the fast direction
+	const int    sizeY,  //Number of pixels on the slow direction
+	const int    nBScanAvg, //Number of B scan averages (set to 1 if non)
+	const char   outputDirectory[], //Output folder, make sure it doesn't exists, otherwise will return an error
+	const double dispA // Dispersion parameter from ThorImage Software, units unkown
 );
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -61,7 +75,10 @@ MY_EXTERN_C THORLABSIMAGERDLL_API void yOCTPhotobleachLine(
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Initialize Stage
-MY_EXTERN_C THORLABSIMAGERDLL_API void yOCTStageInit();
+MY_EXTERN_C THORLABSIMAGERDLL_API double yOCTStageInit(char axes);
 
 //Get / Set Stage Position [mm]
-MY_EXTERN_C THORLABSIMAGERDLL_API void yOCTStageSetZPosition(const double newZ);
+MY_EXTERN_C THORLABSIMAGERDLL_API void yOCTStageSetPosition(char axes, double position);
+
+//Close Stage
+MY_EXTERN_C THORLABSIMAGERDLL_API void yOCTStageClose(char axes);

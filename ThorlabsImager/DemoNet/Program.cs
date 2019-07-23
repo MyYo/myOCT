@@ -44,17 +44,18 @@ namespace DemoNet
 
             // Initialize Stage(All Z positions will be with respect to that initial one)
             Console.WriteLine("yOCTStageInit");
-            ThorlabsImager.yOCTStageInit();
+            double zStart = ThorlabsImager.yOCTStageInit('z');
 
             //Move
             Console.WriteLine("yOCTStageSetZPosition");
             double dz = 1000; //[um]
-            ThorlabsImager.yOCTStageSetZPosition(
-                dz / 1000 //Movement[mm]
+            ThorlabsImager.yOCTStageSetPosition('z',
+                zStart + dz / 1000 //Movement[mm]
                 );
 
             // Move back(reset)
-            ThorlabsImager.yOCTStageSetZPosition(0);
+            ThorlabsImager.yOCTStageSetPosition('z',zStart);
+            ThorlabsImager.yOCTStageClose('z');
 
             #endregion
 

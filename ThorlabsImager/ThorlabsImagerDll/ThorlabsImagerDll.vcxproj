@@ -171,12 +171,14 @@ xcopy "$(ProjectDir)ThorlabsImager.h" "$(SolutionDir)Lib\" /y</Command>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ThorMCM3000.lib;visa64.lib;TL4000_64.lib;SpectralRadar.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Thorlabs.MotionControl.KCube.DCServo.lib;visa64.lib;TL4000_64.lib;SpectralRadar.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(TargetDir)$(TargetName).lib" "$(SolutionDir)Lib\" /y
-xcopy "$(TargetDir)$(TargetName).dll" "$(SolutionDir)Lib\" /y
-xcopy "$(ProjectDir)ThorlabsImager.h" "$(SolutionDir)Lib\" /y</Command>
+      <Command>xcopy "$(TargetDir)$(TargetName).lib" "$(SolutionDir)Lib\" /y /r
+
+xcopy "$(TargetDir)$(TargetName).dll" "$(SolutionDir)Lib\" /y /r
+
+xcopy "$(ProjectDir)ThorlabsImager.h" "$(SolutionDir)Lib\" /y /r</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

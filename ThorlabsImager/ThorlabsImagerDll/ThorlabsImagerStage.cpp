@@ -1,153 +1,126 @@
 #include "stdafx.h"
 #include "ThorlabsImager.h"
-#include "MCM3000_SDK.h"
+//#include "MCM3000_SDK.h"
+#include "Thorlabs.MotionControl.KCube.DCServo.h"
 #include <iostream>
 #include <windows.h>
 #include <math.h>
 using namespace std;
 
-static double zPosition;
+int getSNByAxes(char axes) //Run Thorlabs.MotionControl.Kinesis.exe to see which serial numbers are avilable
+{
+	switch (axes)
+	{
+	case 'x':
+	case 'X':
+		return 27254221;
+	case 'y':
+	case 'Y':
+		return 27254232;
+	case 'z':
+	case 'Z':
+		return 27254238;
+	default: // code to be executed if n doesn't match any cases
+		return -1;
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Initialize Stage
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-void yOCTStageInit()
+double yOCTStageInit(char axes)
 {
-	zPosition = 0;
 
-	long deviceCount = 0;
+	double unitconversion = 2.9151 / 100000;
 
-	if (false == FindDevices(deviceCount))
+	if (TLI_BuildDeviceList() == 0)
 	{
-		cerr << "An error occurred: No Devices Found" << endl;
-		return;
-	}
+		int serialNo = getSNByAxes(axes);
 
-	//Use device 0 for BScope
-	if (false == SelectDevice(0))
-	{
-		cerr << "An error occurred: See i1" << endl;
-		return;
-	}
+		char testSerialNo[16];
+		sprintf_s(testSerialNo, "%d", serialNo);
+		int velocity = 1; //Units unknown
 
-	// Beginning of Original PositionSetZero
-	long setZero = 1;
-
-	if (0 == SetParam(PARAM_X_ZERO, static_cast<double>(setZero)))
-	{
-		cerr << "An error occurred: See i2" << endl;
-		return;
-	}
-
-
-	if (0 == PreflightPosition())
-	{
-		cerr << "An error occurred: See i3" << endl;
-		return;
-	}
-
-	if (0 == SetupPosition())
-	{
-		cerr << "An error occurred: See i4" << endl;
-		return;
-	}
-
-	if (0 == StartPosition())
-	{
-		cerr << "An error occurred: See i5" << endl;
-		return;
-	}
-
-	long status = STATUS_READY;
-	do
-	{
-		if (0 == StatusPosition(status))
+		// operate device
+		if (CC_Open(testSerialNo) == 0)
 		{
-			cerr << "An error occurred: See i6" << endl;
-			return;
-		}
-	} while (STATUS_BUSY == status);
+			// start the device polling at 200ms intervals
+			CC_StartPolling(testSerialNo, 200);
 
-	if (0 == PostflightPosition())
-	{
-		cerr << "An error occurred: See i7" << endl;
-		return;
+			Sleep(3000);
+			CC_ClearMessageQueue(testSerialNo);
+
+			// get actual poaition
+			double pos = CC_GetPosition(testSerialNo);
+			pos = pos * unitconversion;
+			
+			// set velocity if desired
+			if (velocity > 0)
+			{
+				int currentVelocity, currentAcceleration;
+				CC_GetVelParams(testSerialNo, &currentAcceleration, &currentVelocity);
+				CC_SetVelParams(testSerialNo, currentAcceleration, velocity);
+			}
+
+			return pos;
+		}
+
+		return -1;
 	}
 
-	// Beginning of Actual MoveX Part
-	long currentPos = 0;
-	long paramType;
-	long paramAvailable;
-	long paramReadOnly;
-	double paramMin;
-	double paramMax;
-	double paramDefault;
-
-	GetParamInfo(PARAM_X_POS, paramType, paramAvailable, paramReadOnly, paramMin, paramMax, paramDefault);
+	return -1;
+	
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-//GET / SET POSITION
+// SET POSITION
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//Get / Set Stage Position [mm]
-void yOCTStageSetZPosition(const double newZ)
+// Set Stage Position [mm]
+void yOCTStageSetPosition(char axes, double position)
 {
-	double dz = abs(zPosition - newZ);
-	
-	if (0 == SetParam(PARAM_X_POS, newZ))
+
+	double unitconversion = 2.9151 / 100000; //Conversion between internal and external units, determined ampiricly
+	position = position / unitconversion;
+
+	int serialNo = getSNByAxes(axes);
+
+	char testSerialNo[16];
+	sprintf_s(testSerialNo, "%d", serialNo);
+
+
+	// move to position (channel 1)
+	CC_ClearMessageQueue(testSerialNo);
+	CC_MoveToPosition(testSerialNo, (int)position);
+	printf("Device %s moving\r\n", testSerialNo);
+
+	WORD messageType;
+	WORD messageId;
+	DWORD messageData;
+	// wait for completion
+	CC_WaitForMessage(testSerialNo, &messageType, &messageId, &messageData);
+	while (messageType != 2 || messageId != 1)
 	{
-		cerr << "An error occurred: See sz1" << endl;
-		return;
+		CC_WaitForMessage(testSerialNo, &messageType, &messageId, &messageData);
 	}
+}
 
-	if (0 == PreflightPosition())
-	{
-		cerr << "An error occurred: See sz2" << endl;
-		return;
-	}
 
-	if (0 == SetupPosition())
-	{
-		cerr << "An error occurred: See sz3" << endl;
-		return;
-	}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Close Stage
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	if (0 == StartPosition())
-	{
-		cerr << "An error occurred: See sz4" << endl;
-		return;
-	}
+// Close stage after use
+void yOCTStageClose(char axes)
+{
 
-	long status = STATUS_READY;
-	do
-	{
-		if (0 == StatusPosition(status))
-		{
-			cerr << "An error occurred: See sz5" << endl;
-			return;
-		}
-	} while (STATUS_BUSY == status);
+	int serialNo = getSNByAxes(axes);
 
-	if (0 == PostflightPosition())
-	{
-		cerr << "An error occurred: See sz6" << endl;
-		return;
-	}
+	char testSerialNo[16];
+	sprintf_s(testSerialNo, "%d", serialNo);
 
-	double readPos;
-	if (0 == GetParam(PARAM_X_POS_CURRENT, readPos))
-	{
-		cerr << "An error occurred: See sz7" << endl;
-		return;
-	}
-
-	//Wait for movement completion (for motor to move)
-	long d = (long)(10.0 * (dz * 1000.0)); // empirically determined, wait time is 10 msec for every 1um of displacement
-	if (d > 200)
-		d = 200; // Cap delay
-	Sleep(d); 
-
-	//Update z position
-	zPosition = newZ;
+	// stop polling
+	CC_StopPolling(testSerialNo);
+	// close device
+	CC_Close(testSerialNo);
 }

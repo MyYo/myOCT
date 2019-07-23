@@ -11,11 +11,11 @@ ThorlabsImagerNET.ThorlabsImager.yOCTScannerInit('C:\Program Files\Thorlabs\Spec
 
 disp('yOCTScan3DVolume')
 ThorlabsImagerNET.ThorlabsImager.yOCTScan3DVolume(...
-    0,0,1,1, ...startX,startY,rangeX,rangeY [mm]
+    0,0,1,1, ... centerX,centerY,rangeX,rangeY [mm]
 	0,       ... rotationAngle [deg]
     100,3,   ... SizeX,sizeY [# of pixels]
     2,       ... B Scan Average
-    'scan'   ... Output directory, make sure it exists before running this function
+    'scan'   ... Output directory
     );
 
 disp('yOCTPhotobleachLine')
@@ -32,16 +32,18 @@ ThorlabsImagerNET.ThorlabsImager.yOCTScannerClose();
 
 %Initialize Stage (All Z positions will be with respect to that initial one)
 disp('yOCTStageInit')
-ThorlabsImagerNET.ThorlabsImager.yOCTStageInit();
+z0=ThorlabsImagerNET.ThorlabsImager.yOCTStageInit('z');
 
 %Move
 disp('yOCTStageSetZPosition');
 dz = 500; %[um]
-ThorlabsImagerNET.ThorlabsImager.yOCTStageSetZPosition(...
-    dz/1000  ... Movement [mm]
+ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('z',...
+    z0+dz/1000  ... Movement [mm]
     );
 
 %Move back (reset)
-ThorlabsImagerNET.ThorlabsImager.yOCTStageSetZPosition(0);
+ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('z',z0);
 
+%Close
+ThorlabsImagerNET.ThorlabsImager.yOCTStageClose('z');
 disp('Testing Done');

@@ -1,1 +1,2 @@
-You should get all those dll and lib files when installing thorlab's MCM300
+->current version: You should get all these dll and lib files from Kinesis installation
+->prev version: You should get all those dll and lib files when installing thorlab's MCM300
