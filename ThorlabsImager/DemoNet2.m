@@ -36,7 +36,7 @@ for q = 1:length(gridXcc)
 	%Scan
 	disp('Scan');
 	folder = [sprintf('%02d',q)];
-    ThorlabsImagerNET.ThorlabsImager.yOCTScan3DVolume(...
+    ThorlabsImagerNET.ThorlabsImager.yOCTScan3DVolumeProcess(...
         0,0,gridRange,gridRange, ...centerX,centerY,rangeX,rangeY [mm]
         0,       ... rotationAngle [deg]
         100,100,   ... SizeX,sizeY [# of pixels]
