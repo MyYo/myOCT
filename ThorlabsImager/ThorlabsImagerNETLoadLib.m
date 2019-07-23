@@ -8,9 +8,9 @@ if isempty(ThorlabsImagerNETLoaded) || ~ThorlabsImagerNETLoaded
 	libFolder = [currentFileFolder '\Lib\'];
 	
     % Copy Subfolders to here
-	copyfile([libFolder 'LaserDiode\*.*'],libFolder)
-	copyfile([libFolder 'MotorController\*.*'],libFolder)
-	copyfile([libFolder 'ThorlabsOCT\*.*'],libFolder)
+	copyfile([libFolder 'LaserDiode\*.*'],libFolder,'f');
+	copyfile([libFolder 'MotorController\*.*'],libFolder,'f');
+	copyfile([libFolder 'ThorlabsOCT\*.*'],libFolder,'f');
     
     %Load Assembly
     asm = NET.addAssembly([libFolder 'ThorlabsImagerNET.dll']);

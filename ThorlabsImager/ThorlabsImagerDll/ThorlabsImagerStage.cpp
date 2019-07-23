@@ -39,7 +39,6 @@ double yOCTStageInit(char axes)
 
 		char testSerialNo[16];
 		sprintf_s(testSerialNo, "%d", serialNo);
-		int velocity = 1; //Units unknown
 
 		// operate device
 		if (CC_Open(testSerialNo) == 0)
@@ -54,13 +53,13 @@ double yOCTStageInit(char axes)
 			double pos = CC_GetPosition(testSerialNo);
 			pos = pos * unitconversion;
 			
-			// set velocity if desired
-			if (velocity > 0)
-			{
-				int currentVelocity, currentAcceleration;
-				CC_GetVelParams(testSerialNo, &currentAcceleration, &currentVelocity);
-				CC_SetVelParams(testSerialNo, currentAcceleration, velocity);
-			}
+			// set velocity & acc if desired
+			int velocity = 1000000; //Units unknown. 0 means no limit. max vilocity 
+			int acc = 400; //Units unknown
+			int currentMaxVelocity, currentAcceleration;
+			CC_GetVelParams(testSerialNo, &currentAcceleration, &currentMaxVelocity);
+			printf("Device: %s current Acc: %d, max Vel: %d\n", testSerialNo, currentAcceleration, currentMaxVelocity);
+			CC_SetVelParams(testSerialNo, acc, velocity);
 
 			return pos;
 		}
@@ -98,11 +97,13 @@ void yOCTStageSetPosition(char axes, double position)
 	WORD messageId;
 	DWORD messageData;
 	// wait for completion
-	CC_WaitForMessage(testSerialNo, &messageType, &messageId, &messageData);
-	while (messageType != 2 || messageId != 1)
+	do 
 	{
+		//double pos = CC_GetPosition(testSerialNo);
+		//printf("Position %f\n", pos);
+		//Sleep(100);
 		CC_WaitForMessage(testSerialNo, &messageType, &messageId, &messageData);
-	}
+	} while (messageType != 2 || messageId != 1);
 }
 
 

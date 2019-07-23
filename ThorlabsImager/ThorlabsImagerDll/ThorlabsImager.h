@@ -60,7 +60,10 @@ MY_EXTERN_C THORLABSIMAGERDLL_API void yOCTScan3DVolumeProcessed(
 //PHOTOBLEACHING
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Photobleach a Line
+//Control laser diode on / off
+MY_EXTERN_C THORLABSIMAGERDLL_API void yOCTTurnLaser(const bool onoff); //set to true to turn laser on
+
+// Photobleach a Line, turn laser diode on before photobleaching
 MY_EXTERN_C THORLABSIMAGERDLL_API void yOCTPhotobleachLine(
 	const double xStart,	//Start position [mm]
 	const double yStart,	//Start position [mm]

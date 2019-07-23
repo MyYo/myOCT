@@ -50,7 +50,12 @@ namespace ThorlabsImagerNET
 
         #endregion
 
-        // Photobleach a Line
+        #region Photobleaching
+        //Control laser diode on / off
+        [DllImport("ThorlabsImager.dll")]
+        public static extern void yOCTTurnLaser(bool onoff); //set to true to turn laser on
+
+        // Photobleach a Line, turn laser diode on before photobleaching
         [DllImport("ThorlabsImager.dll")]
         public static extern void yOCTPhotobleachLine(
             double xStart,	//Start position [mm]
@@ -60,6 +65,10 @@ namespace ThorlabsImagerNET
             double duration,	//How many seconds to photobleach
             double repetition //How many times galvoes should go over the line to photobleach. slower is better. recomendation: 1
             );
+
+        #endregion
+
+        #region Stage Control
 
         //Initialize Stage
         [DllImport("ThorlabsImager.dll")]
@@ -78,6 +87,6 @@ namespace ThorlabsImagerNET
             return;
         }
 
- 
+        #endregion
     }
 }

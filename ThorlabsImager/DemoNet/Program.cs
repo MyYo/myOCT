@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 using ThorlabsImagerNET;
 
@@ -27,13 +28,18 @@ namespace DemoNet
                 2,          //B Scan Average
                 @"scan"      //Output directory, make sure it exists before running this function
             );
+            Console.WriteLine();
+            Console.WriteLine("yOCTScan3DVolume - Done");
+            Console.WriteLine();
 
             Console.WriteLine("yOCTPhotobleachLine");
+            ThorlabsImager.yOCTTurnLaser(true);
             ThorlabsImager.yOCTPhotobleachLine( 
                 -1, 0, 1, 0, //startX, startY, endX, endY[mm]
-                2,           //duration[sec]
-                1            //repetitions, how many passes to photobleach(choose 1 or 2)
+                10,           //duration[sec]
+                10            //repetitions, how many passes to photobleach(choose 1 or 2)
             );
+            ThorlabsImager.yOCTTurnLaser(false);
 
             Console.WriteLine("yOCTScannerClose");
             ThorlabsImager.yOCTScannerClose();
@@ -53,6 +59,8 @@ namespace DemoNet
                 zStart + dz / 1000 //Movement[mm]
                 );
 
+            Thread.Sleep(2*1000); //Sleep for x seconds
+         
             // Move back(reset)
             ThorlabsImager.yOCTStageSetPosition('z',zStart);
             ThorlabsImager.yOCTStageClose('z');
