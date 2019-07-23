@@ -50,7 +50,7 @@ function myOCTBatchProcess(OCTFolders,config)
 %Because of Matlab restrictions, only option: (1) or option (2) can run but
 %not both (see neasted parfor entrey on mathworks).
 %Option (1) has less overhead and is prefered unless number of OCTFolders 
-%is low which means some workers will not be utilized. 
+%is low which means some workers will not be utilized. This option also uses more memory
 %User can select whic configuration to run:
 %   parallelOption = 1 will force Option (1).
 %   parallelOption = 2 will force Option (2).
