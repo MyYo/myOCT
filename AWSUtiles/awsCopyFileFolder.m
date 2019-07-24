@@ -14,14 +14,13 @@ if (exist(source,'dir'))
     if(source(end)=='\' || source(end)=='/')
         source(end)= [];
     end
-    
-    [err,errTxt] = system(['aws s3 cp "' source '" "' dest '" --recursive']);
+    [err] = system(['aws s3 cp "' source '" "' dest '" --recursive']);
 elseif (exist(source,'file'))
-    [err,errTxt] = system(['aws s3 cp "' source '" "' dest '"']);
+    [err] = system(['aws s3 cp "' source '" "' dest '"']);
 else
     error(['Source file does not exist:' source]);
 end
 
 if err~=0
-    error(['error happend while using aws: ' errTxt]);
+    error(['error happend while using aws: ']);
 end
