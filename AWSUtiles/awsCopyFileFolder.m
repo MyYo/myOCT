@@ -11,6 +11,10 @@ end
 
 if (exist(source,'dir'))
     %Make the copy of a folder
+    if(source(end)=='\' || source(end)=='/')
+        source(end)= [];
+    end
+    
     [err,errTxt] = system(['aws s3 cp "' source '" "' dest '" --recursive']);
 elseif (exist(source,'file'))
     [err,errTxt] = system(['aws s3 cp "' source '" "' dest '"']);
