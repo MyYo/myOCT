@@ -95,7 +95,8 @@ end
 %% Generate Output Structure & Execution Functions
 func = cell(size(processFunc));
 datOut = ...
-    zeros(length(dimensions.lambda.values)/2,length(dimensions.x.values),nYPerIteration,length(func),nIterations,'single'); %z,x,y,iteration, function
+    tall(zeros(length(dimensions.lambda.values)/2,length(dimensions.x.values),nYPerIteration,length(func),nIterations,'single')); %z,x,y,iteration, function
+%<- Saved as tall, use 'gather' to capture tall
 
 for i=1:length(processFunc)  
     if(ischar(processFunc{i}))
@@ -126,7 +127,7 @@ iis = zeros(nIterations,nYPerIteration);
 for i=1:nIterations
     iis(i,:) = ys((i-1)*nYPerIteration + (1:nYPerIteration));
 end
-tmpSize = [size(datOut,1) size(datOut,2) size(datOut,3) length(func)];
+sz = gather(size(datOut)); sz = sz(1:4);
 myT = tic;
 
 if runProcessScanInParallel
@@ -134,9 +135,9 @@ if runProcessScanInParallel
     parfor (i = 1:nIterations, maxNParallelWorkers)
         ii = iis(i,:);
         [dataOutIter,prof1,prof2,prof3] = ...
-            RunIteration(ii,inputDataFolder,parameters,dimensions,func,tmpSize);
+            RunIteration(ii,inputDataFolder,parameters,dimensions,func,sz);
 
-        datOut(:,:,:,:,i) = dataOutIter;
+        datOut(:,:,:,:,i) = tall(dataOutIter);
         profData_dataLoadFrameTime(i)  = prof1;
         profData_dataLoadHeaderTime(i) = prof2;
         profData_processingTime(i)     = prof3;
@@ -149,9 +150,9 @@ else
         ii = iis(i,:);
         
         [dataOutIter,prof1,prof2,prof3] = ...
-            RunIteration(ii,inputDataFolder,parameters,dimensions,func,tmpSize);
+            RunIteration(ii,inputDataFolder,parameters,dimensions,func,sz);
         
-        datOut(:,:,:,:,i) = dataOutIter;
+        datOut(:,:,:,:,i) = tall(dataOutIter);
         clear dataOutIter; %Clear memory
         profData_dataLoadFrameTime(i)  = prof1;
         profData_dataLoadHeaderTime(i) = prof2;
@@ -168,7 +169,7 @@ end
 %% Reshape and output
 varargout = cell(length(func)+1,1);
 for j=1:length(func)
-    varargout{j} = reshape(datOut(:,:,:,j,:),[size(datOut,1) size(datOut,2) sizeY]); %Reshape matrix to a form which is independent of parallelization
+    varargout{j} = reshape(gather(datOut(:,:,:,j,:)),sz(1),sz(2),sizeY); %Reshape matrix to a form which is independent of parallelization
 end
 varargout{end}=dimensions;
 
