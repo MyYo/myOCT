@@ -99,7 +99,8 @@ if (isempty(parallelOption))
         %run on the cloud than local server where faster speed can be utilized
         %even without fully using all the workers. Plus less overhead on data
         %transfer, everything is done on the cloud
-        parallelOption = 1;
+        %parallelOption = 1; %Due to memory problems allways select option 2
+		parallelOption = 2;
     else
         parallelOption = 2;
     end
