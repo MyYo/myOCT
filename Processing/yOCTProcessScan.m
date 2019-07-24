@@ -94,9 +94,14 @@ end
 
 %% Generate Output Structure & Execution Functions
 func = cell(size(processFunc));
-datOut = ...
-    tall(zeros(length(dimensions.lambda.values)/2,length(dimensions.x.values),nYPerIteration,length(func),nIterations,'single')); %z,x,y,iteration, function
-%<- Saved as tall, use 'gather' to capture tall
+if(~runProcessScanInParallel)
+    datOut = ...
+        tall(zeros(length(dimensions.lambda.values)/2,length(dimensions.x.values),nYPerIteration,length(func),nIterations,'single')); %z,x,y,iteration, function
+    %<- Saved as tall, use 'gather' to capture tall
+else
+    datOut = ...
+        (zeros(length(dimensions.lambda.values)/2,length(dimensions.x.values),nYPerIteration,length(func),nIterations,'single')); %z,x,y,iteration, function
+end
 
 for i=1:length(processFunc)  
     if(ischar(processFunc{i}))
@@ -133,14 +138,23 @@ myT = tic;
 if runProcessScanInParallel
     fprintf('Parallel Processing ...');
     parfor (i = 1:nIterations, maxNParallelWorkers)
+        try
         ii = iis(i,:);
         [dataOutIter,prof1,prof2,prof3] = ...
             RunIteration(ii,inputDataFolder,parameters,dimensions,func,sz);
 
-        datOut(:,:,:,:,i) = tall(dataOutIter);
+        datOut(:,:,:,:,i) = dataOutIter;
         profData_dataLoadFrameTime(i)  = prof1;
         profData_dataLoadHeaderTime(i) = prof2;
         profData_processingTime(i)     = prof3;
+        catch ME
+            fprintf('Error happened in parfor, iteration %d',i); 
+            for j=1:length(ME.stack) 
+                ME.stack(j) 
+            end 
+            disp(ME.message); 
+            error('Error in parfor');
+        end
     end
     fprintf(' Done! (Took %.1fmin)\n',toc(myT)/60);
 else
@@ -170,6 +184,7 @@ end
 varargout = cell(length(func)+1,1);
 for j=1:length(func)
     varargout{j} = reshape(gather(datOut(:,:,:,j,:)),sz(1),sz(2),sizeY); %Reshape matrix to a form which is independent of parallelization
+        %gather is required for tall array. if not used ignore.
 end
 varargout{end}=dimensions;
 
