@@ -152,6 +152,7 @@ else
             RunIteration(ii,inputDataFolder,parameters,dimensions,func,tmpSize);
         
         datOut(:,:,:,:,i) = dataOutIter;
+        clear dataOutIter; %Clear memory
         profData_dataLoadFrameTime(i)  = prof1;
         profData_dataLoadHeaderTime(i) = prof2;
         profData_processingTime(i)     = prof3;
@@ -164,14 +165,12 @@ else
     fprintf('] Done! (Took %.1fmin)\n',toc(myT)/60);
 end
 
-
 %% Reshape and output
 varargout = cell(length(func)+1,1);
 for j=1:length(func)
     varargout{j} = reshape(datOut(:,:,:,j,:),[size(datOut,1) size(datOut,2) sizeY]); %Reshape matrix to a form which is independent of parallelization
 end
 varargout{end}=dimensions;
-disp('Reshape Output done');
 
 %Profiling
 profData_totalRunTime = toc(tt);
