@@ -10,6 +10,10 @@ if (strcmpi(dest(1:3),'s3:'))
 end
 
 if (exist(source,'dir') || source(end)=='\' || source(end)=='/')
+    %Remove last '\'
+    if (source(end)=='\' || source(end)=='/')
+        source(end)=[];
+    ends
     %Make the copy of a folder
     [err] = system(['aws s3 sync "' source '" "' dest '"']);
 elseif (exist(source,'file'))
