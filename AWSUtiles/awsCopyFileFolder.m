@@ -9,12 +9,9 @@ if (strcmpi(dest(1:3),'s3:'))
     dest = awsModifyPathForCompetability(dest,true);
 end
 
-if (exist(source,'dir'))
+if (exist(source,'dir') || source(end)=='\' || source(end)=='/')
     %Make the copy of a folder
-    if(source(end)=='\' || source(end)=='/')
-        source(end)= [];
-    end
-    [err] = system(['aws s3 cp "' source '" "' dest '" --recursive']);
+    [err] = system(['aws s3 sync "' source '" "' dest '"']);
 elseif (exist(source,'file'))
     [err] = system(['aws s3 cp "' source '" "' dest '"']);
 else
