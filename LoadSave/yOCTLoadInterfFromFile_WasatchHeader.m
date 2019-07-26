@@ -72,7 +72,7 @@ order = 1;
 dimensions.lambda.order  = order;
 dimensions.lambda.values = lambda;
 dimensions.lambda.values = dimensions.lambda.values(:)';
-dimensions.lambda.units = 'nm';
+dimensions.lambda.units = 'nm [in air]';
 order = order + 1;
 
 %Along B Scan Axis (x)

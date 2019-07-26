@@ -57,7 +57,7 @@ lambda = 1./( ...
 dimensions.lambda.order  = 1;
 dimensions.lambda.values = lambda;
 dimensions.lambda.values = dimensions.lambda.values(:)';
-dimensions.lambda.units = 'nm';
+dimensions.lambda.units = 'nm [in air]';
 end
 
 %% Sub functions
