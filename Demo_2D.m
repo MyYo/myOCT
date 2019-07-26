@@ -2,17 +2,17 @@
 %% Iputs
 %Wasatch
 filePath = ['\\171.65.17.174\MATLAB_Share\Jenkins\myOCT Build\TestVectors\' ...
-    'Wasatch_2D_BScanAvg\'];
+    'Ganymede_2D_BScanAvg\'];
 dispersionParameterA = 100; %Use Demo_DispersionCorrection to find the term
 
 %% Process
 tic;
 
 %Load Intef From file
-[interf,dimensions] = yOCTLoadInterfFromFile(filePath);
+[interf,dimensions] = yOCTLoadInterfFromFile(filePath,'BScanAvgFramesToProcess',1:5);
 
 %Generate BScans
-scanCpx = yOCTInterfToScanCpx(interf,dimensions ...
+[scanCpx,dimensions] = yOCTInterfToScanCpx(interf,dimensions ...
     ,'dispersionParameterA', dispersionParameterA ...
     );
 

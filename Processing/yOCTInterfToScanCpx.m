@@ -1,4 +1,4 @@
-function scanCpx = yOCTInterfToScanCpx (varargin)
+function [scanCpx,dimensions] = yOCTInterfToScanCpx (varargin)
 %This function takes the interferogram loaded from yOCTLoadInterfFromFile
 %and converts it to a complex scanCpx datastructure
 %
@@ -15,8 +15,10 @@ function scanCpx = yOCTInterfToScanCpx (varargin)
 %          spectrum. Units are [nm]. Default is all spectrum
 %       - 'interpMethod', see help yOCTEquispaceInterf for interpetation
 %           methods
+%		- 'n' - medium refractive index. default: 1.33
 %OUTPUT
 %   BScanCpx - where lambda dimension is replaced by z
+%	dimensions - updated dimesions, adding dimesions for z
 %
 %Author: Yonatan W (Dec 27, 2017)
 
@@ -33,6 +35,7 @@ dimensions = varargin{2};
 dispersionParameterA = 100; %Default Value
 band = [];
 interpMethod = []; %Default
+n = 1.33;
 for i=3:2:length(varargin)
    eval([varargin{i} ' = varargin{i+1};']); %<-TBD - there should be a safer way
 end
@@ -101,3 +104,13 @@ scanCpx = ft(1:(size(interf,1)/2),:);
 
 %% Reshape back
 scanCpx = reshape(scanCpx,[size(scanCpx,1) s(2:end)]);
+
+%% Update Dimensions
+dimensions.z.order = 1;
+lambda = mean(dimensions.lambda.values)/1000; %[um]
+dlambda = diff(dimensions.lambda.values([1 end]))/1000;%[um]
+N = length(dimensions.lambda.values);
+zStepSizeAir = 1/2*lambda^2/dlambda; %1/2 factor is because light goes back and forth
+zStepSizeMedium = zStepSizeAir/n;
+dimensions.z.values = linspace(0,zStepSizeMedium*N/2,N/2); 
+dimensions.z.units = 'microns [in medium]';
