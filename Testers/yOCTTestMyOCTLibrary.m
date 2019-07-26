@@ -27,6 +27,10 @@ for i=1:length(d)
     close all;
 end
 
+%% Test aws
+disp('awsCopyFileFolderTester');
+awsCopyFileFolderTester;
+
 %% Test Unzip
 disp('Unzip Tests... (Local Folder Version)');
 yOCTTestUnzip([mainTestVectorFolder1 'ZippedOCTFolder\']);
