@@ -1,25 +1,53 @@
-function awsCopyFileFolder(source,dest)
-%This function copys files and folders from/aws
+function awsCopyFileFolder(source,dest,v)
+%This function copys files and folders to from/aws
 
+if ~exist('v','var')
+    v = true; %Verboose mode
+end
+
+%% Set Credentials
 awsSetCredentials (1); %Write cridentials are required  
+
 if (strcmpi(source(1:3),'s3:'))
     source = awsModifyPathForCompetability(source,true);
+    isSourceAWS = true;
+else
+    isSourceAWS = false;
 end
 if (strcmpi(dest(1:3),'s3:'))
     dest = awsModifyPathForCompetability(dest,true);
+    isDestAWS = true;
+else
+    isDestAWS = false;
 end
 
-if (exist(source,'dir') || source(end)=='\' || source(end)=='/')
-    %Remove last '\'
-    if (source(end)=='\' || source(end)=='/')
-        source(end)=[];
+%% Figure out what is been done
+mode = '';
+if ~isSourceAWS
+    if exist(source,'dir')
+        mode = 'UploadDir';
+        
+        %Remove last '\'
+        if (source(end)=='\' || source(end)=='/')
+            source(end)=[];
+        end
+        d = dir([baseLibrary '\**\*.*']);
+        if (length(d)>10)
+            mode = 'UploadDirManySmallFiles';
+        end
+    else
+        mode = 'UploadFile';
     end
-    %Make the copy of a folder
-    [err] = system(['aws s3 sync "' source '" "' dest '"']);
-elseif (exist(source,'file'))
-    [err] = system(['aws s3 cp "' source '" "' dest '"']);
-else
-    error(['Source file does not exist:' source]);
+end
+
+%% Preform the upload
+switch(mode)
+    case 'UploadFile'
+        [err] = system(['aws s3 cp "' source '" "' dest '"']);
+    case 'UploadDir'
+        [err] = system(['aws s3 sync "' source '" "' dest '"']);
+    otherwise
+        error('Couldn''t figure out the mode of operation');
 end
 
 if err~=0

@@ -24,6 +24,6 @@ fclose(fid);
 
 if (isAWS)
     %Upload if required
-    awsCopyFileFolders(fpToSave,fp); 
+    awsCopyFileFolder(fpToSave,fp); 
     delete(fpToSave);
 end
