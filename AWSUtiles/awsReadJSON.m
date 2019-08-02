@@ -1,7 +1,7 @@
 function j = awsReadJSON(fp)
 %This function reads a JSON file from AWS or locally
 
-if (strcmpi(fp(1:3),'s3:'))
+if (awsIsAWSPath(fp))
     %Load Data from AWS
     isAWS = true;
     awsSetCredentials;

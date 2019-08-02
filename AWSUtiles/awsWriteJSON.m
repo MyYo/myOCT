@@ -3,7 +3,7 @@ function awsWriteJSON(json,fp)
 %json - configuration file
 %fp - file path
 
-if (strcmpi(fp(1:3),'s3:'))
+if (awsIsAWSPath(fp))
     %Load Data from AWS
     isAWS = true;
     fpToSave = 'tmp.json';

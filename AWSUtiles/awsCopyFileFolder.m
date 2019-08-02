@@ -8,13 +8,13 @@ end
 %% Set Credentials
 awsSetCredentials (1); %Write cridentials are required  
 
-if (strcmpi(source(1:3),'s3:'))
+if (awsIsAWSPath(source))
     source = awsModifyPathForCompetability(source,true);
     isSourceAWS = true;
 else
     isSourceAWS = false;
 end
-if (strcmpi(dest(1:3),'s3:'))
+if (awsIsAWSPath(dest))
     dest = awsModifyPathForCompetability(dest,true);
     isDestAWS = true;
 else
