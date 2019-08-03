@@ -1,21 +1,28 @@
-function awsSetCredentials (type)
+function awsSetCredentials (level)
 %This function sets user name and password for AWS and S3 storage
+%level specify how much access would the software need.
+%level = 0 - Read capability using fileDataStore
+%level = 1 - Write, start EC2 instances etc using AWS CLI
 
 if ~exist('type','var')
-    type = 0; %Only set password
+    level = 0; %Only set password
 end
 
 global awsSetCredentialsUsed;
 if isempty(awsSetCredentialsUsed) ... %Run only once
-    || type > awsSetCredentialsUsed  %or if we request the advanced type, but only the basic one was set
+    || level > awsSetCredentialsUsed  %or if we request the advanced type, but only the basic one was set
     
     if exist('awsSetCredentials_Private') == 2 || exist('awsSetCredentialsPrivate') == 5
-        awsSetCredentials_Private();
+        [AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, DefaultRegion] = awsSetCredentials_Private ();
+        %awsSetCredentials_Private output example:
+        %DefaultRegion='us-west-1'
+        %AWS_ACCESS_KEY_ID = 'id'
+        %AWS_SECRET_ACCESS_KEY = 'key'
     else
-        error('Cannot find awsSetCredentials_Private which contains AWS private keys. Please ask Yonatan to send you the file or get it at \\171.65.17.174\MATLAB_Share\Jenkins');
+        error('Cannot find awsSetCredentials_Private which contains AWS private keys. Please ask Yonatan to send you the file or get it at \\171.65.17.174\MATLAB_Share\Jenkins. Atlertitevely create your own function - interface is just above this line, ');
     end
     
-    if type == 1
+    if level == 1
        %Make sure AWS  CLI is installed, we will need it
        
        [status,~] = system('aws');
@@ -25,5 +32,12 @@ if isempty(awsSetCredentialsUsed) ... %Run only once
        end
     end  
     
-    awsSetCredentialsUsed = type;
+    %Set credentials
+    setenv('AWS_ACCESS_KEY_ID', AWS_ACCESS_KEY_ID); 
+    setenv('AWS_SECRET_ACCESS_KEY', AWS_SECRET_ACCESS_KEY); 
+    
+    %Set default region
+    awsSetRegion(DefaultRegion,level);
+    
+    awsSetCredentialsUsed = level;
 end
