@@ -34,7 +34,7 @@ if ~isSourceAWS
         d = dir([source '\**\*.*']);
         if (...
                 length(d)>10 && ...
-                sum([d.bytes])/1024^3 > 0*5.0 ... Threshold size GBytes
+                sum([d.bytes])/1024^3 > 5.0 ... Threshold size GBytes
                 )
             mode = 'UploadDirManySmallFiles';
             source = d(1).folder; %Switch to a full path, its better
