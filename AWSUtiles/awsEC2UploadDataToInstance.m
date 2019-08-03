@@ -12,14 +12,8 @@ if ~exist('destination','var') || isempty(destination)
     destination = '';
 end
 
-if (isdir(source))
-    %Set reqursive flag
-    flag = '-r';
-else
-    flag = '';
-end
 %% Make the copy
-[stat,txt] = system(sprintf('scp -i "%s" %s "%s" ec2-user@%s:%s',TempPEMFilePath,flag,source,DNS,destination));
+[stat,txt] = system(sprintf('scp -i "%s" -r "%s" ec2-user@%s:%s',TempPEMFilePath,source,DNS,destination));
 
 if (stat~=0)
     error('Faild to copy files: %s',txt);
