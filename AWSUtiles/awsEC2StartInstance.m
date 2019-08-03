@@ -102,9 +102,31 @@ if stat == 255
     %SSH Installed
     %Add DNS to ssh to prevent promt
     for i=1:length(DNSs)
-        [err,txt] = system(sprintf('ssh -tt -o "StrictHostKeyChecking=no" ec2-user@%s',DNSs{i})); 
+        [err,txt] = system(sprintf('ssh -tt -o "StrictHostKeyChecking=no" ec2-user@%s',DNSs{i}));
+        
         if (err ~= 0)
-            error('Error in adding DNS: %s\n%s',txt,howToShutDownInstance);
+            %Process the error
+            stxt = split(txt,newline);
+            permDeniedError = sprintf('ec2-user@%s: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).',DNSs{i});
+            txtNew = [];
+            for j=1:length(stxt)
+                if isempty(stxt{j})
+                    %Empty line, skip
+                    continue;
+                elseif (strcmpi(stxt{j},permDeniedError))
+                    %Expected permission error, skip
+                    continue;
+                elseif (strncmpi(stxt{j},'warning',7))
+                    %This is a warning, skip
+                    continue;
+                end
+                txtNew = [txtNew stxt{j} newline];
+            end
+            
+            if ~isempty(txtNew)
+                %Error exists
+                error('Error in adding DNS: %s.\n The error that we care about: %s.\n%s',txt,txtNew,howToShutDownInstance);
+            end
         end
     end
 end

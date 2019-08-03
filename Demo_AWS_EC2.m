@@ -35,3 +35,5 @@ fprintf('Status: %d. Output:\n%s\n',status,txt)
 %% Terminate
 awsEC2TerminateInstance(instanceId,TempPEMFilePath);
 
+disp ('Demo Done!');
+
