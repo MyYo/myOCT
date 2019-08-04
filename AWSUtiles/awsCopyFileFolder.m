@@ -99,11 +99,11 @@ if (v)
     fprintf('Copying files to EC2... ');
     tic;
 end
-[instanceId,DNS,TempPEMFilePath] = awsEC2StartInstance(ec2RunStructure,'m4.2xlarge',1,v); %Start EC2 
-[status,txt] = awsEC2RunCommandOnInstance (DNS,TempPEMFilePath,...
+[ec2Instance] = awsEC2StartInstance(ec2RunStructure,'m4.2xlarge',1,v); %Start EC2 
+[status,txt] = awsEC2RunCommandOnInstance (ec2Instance,...
     'mkdir -p ~/Input'             ... Make a directory
     );
-awsEC2UploadDataToInstance(DNS,TempPEMFilePath,'tmp.tar','~/Input'); %Copy
+awsEC2UploadDataToInstance(ec2Instance,'tmp.tar','~/Input'); %Copy
 delete('tmp.tar'); %Cleanup
 if (v)
     fprintf('Total Copy: %.1f[min]\n',toc()/60);
@@ -114,13 +114,13 @@ if (v)
     fprintf('Untarring... ');
     tic;
 end
-[status,txt] = awsEC2RunCommandOnInstance (DNS,TempPEMFilePath,{...
+[status,txt] = awsEC2RunCommandOnInstance (ec2Instance,{...
     'mkdir -p ~/Output'             ... Make a directory
     'cd Input'                      ... Move to input directory
     'tar -xvf tmp.tar -C ~/Output'  ... Untar
     });
 if (status ~= 0)
-    awsEC2TerminateInstance(instanceId,TempPEMFilePath);%Terminate
+    awsEC2TerminateInstance(ec2Instance);%Terminate
     error('Untar error: %s',txt);
 end
 if (v)
@@ -133,11 +133,11 @@ if (v)
     tic;
 end
 s3Dest = awsModifyPathForCompetability (s3Dest,true);
-[status,txt] = awsEC2RunCommandOnInstance (DNS,TempPEMFilePath,{...
+[status,txt] = awsEC2RunCommandOnInstance (ec2Instance,{...
     ['aws s3 sync ~/Output/' folderName ' ''' s3Dest ''''] ... Go Inside the folder that was created by tar such that the sync will not change the name
     });
 if (status ~= 0)
-    awsEC2TerminateInstance(instanceId,TempPEMFilePath);%Terminate
+    awsEC2TerminateInstance(ec2Instance);%Terminate
     error('Sync with S3 error: %s',txt);
 end
 if (v)
@@ -145,7 +145,7 @@ if (v)
 end
 
 %% Done
-awsEC2TerminateInstance(instanceId,TempPEMFilePath);%Terminate
+awsEC2TerminateInstance(ec2Instance);%Terminate
 
 if (v)
     disp('Done');
