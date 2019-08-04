@@ -14,26 +14,26 @@ else
 end
 
 %% Start Instance
-[instanceId,DNS,TempPEMFilePath] = awsEC2StartInstance(ec2RunStructure,'t2.micro'); %m4.2xlarge
+ec2Instances = awsEC2StartInstance(ec2RunStructure,'t2.micro'); %m4.2xlarge
 
 %% Run commands & Copy files
 disp('Run commands and copy');
 
 %Upload a temp file
 save('tmp1.mat');
-awsEC2UploadDataToInstance (DNS,TempPEMFilePath,'tmp1.mat');
+awsEC2UploadDataToInstance (ec2Instances(1),'tmp1.mat');
 delete('tmp1.mat');
 
 %Run command
 [~,randDirName] = fileparts([tempname '.txt']);
-[status,txt] = awsEC2RunCommandOnInstance (DNS,TempPEMFilePath,{...
+[status,txt] = awsEC2RunCommandOnInstance (ec2Instances(1),{...
     ['mkdir ' randDirName] ... Command #1
     'ls'... Command #2
     });
 fprintf('Status: %d. Output:\n%s\n',status,txt)
 
 %% Terminate
-awsEC2TerminateInstance(instanceId,TempPEMFilePath);
+awsEC2TerminateInstance(ec2Instances);
 
 disp ('Demo Done!');
 
