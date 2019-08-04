@@ -3,12 +3,6 @@ function yOCTTestMyOCTLibrary()
 %Designed to be run using runme_Jenkins
 
 %% TMP
-disp('IS SSH');
-ssh()
-disp('SSH & SCP');
-[a,b] = ssh(' ')
-[a,b] = scp(' ')
-error('Done here')
 Demo_AWS_EC2;
 
 %% Pre test configuration
