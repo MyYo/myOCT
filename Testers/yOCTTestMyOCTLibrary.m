@@ -2,9 +2,6 @@ function yOCTTestMyOCTLibrary()
 %This is the master tester, runs all!
 %Designed to be run using runme_Jenkins
 
-%% TMP
-Demo_AWS_EC2;
-
 %% Pre test configuration
 %Where to find files to be tested
 mainTestVectorFolder1 = '\\171.65.17.174\s3\Users\Jenkins\';
