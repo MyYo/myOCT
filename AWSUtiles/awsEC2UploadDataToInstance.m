@@ -1,7 +1,7 @@
-function awsEC2UploadDataToInstance (DNS,TempPEMFilePath,source,destination)
+function awsEC2UploadDataToInstance (ec2Instance,source,destination)
 %This function moves data / files to and from the instance
 %INPUTS:
-%   DNS - instance path
+%   - ec2Instance - instance created by awsEC2StartInstance
 %   TempPEMFilePath - PEM file path
 %   source - file path of files / directory at source. local!
 %   destination - file path on desitanation. on instance. Leave empty to
@@ -13,7 +13,9 @@ if ~exist('destination','var') || isempty(destination)
 end
 
 %% Make the copy
-[stat,txt] = scp(sprintf('-i "%s" -r "%s" ec2-user@%s:%s',TempPEMFilePath,source,DNS,destination));
+DNS = ec2Instance.dns;
+pem = ec2Instance.pemFilePath;
+[stat,txt] = scp(sprintf('-i "%s" -r "%s" ec2-user@%s:%s',pem,source,DNS,destination));
 
 if (stat~=0)
     error('Faild to copy files: %s',txt);

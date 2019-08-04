@@ -1,4 +1,4 @@
-function [instanceIds,DNSs,TempPEMFilePath] = awsEC2StartInstance(ec2RunStructure,instanceType,numberOfInstances,v)
+function [ec2Instance] = awsEC2StartInstance(ec2RunStructure,instanceType,numberOfInstances,v)
 %This function starts an EC2 instance, returns instance hendle, it will
 %wait until instance is up and ready to recive commands
 %INPUT:
@@ -7,9 +7,12 @@ function [instanceIds,DNSs,TempPEMFilePath] = awsEC2StartInstance(ec2RunStructur
 %   numberOfInstances - number of computers to load, default: 1
 %   v - verbose mode, default true
 %OUTPUTS:
-%   - instanceIds - id of the instances loaded
-%   - DNSs - DNS to access each id using ssh
-%   - TempPEMFilePath - filepath of the PEM, temporary, delete after
+%   ec2Instance - structure (or structure array if multiple instances)
+%   with the fields:
+%       id - id of the instances loaded
+%       dns - DNS to access each id using ssh
+%       region - which region the instance is running on
+%       pemFilePath - filepath of the PEM, temporary, delete after
 %       running
 
 if ~exist('numberOfInstances','var') || isempty(numberOfInstances)
@@ -131,25 +134,43 @@ if ssh()
 end
 
 %% Make sure PEM file has the right restrictions
-tempDir = tempname();
-mkdir(tempDir); %Create directory
 
 %Create a local pem file path that we can modify restrictions to
-[~,tmp] = fileparts(ec2RunStructure.pemFilePath);
-TempPEMFilePath = [tempDir '\' tmp '.pem'];
-copyfile(ec2RunStructure.pemFilePath,TempPEMFilePath);
+pemFPs = cell(size(instanceIds));
+for i=1:length(pemFPs)
+    tempDir = tempname();
+    mkdir(tempDir); %Create directory
+    [~,tmp] = fileparts(ec2RunStructure.pemFilePath);
+    TempPEMFilePath = [tempDir '\' tmp '.pem'];
+    copyfile(ec2RunStructure.pemFilePath,TempPEMFilePath);
+    
+    pemFPs{i} = TempPEMFilePath;
+end
 
-%Modify restrictions
+%Get user to modify restrictions
 loggedInUser = getenv('USERNAME');
-%loggedInUser = strrep(loggedInUser,'MATLAB-SERVER$','SYSTEM'); %Matlab Server is actually system.
+loggedInUser = strrep(loggedInUser,'MATLAB-SERVER$','SYSTEM'); %Matlab Server is actually system.
 if (contains(loggedInUser,'$'))
     warning('getenv(''USERNAME'') returned a wired user name: "%s". Changing to "SYSTEM". Look at the lines of code above this warning to see how to fix it',loggedInUser);
     loggedInUser = 'SYSTEM';
 end
-s=['ICACLS "' TempPEMFilePath '" /inheritance:r /grant "' loggedInUser '":(r)']
-[err,txt] = system(s); %grant read permission to user, remove all other permissions
-if (err~=0)
-    error('Error in moidifing pem restrictions %s\n%s',txt,howToShutDownInstance);
+
+%Modify restrictions
+for i=1:length(pemFPs)
+    s=['ICACLS "' pemFPs{i} '" /inheritance:r /grant "' loggedInUser '":(r)'];
+    [err,txt] = system(s); %grant read permission to user, remove all other permissions
+    if (err~=0)
+        error('Error in moidifing pem restrictions %s\n%s',txt,howToShutDownInstance);
+    end
+end
+
+%% Generate output structure
+clear ec2Instance 
+for i=1:length(instanceIds)
+    ec2Instance(i).id = instanceIds{i};
+    ec2Instance(i).dns = DNSs{i};
+    ec2Instance(i).region = ec2RunStructure.region;
+    ec2Instance(i).pemFilePath = pemFPs{i};
 end
 
 %% Cleanup
@@ -158,11 +179,6 @@ if ~isempty(originRegion)
     awsSetRegion(originRegion,1);
 end
 
-%If only one instance was open don't return a cell array
-if (length(instanceIds) == 1)
-    instanceIds = instanceIds{1};
-    DNSs = DNSs{1};
-end
 
 %% Done
 if(v)

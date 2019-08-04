@@ -1,9 +1,8 @@
-function [status, txt] = awsEC2RunCommandOnInstance (DNS,TempPEMFilePath,cmd)
+function [status, txt] = awsEC2RunCommandOnInstance (ec2Instance,cmd)
 %This function runs a command on the instance defined by DNS. Make sure to supply the PEM file path
 %Both command and PEM file path are procided by awsEC2StartInstance
 %INPUTS:
-%   DNS - instance path
-%   TempPEMFilePath - PEM file path
+%   ec2Instance - instance created by awsEC2StartInstance
 %   cmd - command to run (string). To run multiple commands one after the
 %       cmd can be cell array
 
@@ -19,5 +18,7 @@ else
     cmd1 = cmd;
 end
     
-[status,txt] = ssh(sprintf('-i "%s" ec2-user@%s "%s"',TempPEMFilePath,DNS,cmd1));
+DNS = ec2Instance.dns;
+pem = ec2Instance.pemFilePath;
+[status,txt] = ssh(sprintf('-i "%s" ec2-user@%s "%s"',pem,DNS,cmd1));
     
