@@ -3,6 +3,9 @@ function yOCTTestMyOCTLibrary()
 %Designed to be run using runme_Jenkins
 
 %% TMP
+system('ssh')
+system('scp');
+error('Done here');
 Demo_AWS_EC2;
 
 %% Pre test configuration
