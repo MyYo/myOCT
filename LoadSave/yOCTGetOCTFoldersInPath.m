@@ -12,7 +12,7 @@ function [OCTFolders,folderNames] = yOCTGetOCTFoldersInPath (p)
 
 %TBD in the future, find the comonality between the two functions (AWS and
 %no AWS and make them one!)
-if (awsIsAWSPath(filepath))
+if (awsIsAWSPath(p))
     [OCTFolders,folderNames] = yOCTGetOCTFoldersInPath_AWS(p);
 else
     [OCTFolders,folderNames] = yOCTGetOCTFoldersInPath_NoAWS(p);
