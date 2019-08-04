@@ -97,12 +97,11 @@ for i=1:length(instanceIds)
 end
 
 %% Setup SSH for connecting to EC2 Instances
-[stat,~] = system('ssh');
-if stat == 255
+if ssh()
     %SSH Installed
     %Add DNS to ssh to prevent promt
     for i=1:length(DNSs)
-        [err,txt] = system(sprintf('ssh -tt -o "StrictHostKeyChecking=no" ec2-user@%s',DNSs{i}));
+        [err,txt] = ssh(sprintf('-tt -o "StrictHostKeyChecking=no" ec2-user@%s',DNSs{i}));
         
         if (err ~= 0)
             %Process the error

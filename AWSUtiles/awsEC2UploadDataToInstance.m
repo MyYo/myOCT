@@ -13,7 +13,7 @@ if ~exist('destination','var') || isempty(destination)
 end
 
 %% Make the copy
-[stat,txt] = system(sprintf('scp -i "%s" -r "%s" ec2-user@%s:%s',TempPEMFilePath,source,DNS,destination));
+[stat,txt] = scp(sprintf('-i "%s" -r "%s" ec2-user@%s:%s',TempPEMFilePath,source,DNS,destination));
 
 if (stat~=0)
     error('Faild to copy files: %s',txt);

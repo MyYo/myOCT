@@ -19,5 +19,5 @@ else
     cmd1 = cmd;
 end
     
-[status,txt] = system(sprintf('ssh -i "%s" ec2-user@%s "%s"',TempPEMFilePath,DNS,cmd1));
+[status,txt] = ssh(sprintf('-i "%s" ec2-user@%s "%s"',TempPEMFilePath,DNS,cmd1));
     
