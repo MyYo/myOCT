@@ -65,7 +65,7 @@ elseif exist('C:\Program Files (x86)\7-Zip\','dir')
 else
     error('Please Install 7-Zip');
 end
-system(['"' z7Path '" x "' OCTFolderZipFileIn '" -o"' OCTUnzipToDirectory '"']);
+system(['"' z7Path '7z.exe" x "' OCTFolderZipFileIn '" -o"' OCTUnzipToDirectory '"']);
 
 %Check unzip was successfull
 if ~exist(OCTUnzipToDirectory,'dir')
