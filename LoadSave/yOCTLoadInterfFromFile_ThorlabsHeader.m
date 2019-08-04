@@ -4,7 +4,7 @@ function dimensions = yOCTLoadInterfFromFile_ThorlabsHeader (inputDataFolder)
 %   - inputDataFolder - OCT folder with header.xml file or srr files
 %   - OCTSystem - OCT System name
 
-if (strcmpi(inputDataFolder(1:3),'s3:'))
+if (awsIsAWSPath(inputDataFolder))
     %Load Data from AWS
     isAWS = true;
     awsSetCredentials;

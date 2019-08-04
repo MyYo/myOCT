@@ -5,7 +5,7 @@ function [dimensions] = yOCTLoadInterfFromFile_WasatchHeader(inputDataFolder)
 %   - OCTSystem - OCT System name
 
 %% Figure Out basic Parameters
-if (strcmpi(inputDataFolder(1:3),'s3:'))
+if (awsIsAWSPath(inputDataFolder))
     %Load Data from AWS
     awsSetCredentials;
     inputDataFolder = awsModifyPathForCompetability(inputDataFolder);

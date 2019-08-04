@@ -16,7 +16,7 @@ if (iscell(varargin{1}))
 end 
 
 inputDataFolder = varargin{1};
-if (strcmpi(inputDataFolder(1:3),'s3:'))
+if (awsIsAWSPath(inputDataFolder))
     %Load Data from AWS
     awsSetCredentials;
     inputDataFolder = awsModifyPathForCompetability(inputDataFolder);

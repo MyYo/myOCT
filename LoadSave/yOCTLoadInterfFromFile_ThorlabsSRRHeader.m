@@ -8,7 +8,7 @@ function dimensions = yOCTLoadInterfFromFile_ThorlabsSRRHeader (inputDataFolder)
 %   - Total1 = Total number of B scan averages
 %   - %s = OCT System+
 
-if (strcmpi(inputDataFolder(1:3),'s3:'))
+if (awsIsAWSPath(inputDataFolder))
     %Load Data from AWS
     isAWS = true;
     awsSetCredentials;

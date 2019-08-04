@@ -5,7 +5,7 @@ function scanAbs = yOCTFromTif (filepath, yI)
 %   filpath - filepath of output tif file (stack is z,x and each frame is y)
 %   yI - Optional, which y frames to load
 
-if (strcmpi(filepath(1:3),'s3:'))
+if (awsIsAWSPath(filepath))
     %Load Data from AWS
     isAWS = true;
     awsSetCredentials; %Use the advanced version as uploading is more challenging

@@ -3,7 +3,7 @@ function data = yOCTFromMat (filepath)
 %directory. Opposit of yOCT2Mat
 
 %% Do we need AWS?
-if (strcmpi(filepath(1:3),'s3:'))
+if (awsIsAWSPath(filepath))
     %Load Data from AWS
     isAWS = true;
     awsSetCredentials; %Use the advanced version as uploading is more challenging

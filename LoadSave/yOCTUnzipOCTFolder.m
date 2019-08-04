@@ -10,7 +10,7 @@ if (strcmpi(OCTFolderZipFileIn(1:3),'s3:'))
 else
     isAWSIn = false;
 end
-if (strcmpi(OCTFolderOut(1:3),'s3:'))
+if (awsIsAWSPath(OCTFolderOut))
     awsSetCredentials (1); %Write cridentials are required
     OCTFolderOut = awsModifyPathForCompetability(OCTFolderOut,true);
     isAWSOut = true;
@@ -59,12 +59,13 @@ end
 
 %Unzip using 7-zip
 if exist('C:\Program Files\7-Zip\','dir')
-    system(['"C:\Program Files\7-Zip\7z.exe" x "' OCTFolderZipFileIn '" -o"' OCTUnzipToDirectory '"']);
+    z7Path = 'C:\Program Files\7-Zip\';
 elseif exist('C:\Program Files (x86)\7-Zip\','dir')
-    system(['"C:\Program Files (x86)\7-Zip\7z.exe" x "' OCTFolderZipFileIn '" -o"' OCTUnzipToDirectory '"']);
+    z7Path ='C:\Program Files (x86)\7-Zip\';
 else
     error('Please Install 7-Zip');
 end
+system(['"' z7Path '" x "' OCTFolderZipFileIn '" -o"' OCTUnzipToDirectory '"']);
 
 %Check unzip was successfull
 if ~exist(OCTUnzipToDirectory,'dir')
@@ -83,8 +84,7 @@ if ~strcmp(OCTUnzipToDirectory,OCTFolderOut)
     %upload
     if(isAWSOut)
         %Upload to bucket
-        system(['aws s3 sync "' OCTUnzipToDirectory '" "' OCTFolderOut '"']);
-        %system(['aws s3 cp tmp\data "' OCTFolders{i} '/data" --recursive']);
+        awsCopyFileFolder(OCTUnzipToDirectory,OCTFolderOut);
         
         %Cleanup, delete temporary directory
         rmdir(OCTUnzipToDirectory,'s'); 
@@ -92,7 +92,6 @@ if ~strcmp(OCTUnzipToDirectory,OCTFolderOut)
         %File system copy
         movefile(OCTUnzipToDirectory,OCTFolderOut,'f');
     end
-    
 end
 
 %% Remove zipped archive if required (.OCT file)

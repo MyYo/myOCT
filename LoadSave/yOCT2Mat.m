@@ -5,7 +5,7 @@ function yOCT2Mat(data,filepath)
 %   data - OCT Volume or B scan
 
 %% Do we need AWS?
-if (strcmpi(filepath(1:3),'s3:'))
+if (awsIsAWSPath(filepath))
     %Load Data from AWS
     isAWS = true;
     awsSetCredentials(1); %Use the advanced version as uploading is more challenging
@@ -20,6 +20,6 @@ save(filepath,'data');
 
 %% Upload file to cloud if required
 if (isAWS)
-    [~,~] = system(['aws s3 cp "' filepath '" "' awsFilePath '"']);
+    awsCopyFileFolder(filepath,awsFilePath);
     delete(filepath); %Cleanup
 end
