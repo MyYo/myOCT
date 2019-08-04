@@ -142,8 +142,9 @@ copyfile(ec2RunStructure.pemFilePath,TempPEMFilePath);
 
 %Modify restrictions
 loggedInUser = getenv('USERNAME');
+%loggedInUser = strrep(loggedInUser,'MATLAB-SERVER$','SYSTEM'); %Matlab Server is actually system.
 if (contains(loggedInUser,'$'))
-    warning('getenv(''USERNAME'') returned a wired user name: "%s". Changing to "SYSTEM"',loggedInUser);
+    warning('getenv(''USERNAME'') returned a wired user name: "%s". Changing to "SYSTEM". Look at the lines of code above this warning to see how to fix it',loggedInUser);
     loggedInUser = 'SYSTEM';
 end
 s=['ICACLS "' TempPEMFilePath '" /inheritance:r /grant "' loggedInUser '":(r)']
