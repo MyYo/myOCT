@@ -3,29 +3,7 @@ function yOCTTestMyOCTLibrary()
 %Designed to be run using runme_Jenkins
 
 %% TMP
-tempDir = tempname();
-mkdir(tempDir); %Create directory
-
-%Create a local pem file path that we can modify restrictions to
-[~,tmp] = fileparts('\\171.65.17.174\MATLAB_Share\Jenkins\HistologyWest.pem');
-TempPEMFilePath = [tempDir '\' tmp '.pem'];
-copyfile('\\171.65.17.174\MATLAB_Share\Jenkins\HistologyWest.pem',TempPEMFilePath);
-howToShutDownInstance='';
-
-%Modify restrictions
-loggedInUser = getenv('USERNAME');
-if (contains(loggedInUser,'$'))
-    warning('getenv(''USERNAME'') returned a wired user name: "%s". Changing to "SYSTEM"',loggedInUser);
-    loggedInUser = 'SYSTEM';
-end
-s=['ICACLS "' TempPEMFilePath '" /inheritance:r /grant "' loggedInUser '":(r)']
-[err,txt] = system(s) %grant read permission to user, remove all other permissions
-if (err~=0)
-    error('Error in moidifing pem restrictions %s\n%s',txt,howToShutDownInstance);
-end
-delete(TempPEMFilePath)
-disp('DONE');
-error('DONE');
+Demo_AWS_EC2;
 
 %% Pre test configuration
 %Where to find files to be tested

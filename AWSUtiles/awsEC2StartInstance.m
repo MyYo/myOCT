@@ -141,7 +141,13 @@ TempPEMFilePath = [tempDir '\' tmp '.pem'];
 copyfile(ec2RunStructure.pemFilePath,TempPEMFilePath);
 
 %Modify restrictions
-[err,txt] = system(['ICACLS "' TempPEMFilePath '" /inheritance:r /grant "' getenv('USERNAME') '":(r)']); %grant read permission to user, remove all other permissions
+loggedInUser = getenv('USERNAME');
+if (contains(loggedInUser,'$'))
+    warning('getenv(''USERNAME'') returned a wired user name: "%s". Changing to "SYSTEM"',loggedInUser);
+    loggedInUser = 'SYSTEM';
+end
+s=['ICACLS "' TempPEMFilePath '" /inheritance:r /grant "' loggedInUser '":(r)']
+[err,txt] = system(s); %grant read permission to user, remove all other permissions
 if (err~=0)
     error('Error in moidifing pem restrictions %s\n%s',txt,howToShutDownInstance);
 end
