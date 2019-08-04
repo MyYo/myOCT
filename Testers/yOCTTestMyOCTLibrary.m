@@ -10,9 +10,15 @@ mkdir(tempDir); %Create directory
 [~,tmp] = fileparts('\\171.65.17.174\MATLAB_Share\Jenkins\HistologyWest.pem');
 TempPEMFilePath = [tempDir '\' tmp '.pem'];
 copyfile('\\171.65.17.174\MATLAB_Share\Jenkins\HistologyWest.pem',TempPEMFilePath);
+howToShutDownInstance='';
 
 %Modify restrictions
-s=['ICACLS "' TempPEMFilePath '" /inheritance:r /grant "' getenv('USERNAME') '":(r)']
+loggedInUser = getenv('USERNAME');
+if (contains(loggedInUser,'$'))
+    warning('getenv(''USERNAME'') returned a wired user name: "%s". Changing to "SYSTEM"',loggedInUser);
+    loggedInUser = 'SYSTEM';
+end
+s=['ICACLS "' TempPEMFilePath '" /inheritance:r /grant "' loggedInUser '":(r)']
 [err,txt] = system(s) %grant read permission to user, remove all other permissions
 if (err~=0)
     error('Error in moidifing pem restrictions %s\n%s',txt,howToShutDownInstance);
