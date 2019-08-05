@@ -56,7 +56,7 @@ switch(mode)
     case 'UploadDirManySmallFiles'
         err = 0;
         if (v)
-            fprintf('Uploading %.0f GBytes...\n',totalDataTransferVolume);
+            fprintf('Uploading %.1f GBytes...\n',totalDataTransferVolume);
             tt = tic();
         end
         awsCopyFileFolder_ManySmallFiles(source,dest,v);
