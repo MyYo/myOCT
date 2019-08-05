@@ -84,6 +84,9 @@ if (v)
     disp('Initializing');
 end
 awsSetCredentials(1);
+if ~exist('My_ec2RunStructure.m','file')
+	error('Cannot find awsSetCredentials_Private which contains AWS private keys. Please ask Yonatan to send you the file or get it at \\171.65.17.174\MATLAB_Share\Jenkins. Atlertitevely create your own function - interface is just above this line, ');
+end
 ec2RunStructure = My_ec2RunStructure(); 
 
 [~,folderName] = fileparts([localSource '.txt']); %Get the file path of the folder
