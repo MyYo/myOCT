@@ -35,7 +35,7 @@ if ~isSourceAWS
         totalDataTransferVolume = sum([d.bytes])/1024^3; %Gbytes
         if (...
                 length(d)>10 && ...
-                totalDataTransferVolume > 5.0 ... Threshold size GBytes
+                totalDataTransferVolume > 0*5.0 ... Threshold size GBytes
                 )
             mode = 'UploadDirManySmallFiles';
             source = d(1).folder; %Switch to a full path, its better
@@ -158,19 +158,15 @@ if (v)
     fprintf('Uploading EC2 data to S3... ');
     tic;
 end
+folderNameUnix = strrep(folderName,' ','\ ');
 synccmd = ...
     {
-        ['aws s3 sync ''~/Output/' folderName ''' ''' s3Dest ''''], ... Go Inside the folder that was created by tar such that the sync will not change the name
+        ['aws s3 sync ~/Output/' folderNameUnix ' ''' s3Dest ''''], ... Go Inside the folder that was created by tar such that the sync will not change the name
     }; 
-[status,txt] = awsEC2RunCommandOnInstance (ec2Instance,{...
-    ['cd ''~/Output/' folderName '/'''] ...
-    'ls' ... 
-    })
-
 [status,txt] = awsEC2RunCommandOnInstance (ec2Instance,synccmd);
 if (status ~= 0)
     awsEC2TerminateInstance(ec2Instance);%Terminate
-    error('Sync with S3 error: %s.\n Sync command was: %s',txt,synccmd);
+    error('Sync with S3 error: %s.\n Sync command was: %s',txt,synccmd{1});
 end
 if (v)
     fprintf('Total upload time: %.1f[min]\n',toc()/60);
