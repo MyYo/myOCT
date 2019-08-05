@@ -143,12 +143,13 @@ if (v)
     fprintf('Uploading EC2 data to S3... ');
     tic;
 end
+synccmd = ['aws s3 sync ~/Output/' folderName ' ''' s3Dest ''''];
 [status,txt] = awsEC2RunCommandOnInstance (ec2Instance,{...
-    ['aws s3 sync ~/Output/' folderName ' ''' s3Dest ''''] ... Go Inside the folder that was created by tar such that the sync will not change the name
+    synccmd ... Go Inside the folder that was created by tar such that the sync will not change the name
     });
 if (status ~= 0)
     awsEC2TerminateInstance(ec2Instance);%Terminate
-    error('Sync with S3 error: %s',txt);
+    error('Sync with S3 error: %s.\n Sync command was: %s',txt,synccmd);
 end
 if (v)
     fprintf('Total upload time: %.1f[min]\n',toc()/60);
