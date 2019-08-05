@@ -40,8 +40,10 @@ if ~isSourceAWS
             mode = 'UploadDirManySmallFiles';
             source = d(1).folder; %Switch to a full path, its better
         end
-    else
+    elseif exist(source,'file')
         mode = 'UploadFile';
+    else
+        error('Cannot find: %s',source);
     end
 end
 
