@@ -27,6 +27,8 @@ function myOCTBatchProcess(OCTFolders,config)
 % 'isSaveMat'               false       Should save mat files as well as
 %                                       tif? set to true to recive higher
 %                                       resolution results.
+% 'isSaveDicom'              false     Should save Dicom file format?
+%                                      set to true to save Dicom file
 %OUTPUTS:
 %   - No Outputs, will save data directly to the input folder 
 %
@@ -62,6 +64,7 @@ function myOCTBatchProcess(OCTFolders,config)
 outputFilePrefix = '';
 parallelOption = [];
 isSaveMat = false;
+isSaveDicom = false;
 maxNParallelWorkers = Inf;
 if exist('config','var')
     for i=1:2:length(config)
@@ -115,7 +118,7 @@ if (parallelOption == 1)
         try
         tic;
         fprintf('Processing OCT Folder: %s (%d of %d) ...\n',folderNames{i},i,length(OCTFolders));
-        o = process(OCTFolders{i},config,outputFilePrefix,isSaveMat,parallelOption);
+        o = process(OCTFolders{i},config,outputFilePrefix,isSaveMat,isSaveDicom,parallelOption);
         fps{i} = o;
         fprintf('Done, total time: %.1f[min]\n',toc()/60);
         catch ME
@@ -131,7 +134,7 @@ elseif (parallelOption == 2 || parallelOption == 3)
     for i=1:length(OCTFolders)
         tic
         fprintf('Processing OCT Folder: %s (%d of %d) ...\n',folderNames{i},i,length(OCTFolders));
-        o = process(OCTFolders{i},config,outputFilePrefix,isSaveMat,parallelOption);
+        o = process(OCTFolders{i},config,outputFilePrefix,isSaveMat,isSaveDicom,parallelOption);
         fps{i} = o;
         fprintf('Done, total time: %.1f[min]\n',toc()/60);
     end
@@ -150,7 +153,7 @@ end
 %% This function preforms the actual processing
 %It is written as a function so we can run it as parallel loop or for loop
 %depending on the configuration
-function filepaths = process(OCTFolder,config,outputFilePrefix,isSaveMat,parallelOption)
+function filepaths = process(OCTFolder,config,outputFilePrefix,isSaveMat,isSaveDicom,parallelOption)
 fpPrefix = [OCTFolder '/' outputFilePrefix];
 filepaths = {};
 
@@ -182,6 +185,12 @@ yOCT2Tif(mag2db(meanAbs),filepaths{end}); %Save to File
 if (isSaveMat)
     filepaths{end+1} = [fpPrefix 'scanAbs.mat'];
     yOCT2Mat(meanAbs,filepaths{end}); %Save raw data to File
+end
+if (isSaveDicom)
+    filepaths{end+1} = [fpPrefix 'scanAbs.dcm'];
+    yOCT2Dicom(meanAbs,filepaths{end}); %Save dicom File
+    filepaths{end+1} = [fpPrefix 'speckleVariance.dcm'];
+    yOCT2Dicom(speckleVariance,filepaths{end}); %Save dicom File
 end
 filepaths{end+1} = [fpPrefix 'speckleVariance.tif'];
 yOCT2Tif(speckleVariance,filepaths{end}); %Save to File
