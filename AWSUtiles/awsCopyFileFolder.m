@@ -35,7 +35,7 @@ if ~isSourceAWS
         totalDataTransferVolume = sum([d.bytes])/1024^3; %Gbytes
         if (...
                 length(d)>10 && ...
-                totalDataTransferVolume > 0*5.0 ... Threshold size GBytes
+                totalDataTransferVolume > 5.0 ... Threshold size GBytes
                 )
             mode = 'UploadDirManySmallFiles';
             source = d(1).folder; %Switch to a full path, its better
