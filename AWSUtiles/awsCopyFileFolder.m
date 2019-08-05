@@ -73,8 +73,6 @@ end
 %% Fast copy of many small files
 function awsCopyFileFolder_ManySmallFiles(localSource,s3Dest,v)
 
-s3Dest = awsModifyPathForCompetability (s3Dest,true);
-
 %% Init
 if (v)
     disp('Initializing');
@@ -83,6 +81,7 @@ awsSetCredentials(1);
 ec2RunStructure = My_ec2RunStructure(); 
 
 [~,folderName] = fileparts([localSource '.txt']); %Get the file path of the folder
+s3Dest = awsModifyPathForCompetability (s3Dest,true);
 
 %% Tar
 if exist('C:\Program Files\7-Zip\','dir')
