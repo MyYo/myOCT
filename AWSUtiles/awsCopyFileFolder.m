@@ -106,12 +106,22 @@ if (v)
     fprintf('Total Tar: %.1f[min]\n',toc()/60);
 end
 
+%% Start EC2 Instance
+
+if (v)
+    fprintf('Starting EC2... ');
+    tic;
+end
+[ec2Instance] = awsEC2StartInstance(ec2RunStructure,'m4.2xlarge',1,v); %Start EC2 
+if (v)
+    fprintf('Total EC2 Bootup time: %.1f[min]\n',toc()/60);
+end
+
 %% Copy Files to EC2
 if (v)
     fprintf('Copying files to EC2... ');
     tic;
 end
-[ec2Instance] = awsEC2StartInstance(ec2RunStructure,'m4.2xlarge',1,v); %Start EC2 
 [status,txt] = awsEC2RunCommandOnInstance (ec2Instance,...
     'mkdir -p ~/Input'             ... Make a directory
     );
