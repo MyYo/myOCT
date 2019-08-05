@@ -60,7 +60,7 @@ switch(mode)
         awsCopyFileFolder_ManySmallFiles(source,dest,v);
         if (v)
             tt = toc(tt);
-            fprintf('Overall upload speed: %.1f [sec] per Gigabyte\n',tt/totalDataTransferVolume);
+            fprintf('Total Time %.0f[min].\nOverall average upload speed: %.1f [sec] to send one Gigabyte\n',tt/60,tt/totalDataTransferVolume);
         end
     otherwise
         error('Couldn''t figure out the mode of operation');
@@ -72,6 +72,8 @@ end
 
 %% Fast copy of many small files
 function awsCopyFileFolder_ManySmallFiles(localSource,s3Dest,v)
+
+s3Dest = awsModifyPathForCompetability (s3Dest,true);
 
 %% Init
 if (v)
@@ -141,7 +143,6 @@ if (v)
     fprintf('Uploading EC2 data to S3... ');
     tic;
 end
-s3Dest = awsModifyPathForCompetability (s3Dest,true);
 [status,txt] = awsEC2RunCommandOnInstance (ec2Instance,{...
     ['aws s3 sync ~/Output/' folderName ' ''' s3Dest ''''] ... Go Inside the folder that was created by tar such that the sync will not change the name
     });
