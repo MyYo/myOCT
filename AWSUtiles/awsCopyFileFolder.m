@@ -32,9 +32,10 @@ if ~isSourceAWS
             source(end)=[];
         end
         d = dir([source '\**\*.*']);
+        totalDataTransferVolume = sum([d.bytes])/1024^3; %Gbytes
         if (...
                 length(d)>10 && ...
-                sum([d.bytes])/1024^3 > 5.0 ... Threshold size GBytes
+                totalDataTransferVolume > 5.0 ... Threshold size GBytes
                 )
             mode = 'UploadDirManySmallFiles';
             source = d(1).folder; %Switch to a full path, its better
@@ -52,7 +53,15 @@ switch(mode)
         [err] = system(['aws s3 sync "' source '" "' dest '"']);
     case 'UploadDirManySmallFiles'
         err = 0;
+        if (v)
+            fprintf('Uploading %.0f GBytes...\n',totalDataTransferVolume);
+            tt = tic();
+        end
         awsCopyFileFolder_ManySmallFiles(source,dest,v);
+        if (v)
+            tt = toc(tt);
+            fprintf('Overall upload speed: %.1f [sec] per Gigabyte\n',tt/totalDataTransferVolume);
+        end
     otherwise
         error('Couldn''t figure out the mode of operation');
 end
