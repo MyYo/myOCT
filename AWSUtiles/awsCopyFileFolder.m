@@ -158,7 +158,7 @@ if (v)
     fprintf('Uploading EC2 data to S3... ');
     tic;
 end
-synccmd = ['aws s3 sync ~/Output/' folderName ' ''' s3Dest '''']; %Go Inside the folder that was created by tar such that the sync will not change the name
+synccmd = ['aws s3 sync ''~/Output/' folderName ''' ''' s3Dest '''']; %Go Inside the folder that was created by tar such that the sync will not change the name
 [status,txt] = awsEC2RunCommandOnInstance (ec2Instance,{...
     synccmd ... 
     });
