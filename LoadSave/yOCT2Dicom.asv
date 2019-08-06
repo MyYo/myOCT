@@ -11,14 +11,19 @@ if ~exist('c','var') || isempty(c)
     c = [prctile(data(:),20), prctile(data(:),99.999)]; %min value is at percentile 20 because most of volume has no signals
 end
 
-switch dimensions.x.units
-    case 'microns'
-        SizeX=0.001*(dimensions.x.values(2)-dimensions.x.values(1));
-    case 'mm'
-        SizeX=dimensions.x.values(2)-dimensions.x.values(1);
-    case 'NA'
-        SizeX=0;
-        disp("error: couldn't assign X pixel size to Dicom file")
+if exist('dimensions','var')
+    switch dimensions.x.units
+        case 'microns'
+            SizeX=0.001*(dimensions.x.values(2)-dimensions.x.values(1));
+        case 'mm'
+            SizeX=dimensions.x.values(2)-dimensions.x.values(1);
+        case 'NA'
+            SizeX=0;
+            disp("error: couldn't assign X pixel size to Dicom file")
+    end
+else
+    SizeX=0;
+    disp("error: couldn't assign X pixel size to Dicom file")  
 end
 
 switch dimensions.y.units
@@ -75,7 +80,7 @@ dicomwrite(color4D,filepath,'Modality',['OCT: ' dimensions.aux.OCTSystem], ...
 
 % add resolution parameters
 info=dicominfo(filepath);
-info.PixelSpacing = [SizeX SizeZ];
+info.PixelSpacing = [SizeZ SizeX];
 info.SpacingBetweenSlices = SizeY;
 info.EchoTime = [c(1) c(2)]; %saves previous pixel values
 dicomwrite(color4D,filepath, info,'CreateMode','Copy')

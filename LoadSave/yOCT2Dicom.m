@@ -11,45 +11,64 @@ if ~exist('c','var') || isempty(c)
     c = [prctile(data(:),20), prctile(data(:),99.999)]; %min value is at percentile 20 because most of volume has no signals
 end
 
-switch dimensions.x.units
-    case 'microns'
-        SizeX=0.001*(dimensions.x.values(2)-dimensions.x.values(1));
-    case 'mm'
-        SizeX=dimensions.x.values(2)-dimensions.x.values(1);
-    case 'NA'
-        SizeX=0;
-        disp("error: couldn't assign X pixel size to Dicom file")
-end
-
-switch dimensions.y.units
-    case 'microns'
-        SizeY=0.001*(dimensions.y.values(2)-dimensions.y.values(1));
-    case 'mm'
-        SizeY=dimensions.y.values(2)-dimensions.y.values(1);
-    case 'NA'
-        SizeY=0;
-        disp("error: couldn't assign Y pixel size to Dicom file")
-end
-
-if isfield(dimensions,'z')
-    switch dimensions.z.units
-        case 'microns [in medium]'
-            SizeZ=0.001*(dimensions.z.values(2)-dimensions.z.values(1));
+if exist('dimensions','var')
+    switch dimensions.x.units
+        case 'microns'
+            SizeX=0.001*(dimensions.x.values(2)-dimensions.x.values(1));
         case 'mm'
-            SizeZ=dimensions.z.values(2)-dimensions.z.values(1);
+            SizeX=dimensions.x.values(2)-dimensions.x.values(1);
         case 'NA'
-            SizeZ=0;
-            disp("error: couldn't assign Z pixel size to Dicom file")
+            SizeX=0;
+            disp("error: couldn't assign X pixel size to Dicom file")
+    end
+else
+    SizeX=0;
+    disp("error: no dimensions variable was attached, zero X pixel size was assigned to Dicom file")  
+end
+
+if exist('dimensions','var')
+    switch dimensions.y.units
+        case 'microns'
+            SizeY=0.001*(dimensions.y.values(2)-dimensions.y.values(1));
+        case 'mm'
+            SizeY=dimensions.y.values(2)-dimensions.y.values(1);
+        case 'NA'
+            SizeY=0;
+            disp("error: couldn't assign Y pixel size to Dicom file")
+    end
+else
+    SizeY=0;
+    disp("error: no dimensions variable was attached, zero Y pixel size was assigned to Dicom file")  
+end
+
+if exist('dimensions','var')
+    if isfield(dimensions,'z')
+        switch dimensions.z.units
+            case 'microns [in medium]'
+                SizeZ=0.001*(dimensions.z.values(2)-dimensions.z.values(1));
+            case 'mm'
+                SizeZ=dimensions.z.values(2)-dimensions.z.values(1);
+            case 'NA'
+                SizeZ=0;
+                disp("error: couldn't assign Z pixel size to Dicom file")
+        end
+    else
+        SizeZ=0;
+        disp("No Z pixel size was written to Dicom file")
     end
 else
     SizeZ=0;
-    disp("No Z pixel size was written to Dicom file")
+    disp("error: no dimensions variable was attached, zero Z pixel size was assigned to Dicom file")  
 end
 
-if ~isfield(dimensions.aux,'OCTSystem')
+if exist('dimensions','var')
+    if ~isfield(dimensions.aux,'OCTSystem')
+        dimensions.aux.OCTSystem = 'Unknown';
+    end
+else
     dimensions.aux.OCTSystem = 'Unknown';
 end
-
+    
 %% Do we need AWS?
 if awsIsAWSPath(filepath)
     %Load Data from AWS
@@ -75,7 +94,7 @@ dicomwrite(color4D,filepath,'Modality',['OCT: ' dimensions.aux.OCTSystem], ...
 
 % add resolution parameters
 info=dicominfo(filepath);
-info.PixelSpacing = [SizeX SizeZ];
+info.PixelSpacing = [SizeZ SizeX];
 info.SpacingBetweenSlices = SizeY;
 info.EchoTime = [c(1) c(2)]; %saves previous pixel values
 dicomwrite(color4D,filepath, info,'CreateMode','Copy')

@@ -21,6 +21,7 @@ toc;
 %% Save To File
 tic;
 yOCT2Tif(log(meanAbs),'tmp.tif'); %Save to File
+yOCT2Dicom(log(meanAbs),'tmp.dcm',dimensions); %Save to File
 %meanAbs2 = yOCTFromTif('tmp.tif'); %Load From File
 toc;
 
