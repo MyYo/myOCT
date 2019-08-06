@@ -11,7 +11,7 @@ The library contains 5 layers of scripts:
 
 4 - Testers: a set of scripts, that utilize LoadSave and Processing with parallel computing capabilities, to completely process any 2D and 3D scans using Jenkins. In addition, it contains  a set of scripts that load OCT files and check performances and imagery.
 
-5 - AWSTtils: a set of scripts that can start an AWS EC2 instance (worker), send data to it, run functions/processes, copy files (fast!) to your s3 Bucket, terminate the instance and more. 
+5 - AWSUtils: a set of scripts that can start an AWS EC2 instance (worker), send data to it, run functions/processes, copy files (fast!) to your s3 Bucket, terminate the instance and more. 
 
 This code is still at beta.
 
