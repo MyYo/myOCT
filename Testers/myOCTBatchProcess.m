@@ -171,7 +171,7 @@ else
 end
 
 %Load OCT Data, parllel computing style
-[meanAbs,speckleVariance] = yOCTProcessScan([{OCTFolder, ...
+[meanAbs,speckleVariance,dimensions] = yOCTProcessScan([{OCTFolder, ...
     {'meanAbs','speckleVariance'}, ... Which functions would you like to process. Option exist for function hendel
     'nYPerIteration', 1, ...
     'showStats',true,'runProcessScanInParallel',runProcessScanInParallel} config]);
@@ -188,9 +188,9 @@ if (isSaveMat)
 end
 if (isSaveDicom)
     filepaths{end+1} = [fpPrefix 'scanAbs.dcm'];
-    yOCT2Dicom(meanAbs,filepaths{end}); %Save dicom File
+    yOCT2Dicom(meanAbs,filepaths{end},dimensions); %Save dicom File
     filepaths{end+1} = [fpPrefix 'speckleVariance.dcm'];
-    yOCT2Dicom(speckleVariance,filepaths{end}); %Save dicom File
+    yOCT2Dicom(speckleVariance,filepaths{end},dimensions); %Save dicom File
 end
 filepaths{end+1} = [fpPrefix 'speckleVariance.tif'];
 yOCT2Tif(speckleVariance,filepaths{end}); %Save to File
