@@ -33,7 +33,7 @@ try
     
     if isConnectToCluster %Do we need to connect to cluster
 		disp('Starting Cluster ... ');
-        myCluster = parcluster('delaZerdaParallel');
+        myCluster = parcluster('delaZerdaParallel')
         switch myCluster.State %All Cluster's scenarios
             case 'offline'
                 start(myCluster);
