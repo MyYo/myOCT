@@ -20,6 +20,23 @@ try
         isConnectToCluster = false;
     end
     
+    %% Cleanup Path & Add some files we will need
+    
+    %Cleanup
+    p=path;
+    ps = split(p,';');
+    %Find which parts of the path are in the original folder of Matlab
+    isOrig = cellfun(@(x)(contains(x,matlabroot)),ps);
+    %Remove paths which are not matlab toolbox
+    for i=find(~isOrig)
+        rmpath(ps{i});
+    end
+    
+    %Add path
+    currentFileFolder = fileparts(mfilename('fullpath'));
+	yOCTMainFolder = [currentFileFolder '\..\'];
+	addpath(genpath(yOCTMainFolder)); %Add current files to path
+    
     %% Connect to cluster if needed. Matlab Parallel Server
     %To Start a cluster, we need to have a Matlab user logged in to Matlab.
     %However, Jenkins runs as a "SYSTEM" user, which we are unable to open
@@ -56,9 +73,6 @@ try
     end
 	
 	%% Setup environment
-	currentFileFolder = fileparts(mfilename('fullpath'));
-	yOCTMainFolder = [currentFileFolder '\..\'];
-	addpath(genpath(yOCTMainFolder)); %Add current files to path
 	opengl('save', 'software'); %Increase stubility in OPEN GL
 	
 	fprintf('Done!\n'); %Indicate environment is up and running
