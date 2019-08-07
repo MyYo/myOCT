@@ -1,7 +1,7 @@
 function awsWriteJSON(json,fp)
 %This function write a JSON file from AWS or locally
 %json - configuration file
-%fp - file path
+%fp - file path, can be local or in AWS
 
 if (awsIsAWSPath(fp))
     %Load Data from AWS
