@@ -2,9 +2,10 @@ function yOCT2Dicom (data, filepath, dimensions, c)
 %This function saves a grayscale version of data to a Dicom stack file.
 %Dimensions are (z,x) and each frame is y
 %INPUTS
-%   filpath - filepath of output Dicom file
 %   data - scan data (dimensions are (z,x,y)
-%   c - [min, max] of the grayscale
+%   filpath - filepath of output Dicom file (including 'name.dcm')
+%   dimensions - describing the interferogram matrix dimensions
+%   c - [min, max] of the grayscale data
 
 %% Input check
 if ~exist('c','var') || isempty(c)
@@ -19,46 +20,36 @@ if exist('dimensions','var')
             SizeX=dimensions.x.values(2)-dimensions.x.values(1);
         case 'NA'
             SizeX=0;
-            disp("error: couldn't assign X pixel size to Dicom file")
+            disp("Warning: couldn't assign X pixel size to Dicom file")
+    end
+    switch dimensions.z.units
+        case 'microns [in medium]'
+            SizeZ=0.001*(dimensions.z.values(2)-dimensions.z.values(1));
+        case 'mm'
+            SizeZ=dimensions.z.values(2)-dimensions.z.values(1);
+        case 'NA'
+            SizeZ=0;
+            disp("Warning: couldn't assign Z pixel size to Dicom file")
+    end
+    if ~isnan(dimensions.y.order)
+        switch dimensions.y.units
+            case 'microns'
+                SizeY=0.001*(dimensions.y.values(2)-dimensions.y.values(1));
+            case 'mm'
+                SizeY=dimensions.y.values(2)-dimensions.y.values(1);
+            case 'NA'
+                SizeY=0;
+                disp("Warning: couldn't assign Y pixel size to Dicom file")
+        end
+    else
+        SizeY=0;
+        disp("2D Dicom file")
     end
 else
     SizeX=0;
-    disp("error: no dimensions variable was attached, zero X pixel size was assigned to Dicom file")  
-end
-
-if exist('dimensions','var')
-    switch dimensions.y.units
-        case 'microns'
-            SizeY=0.001*(dimensions.y.values(2)-dimensions.y.values(1));
-        case 'mm'
-            SizeY=dimensions.y.values(2)-dimensions.y.values(1);
-        case 'NA'
-            SizeY=0;
-            disp("error: couldn't assign Y pixel size to Dicom file")
-    end
-else
-    SizeY=0;
-    disp("error: no dimensions variable was attached, zero Y pixel size was assigned to Dicom file")  
-end
-
-if exist('dimensions','var')
-    if isfield(dimensions,'z')
-        switch dimensions.z.units
-            case 'microns [in medium]'
-                SizeZ=0.001*(dimensions.z.values(2)-dimensions.z.values(1));
-            case 'mm'
-                SizeZ=dimensions.z.values(2)-dimensions.z.values(1);
-            case 'NA'
-                SizeZ=0;
-                disp("error: couldn't assign Z pixel size to Dicom file")
-        end
-    else
-        SizeZ=0;
-        disp("No Z pixel size was written to Dicom file")
-    end
-else
     SizeZ=0;
-    disp("error: no dimensions variable was attached, zero Z pixel size was assigned to Dicom file")  
+    SizeY=0;
+    disp("Warning: no dimensions variable was attached, zero pixel size was assigned to Dicom file")  
 end
 
 if exist('dimensions','var')
@@ -82,26 +73,41 @@ else
 end
 
 %% Preform writing to the file
-for yi=1:size(data,3)
-    color(:,:,:) = uint16((squeeze(data(:,:,yi))-c(1))/(c(2)-c(1))*65535);
-    color(color>65535) = 65535;
-    color(color<0) = 0;
-    color4D(:,:,:,yi)=color;
+
+if (size(data,3) ~= 1) % Volume case 
+    for yi=1:size(data,3)
+        color(:,:,:) = uint16((squeeze(data(:,:,yi))-c(1))/(c(2)-c(1))*65535);
+        color(color>65535) = 65535;
+        color(color<0) = 0;
+        color4D(:,:,:,yi)=color;
+    end
+
+    dicomwrite(color4D,filepath,'Modality',['OCT: ' dimensions.aux.OCTSystem], ...
+        'ObjectType','Secondary Capture Image Storage')
+
+    % add resolution parameters
+    info=dicominfo(filepath);
+    info.PixelSpacing = [SizeZ SizeX];
+    info.SpacingBetweenSlices = SizeY;
+    info.EchoTime = [c(1) c(2)]; %saves previous pixel values
+    dicomwrite(color4D,filepath, info,'CreateMode','Copy')
+
+else
+    color(:,:) = uint16((squeeze(data(:,:,:))-c(1))/(c(2)-c(1))*65535);
+    dicomwrite(color,filepath,'Modality',['OCT: ' dimensions.aux.OCTSystem], ...
+        'ObjectType','Secondary Capture Image Storage')
+    
+    % add resolution parameters
+    info=dicominfo(filepath);
+    info.PixelSpacing = [SizeZ SizeX];
+    info.SpacingBetweenSlices = SizeY;
+    info.EchoTime = [c(1) c(2)]; %saves previous pixel values
+    dicomwrite(color,filepath, info,'CreateMode','Copy')
 end
-
-dicomwrite(color4D,filepath,'Modality',['OCT: ' dimensions.aux.OCTSystem], ...
-    'ObjectType','Secondary Capture Image Storage')
-
-% add resolution parameters
-info=dicominfo(filepath);
-info.PixelSpacing = [SizeZ SizeX];
-info.SpacingBetweenSlices = SizeY;
-info.EchoTime = [c(1) c(2)]; %saves previous pixel values
-dicomwrite(color4D,filepath, info,'CreateMode','Copy')
-
+    
 %% Upload file to cloud if required
 if (isAWS)
-    [~,~] = system(['aws s3 cp "' filepath '" "' awsFilePath '"']);
+    awsCopyFileFolder(filepath,awsFilePath)
     delete(filepath); %Cleanup
 end
 
