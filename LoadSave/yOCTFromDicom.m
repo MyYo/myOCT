@@ -1,4 +1,4 @@
-function scanAbs = yOCTFromDicom (filepath, yI)
+function [scanAbs,Pixel] = yOCTFromDicom (filepath, yI)
 %This function loads a grayscale version of scanAbs from a Dicom stack file.
 %Dimensions are (z,x,y)
 %INPUTS
@@ -8,7 +8,7 @@ function scanAbs = yOCTFromDicom (filepath, yI)
 if awsIsAWSPath(filepath)
     %Load Data from AWS
     isAWS = true;
-    awsSetCredentials; %Use the advanced version as uploading is more challenging
+    awsSetCredentials;
     filepath = awsModifyPathForCompetability(filepath);
     
     %Download file locally for easy access
@@ -19,6 +19,10 @@ else
 end
 
 info = dicominfo(filepath);
+Pixel.z=info.PixelSpacing(1);
+Pixel.x=info.PixelSpacing(2);
+Pixel.y=info.SpacingBetweenSlices;
+
 if (~exist('yI','var'))
     yI=1:info.NumberOfFrames;
 end
