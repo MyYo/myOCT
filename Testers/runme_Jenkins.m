@@ -32,6 +32,7 @@ try
     %   C:\Windows\System32\config\systemprofile\AppData\Roaming\MathWorks\MATLAB\<Which Matlab>\
     
     if isConnectToCluster %Do we need to connect to cluster
+		disp('Starting Cluster ... ');
         myCluster = parcluster('delaZerdaParallel');
         switch myCluster.State %All Cluster's scenarios
             case 'offline'
