@@ -82,7 +82,7 @@ try
     %% Run
     
     %Are we running a script?
-    if ischr(functionHendle)
+    if ischar(functionHendle)
         %Convert script name to a function handel
         functionHendle = strrep(functionHendle,'.m',''); %Remove .m
         functionHendle=str2func(functionHendle);
