@@ -35,7 +35,7 @@ yOCTTestUnzip([mainTestVectorFolder2 'ZippedOCTFolder/']);
 
 %% Test batch processing
 disp('Testing Batch Processing... (S3 Version)');
-myOCTBatchProcess([mainTestVectorFolder2 'SmallSampleOCTVolumes/'],{'parallelOption',1});
+myOCTBatchProcess([mainTestVectorFolder2 'SmallSampleOCTVolumes/'],{'parallelOption',1,'isSaveDicom','True'});
 myOCTBatchProcess([mainTestVectorFolder2 'SmallSampleOCTVolumes/'],{'parallelOption',2,'isSaveDicom','True'});
 
 
