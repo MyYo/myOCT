@@ -4,14 +4,14 @@ function runme_Jenkins(functionHendle,isConnectToCluster)
 %INPUTS:
 %   - functionHendle - Can be
 %       1) function to run. No inputs: functionHendle=@()(myfun()); or
-%       2) Name of a script to run like 'runme' (no .m required)
+%       2) Name of a script to run like 'runme' (no .m required). If running a script, it will run as an isolated environment
 %   - isConnectToCluster - connect to Matlab / AWS cluster prior to
 %       execution. Default: false
 %EXAMPLES:
 %   - Running myOCTBatchProcess:
 %       echo runme_Jenkins(@()(myOCTBatchProcess('%OCT_FOLDER_PATH%',{%EXECUTION_CONFIGURATION%})),%IS_CLUSTER_RUN%);> runme.m
 %   - Running yOCTTestMyOCTLibrary
-%       echo runme_Jenkins(@()(yOCTTestMyOCTLibrary()),false);> runme.m
+%       echo runme_Jenkins('yOCTTestMyOCTLibrary',false);> runme.m
 
 global isRunningOnJenkins; %Golbal varible stating execution status
 isRunningOnJenkins = true; 
