@@ -71,6 +71,8 @@ try
                 if (mypool.Connected ~= 1)
                     myPool=parpool(myCluster);
                 end
+			otherwise
+				error('Unknown clustter state: %s, what should I do about it?', myCluster.State);
         end
     end
 	
