@@ -2,7 +2,9 @@ function runme_Jenkins(functionHendle,isConnectToCluster)
 %This function does all the environment settings to run a function or a
 %script (add to path, cluster, error handeling etc) when executed by Jenkins. 
 %INPUTS:
-%   - functionHendle - function to run. No inputs: functionHendle=@()(myfun())
+%   - functionHendle - Can be
+%       1) function to run. No inputs: functionHendle=@()(myfun()); or
+%       2) Name of a script to run like 'runme' (no .m required)
 %   - isConnectToCluster - connect to Matlab / AWS cluster prior to
 %       execution. Default: false
 %EXAMPLES:
@@ -78,6 +80,14 @@ try
 	fprintf('Done!\n'); %Indicate environment is up and running
     
     %% Run
+    
+    %Are we running a script?
+    if ischr(functionHendle)
+        %Convert script name to a function handel
+        functionHendle = strrep(functionHendle,'.m',''); %Remove .m
+        functionHendle=str2func(functionHendle);
+    end
+    
     functionHendle();
     
 	fprintf('Winding down ...');
