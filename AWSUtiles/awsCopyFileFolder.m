@@ -48,9 +48,10 @@ if ~isSourceAWS
 end
 
 %% Preform the upload
+txt = [];
 switch(mode)
     case 'UploadFile'
-        [err] = system(['aws s3 cp "' source '" "' dest '"']);
+        [err,txt] = system(['aws s3 cp "' source '" "' dest '"']);
     case 'UploadDir'
         [err] = system(['aws s3 sync "' source '" "' dest '"']);
     case 'UploadDirManySmallFiles'
