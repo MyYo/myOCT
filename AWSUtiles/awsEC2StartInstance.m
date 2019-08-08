@@ -142,6 +142,11 @@ for i=1:length(pemFPs)
     mkdir(tempDir); %Create directory
     [~,tmp] = fileparts(ec2RunStructure.pemFilePath);
     TempPEMFilePath = [tempDir '\' tmp '.pem'];
+	
+	if ~exist(ec2RunStructure.pemFilePath,'file')
+		error('Cannot find PEM file path at: %s',ec2RunStructure.pemFilePath);
+	end
+	
     copyfile(ec2RunStructure.pemFilePath,TempPEMFilePath);
     
     pemFPs{i} = TempPEMFilePath;
