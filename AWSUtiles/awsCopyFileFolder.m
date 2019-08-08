@@ -74,7 +74,7 @@ switch(mode)
 end
 
 if err~=0
-    error(['error happend while using aws: ']);
+    error(['error happend while using aws: ' txt]);
 end
 
 %% Fast copy of many small files
