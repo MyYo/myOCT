@@ -30,6 +30,9 @@ function ec2RunStructure = awsEC2BuildRunStructure ...
 
 ec2RunStructure.ami = ami;
 
+if ~exist(pemFilePath,'file')
+	error('Cannot find PEM file path at: %s',pemFilePath);
+end
 [~,tmp] = fileparts(pemFilePath);
 ec2RunStructure.pemName = tmp; %By default pem Name is the same as pemFilePath's name
 ec2RunStructure.pemFilePath = pemFilePath;
