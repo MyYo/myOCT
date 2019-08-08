@@ -144,7 +144,7 @@ for i=1:length(pemFPs)
     TempPEMFilePath = [tempDir '\' tmp '.pem'];
 	
 	if ~exist(ec2RunStructure.pemFilePath,'file')
-		error('Cannot find PEM file path at: %s',ec2RunStructure.pemFilePath);
+		error('Cannot find PEM file path at: %s. Or file not accesible',ec2RunStructure.pemFilePath);
 	end
 	
     copyfile(ec2RunStructure.pemFilePath,TempPEMFilePath);
