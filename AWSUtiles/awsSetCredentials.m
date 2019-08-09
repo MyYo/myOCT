@@ -12,7 +12,7 @@ global awsSetCredentialsUsed;
 if isempty(awsSetCredentialsUsed) ... %Run only once
     || level > awsSetCredentialsUsed  %or if we request the advanced type, but only the basic one was set
     
-    if exist('awsSetCredentials_Private') == 2 || exist('awsSetCredentialsPrivate') == 5
+    if exist('awsSetCredentials_Private','file')    
         [AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, DefaultRegion] = awsSetCredentials_Private ();
         %awsSetCredentials_Private output example:
         %DefaultRegion='us-west-1'
@@ -41,3 +41,14 @@ if isempty(awsSetCredentialsUsed) ... %Run only once
     
     awsSetCredentialsUsed = level;
 end
+
+%Is this code executed on worker?
+isOnWorker = ~isempty(getCurrentTask());
+if (isOnWorker && level >= 1)
+    warning(sprintf(['\n' ...
+        'awsSetCredentials level requires CLI access, however this code runs on a worker.\n' ...
+        'As of August 2019, Matlab workers running on AWS cloud don''t have the latest version of AWS CLI ' ...
+        'which means you might have errors when accesing the cloud. Be ware!' ...
+        ]));
+end
+    
