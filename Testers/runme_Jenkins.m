@@ -72,11 +72,12 @@ try
 		
 		%Set default cluster, but don't start it yet
 		parallel.defaultClusterProfile('delaZerdaParallel');
-        disp(['Adjusted default cluster to: ' parallel.defaultClusterProfile]);
 	else
 		%Run locally if no cluster
 		parallel.defaultClusterProfile('local'); 
     end
+	disp(['Adjusted default cluster to: ' parallel.defaultClusterProfile ', cluster is up an running']);
+
 	
 	%% Setup environment
 	opengl('save', 'software'); %Increase stubility in OPEN GL
