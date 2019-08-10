@@ -15,6 +15,7 @@ function runme_Jenkins(functionHendle,isConnectToCluster)
 
 global isRunningOnJenkins; %Golbal varible stating execution status
 isRunningOnJenkins = true; 
+outCode = 0; %Output code
 
 try 
 	fprintf('Starting up environment... ');
@@ -97,48 +98,54 @@ try
     
     functionHendle();
     
-	fprintf('Winding down ...');
-    %% If Cluster is on shut it down
-    if isConnectToCluster && false %Leave cluster open, it will shut itself down after a while
-        switch myCluster.State %All the scenarios the cluster can be in
-            case 'starting'
-                wait(myCluster);
-                shutdown(myCluster);
-            case 'stopping'
-                wait(myCluster); %Wait for the cluster to stop
-            case 'online'
-                shutdown(myCluster);
-                wait(myCluster);
-            case 'offline' 
-                %do nothing
-        end
-    end
-	fprintf('Done! Goodbye\n');
-    
 catch ME 
     %% Error Hendle
 	disp(' '); 
 	disp('Error Happened'); 
+	disp(ME.message); 
 	for i=1:length(ME.stack) 
 		ME.stack(i) 
 	end 
-	disp(ME.message); 
 	
-	%Shut down cluster
-    if isConnectToCluster
-        if ((strcmp(myCluster.State,'offline')==0) && strcmp(myCluster.State,'stopping')==0) %If Cluster is on/starting
-		
-			myPool = gcp('nocreate');
-			if ~isempty(myPool)
-				%My pool is running, shut it down
-				delete(myPool);
-			end
-            wait(myCluster);
-            shutdown(myCluster);
-            wait(myCluster);
-        end
-    end
-	
-	exit(1); 
+	outCode = 1;
 end 
-exit(0); 
+
+try
+%% If Cluster is on shut it down
+fprintf('Winding down ...');
+
+%If parallel pool exists, close it
+myPool = gcp('nocreate');
+if ~isempty(myPool)
+	%My pool is running, shut it down
+	delete(myPool);
+end
+
+if isConnectToCluster && false %Leave cluster open, it will shut itself down after a while
+	switch myCluster.State %All the scenarios the cluster can be in
+		case 'starting'
+			wait(myCluster); %Wait for cluster to turn on
+			shutdown(myCluster);
+		case 'stopping'
+			%Do nothing, let the cluster close
+		case 'online'
+			shutdown(myCluster);
+		case 'offline' 
+			%do nothing
+	end
+end
+fprintf('Done! Goodbye\n');
+
+catch ME 
+    %% Error Hendle
+	disp(' '); 
+	disp('Error Happened while winding down'); 
+	disp(ME.message); 
+	for i=1:length(ME.stack) 
+		ME.stack(i) 
+	end 
+	
+	outCode = 1;
+end
+
+exit(outCode); 
