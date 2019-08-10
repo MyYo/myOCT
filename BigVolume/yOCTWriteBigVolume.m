@@ -24,10 +24,8 @@ awsRmDir(bigVolumeFolder);
 switch(lower(fileExtensions))
     case 'tif'
         f = @yOCT2Tif;
-        %addAttachedFiles(gcp,'yOCTToTif.m');
     case 'mat'
         f = @yOCT2Mat;
-        %addAttachedFiles(gcp,'yOCTToMat.m');
     otherwise
         error('Unknown file extension %s',fileExtensions);
 end
