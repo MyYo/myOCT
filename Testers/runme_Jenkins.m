@@ -69,6 +69,8 @@ try
 			otherwise
 				error('Unknown clustter state: %s, what should I do about it?', myCluster.State);
         end
+		fprintf('Cluster.JobStorageLocation = "%s". You can find error logs in case of loss communication with worker here\n',...
+			myCluster.JobStorageLocation);
 		
 		%Set default cluster, but don't start it yet
 		parallel.defaultClusterProfile('delaZerdaParallel');
@@ -77,7 +79,7 @@ try
 		parallel.defaultClusterProfile('local'); 
     end
 	disp(['Adjusted default cluster to: ' parallel.defaultClusterProfile ', cluster is up an running']);
-
+	
 	
 	%% Setup environment
 	opengl('save', 'software'); %Increase stubility in OPEN GL
