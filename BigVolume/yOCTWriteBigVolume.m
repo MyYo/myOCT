@@ -41,4 +41,4 @@ end
 function writeFunctionBV(info,data,f)
 fn = strrep(info.RequiredFilePattern,'*',sprintf('%04d',info.PartitionIndex));
 filename = [info.RequiredLocation '\' fn];%Remove required pattern, its easier that way
-f(data,filename);
+f(shiftdim(data,1),filename);
