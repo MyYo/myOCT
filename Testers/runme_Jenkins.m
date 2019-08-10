@@ -61,7 +61,7 @@ try
             case 'starting'
                 wait(myCluster); %Wait for the cluster to be ready to accept job submissions
             case 'stopping'
-                wait(myCluster); %Wait for the cluster to stop
+				wait(myCluster,'offline');%Wait for the cluster to stop
                 start(myCluster);
                 wait(myCluster);
             case 'online'
