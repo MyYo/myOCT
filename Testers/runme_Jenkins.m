@@ -58,23 +58,23 @@ try
             case 'offline'
                 start(myCluster);
                 wait(myCluster); %Wait for the cluster to be ready to accept job submissions
-                myPool=parpool(myCluster); %Create parallel pool on cluster
             case 'starting'
                 wait(myCluster); %Wait for the cluster to be ready to accept job submissions
-                myPool=parpool(myCluster); %Create parallel pool on cluster
             case 'stopping'
                 wait(myCluster); %Wait for the cluster to stop
                 start(myCluster);
                 wait(myCluster);
-                myPool=parpool(myCluster); %Create parallel pool on cluster
             case 'online'
-                mypool=gcp;
-                if (mypool.Connected ~= 1)
-                    myPool=parpool(myCluster);
-                end
+				%Do nothing
 			otherwise
 				error('Unknown clustter state: %s, what should I do about it?', myCluster.State);
         end
+		
+		%Set default cluster, but don't start it yet
+		parallel.defaultClusterProfile('delaZerdaParallel')
+	else
+		%Run locally if no cluster
+		parallel.defaultClusterProfile('local'); 
     end
 	
 	%% Setup environment
@@ -113,21 +113,28 @@ try
     
 catch ME 
     %% Error Hendle
-    if isConnectToCluster
-        if ((strcmp(myCluster.State,'offline')==0) && strcmp(myCluster.State,'stopping')==0) %If Cluster is on/starting
-            delete(myPool);
-            wait(myCluster);
-            shutdown(myCluster);
-            wait(myCluster);
-        end
-    end
-       
 	disp(' '); 
 	disp('Error Happened'); 
 	for i=1:length(ME.stack) 
 		ME.stack(i) 
 	end 
 	disp(ME.message); 
+	
+	%Shut down cluster
+    if isConnectToCluster
+        if ((strcmp(myCluster.State,'offline')==0) && strcmp(myCluster.State,'stopping')==0) %If Cluster is on/starting
+		
+			myPool = gcp('nocreate');
+			if ~isempty(myPool)
+				%My pool is running, shut it down
+				delete(myPool);
+			end
+            wait(myCluster);
+            shutdown(myCluster);
+            wait(myCluster);
+        end
+    end
+	
 	exit(1); 
 end 
 exit(0); 
