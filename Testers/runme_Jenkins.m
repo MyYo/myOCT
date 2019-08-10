@@ -84,7 +84,7 @@ try
 	%% Setup environment
 	opengl('save', 'software'); %Increase stubility in OPEN GL
 	
-	fprintf('Done!\n'); %Indicate environment is up and running
+	fprintf('Environment up and running, runing functionHendle...!\n'); %Indicate environment is up and running
     
     %% Run
     
