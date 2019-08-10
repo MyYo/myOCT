@@ -95,7 +95,7 @@ try
     
 	fprintf('Winding down ...');
     %% If Cluster is on shut it down
-    if isConnectToCluster 
+    if isConnectToCluster && false %Leave cluster open, it will shut itself down after a while
         switch myCluster.State %All the scenarios the cluster can be in
             case 'starting'
                 wait(myCluster);
