@@ -71,7 +71,8 @@ try
         end
 		
 		%Set default cluster, but don't start it yet
-		parallel.defaultClusterProfile('delaZerdaParallel')
+		parallel.defaultClusterProfile('delaZerdaParallel');
+        disp(['Adjusted default cluster to: ' parallel.defaultClusterProfile]);
 	else
 		%Run locally if no cluster
 		parallel.defaultClusterProfile('local'); 
