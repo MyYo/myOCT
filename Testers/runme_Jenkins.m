@@ -79,7 +79,7 @@ try
 		%Run locally if no cluster
 		parallel.defaultClusterProfile('local'); 
     end
-	%ps = parallel.Settings
+	%ps = parallel.Settings;
 	%ps.Pool.AutoCreate = false; %Cancel autocreate of parallel pool
 	disp(['Adjusted default cluster to: ' parallel.defaultClusterProfile ', cluster is up an running']);
 	
