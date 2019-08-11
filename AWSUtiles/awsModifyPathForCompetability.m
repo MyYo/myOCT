@@ -26,5 +26,5 @@ if (awsIsAWSPath(p))
 else
 	%Regular path
 	p = strrep(p,'/','\'); %Repalce slashes
-	p = strrep(p,'\\','\'); %Replace double slashed
+	p(3:end) = strrep(p(3:end),'\\','\'); %Replace double slashed, starting 3rd note so if we start with '\\127.0.0.1\' will not replace the begning
 end
