@@ -84,9 +84,7 @@ end
 
 %% Fix input data folder if required
 inputDataFolder = varargin{1};
-if (inputDataFolder(end) ~='/' && inputDataFolder(end) ~='\')
-    inputDataFolder = [inputDataFolder '/'];
-end
+inputDataFolder = awsModifyPathForCompetability([inputDataFolder '/']);
 
 %% Figure out OCT system manufacturer
 if isempty(OCTSystem)
