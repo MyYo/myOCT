@@ -6,7 +6,7 @@ function p = awsModifyPathForCompetability (p,isAWS_CLI)
 %   isAWS_CLI - will this path be used with AWS CLI? if so, spaces are
 %   defined slightly differently. If used path for datastore, set to false
 
-if (awsIsAWSPath(p)
+if (awsIsAWSPath(p))
 	if ~exist('isAWS_CLI','var')
 		isAWS_CLI = false;
 	end
