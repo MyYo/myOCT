@@ -30,15 +30,19 @@ switch(lower(fileExtensions))
         error('Unknown file extension %s',fileExtensions);
 end
 
+%% Size
+sz = length(dim.z.values);
+sx = length(dim.x.values);
+s = [sz sx];
+
 %% Save
-write([bigVolumeFolder '\y*.' lower(fileExtensions)],bv,'WriteFcn',@(info, data)writeFunctionBV(info,data,f));
+write([bigVolumeFolder '\y*.' lower(fileExtensions)],bv,'WriteFcn',@(info, data)writeFunctionBV(info,data,f,s));
 
 %JSON
-if ~isempty(dim)
-    awsWriteJSON(dim,[bigVolumeFolder '\config.json']);
-end
+awsWriteJSON(dim,[bigVolumeFolder '\config.json']);
 
-function writeFunctionBV(info,data,f)
+
+function writeFunctionBV(info,data,f,s)
 fn = strrep(info.RequiredFilePattern,'*',sprintf('%04d',info.PartitionIndex));
 filename = [info.RequiredLocation '\' fn];%Remove required pattern, its easier that way
-f(shiftdim(data,1),filename);
+f(reshape(data,s),filename);
