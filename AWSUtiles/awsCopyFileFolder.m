@@ -103,7 +103,7 @@ else
 end
 
 if (v)
-    fprintf('Tarring... ');
+    fprintf('%s Tarring... ',datestr(datetime));
     tic;
 end
 [status,txt] = system(sprintf('"%s7z.exe" a -ttar "%s" "%s"',sevenZipFolder,'tmp.tar',localSource));
@@ -111,23 +111,23 @@ if (status ~= 0)
     error('Tar error: %s',txt);
 end
 if (v)
-    fprintf('Total Tar: %.1f[min]\n',toc()/60);
+    fprintf('%s Total Tar: %.1f[min]\n',datestr(datetime),toc()/60);
 end
 
 %% Start EC2 Instance
 
 if (v)
-    fprintf('Starting EC2... ');
+    fprintf('%s Starting EC2... ',datestr(datetime));
     tic;
 end
 [ec2Instance] = awsEC2StartInstance(ec2RunStructure,'m4.2xlarge',1,v); %Start EC2 
 if (v)
-    fprintf('Total EC2 Bootup time: %.1f[min]\n',toc()/60);
+    fprintf('%s Total EC2 Bootup time: %.1f[min]\n',datestr(datetime),toc()/60);
 end
 
 %% Copy Files to EC2
 if (v)
-    fprintf('Copying files to EC2... ');
+    fprintf('%s Copying files to EC2... ',datestr(datetime));
     tic;
 end
 [status,txt] = awsEC2RunCommandOnInstance (ec2Instance,...
@@ -136,12 +136,12 @@ end
 awsEC2UploadDataToInstance(ec2Instance,'tmp.tar','~/Input'); %Copy
 delete('tmp.tar'); %Cleanup
 if (v)
-    fprintf('Total Copy: %.1f[min]\n',toc()/60);
+    fprintf('%s Total Copy: %.1f[min]\n',datestr(datetime),toc()/60);
 end
 
 %% Untar
 if (v)
-    fprintf('Untarring... ');
+    fprintf('%s Untarring... ',datestr(datetime));
     tic;
 end
 [status,txt] = awsEC2RunCommandOnInstance (ec2Instance,{...
@@ -154,12 +154,12 @@ if (status ~= 0)
     error('Untar error: %s',txt);
 end
 if (v)
-    fprintf('Total Untar: %.1f[min]\n',toc()/60);
+    fprintf('%s Total Untar: %.1f[min]\n',datestr(datetime),toc()/60);
 end
 
 %% Sync with S3
 if (v)
-    fprintf('Uploading EC2 data to S3... ');
+    fprintf('%s Uploading EC2 data to S3... ',datestr(datetime));
     tic;
 end
 folderNameUnix = strrep(folderName,' ','\ ');
@@ -173,7 +173,7 @@ if (status ~= 0)
     error('Sync with S3 error: %s.\n Sync command was: %s',txt,synccmd{1});
 end
 if (v)
-    fprintf('Total upload time: %.1f[min]\n',toc()/60);
+    fprintf('%s Total upload time: %.1f[min]\n',datestr(datetime),toc()/60);
 end
 
 %% Done
