@@ -50,6 +50,4 @@ awsWriteJSON(dim,[bigVolumeFolder '\config.json']);
 function writeFunctionBV(info,data,f,sz)
 fn = strrep(info.RequiredFilePattern,'*',sprintf('%04d',info.PartitionIndex));
 filename = [info.RequiredLocation '/' fn];%Remove required pattern, its easier that way
-filename = info.SuggestedFilename;
-disp(filename);
 f(reshape(data,sz),filename);
