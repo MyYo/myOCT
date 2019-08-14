@@ -33,8 +33,9 @@ if ~isSourceAWS
         end
         d = dir([source '\**\*.*']);
         totalDataTransferVolume = sum([d.bytes])/1024^3; %Gbytes
+		numberOfFiles = length(d)-sum([d.isdir]);
         if (...
-                length(d)>10 && ...
+                numberOfFiles>10 && ...
                 totalDataTransferVolume > 5.0 ... Threshold size GBytes
                 )
             mode = 'UploadDirManySmallFiles';
@@ -52,23 +53,27 @@ txt = [];
 switch(mode)
     case 'UploadFile'
         [err,txt] = system(['aws s3 cp "' source '" "' dest '"']);
-    case 'UploadDir'
-        [err] = system(['aws s3 sync "' source '" "' dest '"']);
-    case 'UploadDirManySmallFiles'
-        err = 0;
-        if (v)
-            fprintf('Uploading %.1f GBytes...\n',totalDataTransferVolume);
+    case {'UploadDir','UploadDirManySmallFiles'}
+		if (v)
+            fprintf('Uploading %.1f GBytes, %d files...\n',totalDataTransferVolume,numberOfFiles);
             tt = tic();
         end
-        awsCopyFileFolder_ManySmallFiles(source,dest,v);
-        if (v)
-            tt = toc(tt);
-            fprintf(['Total Time %.0f[min].\n' ...
+		
+		if strcmp(mode,'UploadDir')
+			[err,txt] = system(['aws s3 sync "' source '" "' dest '"']);
+		elseif strcmp(mode,'UploadDirManySmallFiles')
+			err = 0;
+			awsCopyFileFolder_ManySmallFiles(source,dest,v);
+		end
+		
+		if (v)
+			tt = toc(tt);
+			fprintf(['Total Time %.0f[min].\n' ...
                 'Overall average upload speed: \n' ...
                 '  %.1f [sec] to send one Gigabyte\n' ...
                 '  %.1f [Mbytes/sec]\n'],tt/60,...
                 tt/totalDataTransferVolume,totalDataTransferVolume*1024/tt);
-        end
+		end
     otherwise
         error('Couldn''t figure out the mode of operation');
 end
