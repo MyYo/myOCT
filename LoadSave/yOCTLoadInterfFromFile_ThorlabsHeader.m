@@ -1,8 +1,10 @@
-function dimensions = yOCTLoadInterfFromFile_ThorlabsHeader (inputDataFolder)
+function dimensions = yOCTLoadInterfFromFile_ThorlabsHeader (inputDataFolder, OCTSystem, chirp)
 %This function loads dimensions structure header
 % INPUTS:
 %   - inputDataFolder - OCT folder with header.xml file or srr files
-%   - OCTSystem - OCT System name
+% Optional inputs, if they are unknown, we will figure them out
+%   OCTSystem if we know it (otherwise set to '')
+%   chirp - if we have it (otherwise set to [])
 
 if (awsIsAWSPath(inputDataFolder))
     %Load Data from AWS
@@ -13,33 +15,36 @@ else
     isAWS = false;
 end
 
-%% Figure out which of the Thorlabs systems are we using
+if ~exist('chirp','var')
+    chirp = [];
+end
 
-%LoadXML
-ds=fileDatastore([inputDataFolder '/Header.xml'],'ReadFcn',@xml2struct);
+%% Load XML
+ds=fileDatastore(awsModifyPathForCompetability([inputDataFolder '/Header.xml']),'ReadFcn',@xml2struct);
 xDoc = ds.read;
 xDoc = xDoc.Ocity;
 
-if ~isempty(regexp(xDoc.Instrument.Model.Text,'Ganymed','once'))
-    OCTSystem = 'Ganymede';
-elseif ~isempty(regexp(xDoc.Instrument.Model.Text,'Telesto','once'))
-    OCTSystem = 'Telesto';
-else
-    OCTSystem = 'Unknown';
+%% Figure out which of the Thorlabs systems are we using
+if ~exist('OCTSystem','var') || isempty(OCTSystem)
+    if ~isempty(regexp(xDoc.Instrument.Model.Text,'Ganymed','once'))
+        OCTSystem = 'Ganymede';
+    elseif ~isempty(regexp(xDoc.Instrument.Model.Text,'Telesto','once'))
+        OCTSystem = 'Telesto';
+    else
+        error('Unknown OCT system');
+    end
 end
 
-
 %% Process Xml
-
 order = 1;
 
 %Lambda Size
-dimensions = yOCTLoadInterfFromFile_ThorlabsHeaderLambda(inputDataFolder,OCTSystem);
+dimensions = yOCTLoadInterfFromFile_ThorlabsHeaderLambda(inputDataFolder,OCTSystem,chirp);
 order = order + 1;
 
 try
     %See if Data was aquired in 1D mode
-    ds=fileDatastore([inputDataFolder '/data/SpectralFloat.data'],'ReadFcn',@fread);
+    ds=fileDatastore(awsModifyPathForCompetability([inputDataFolder '/data/SpectralFloat.data']),'ReadFcn',@fread);
     oneDMode = true;
 catch
     oneDMode = false;

@@ -25,6 +25,9 @@ function [interferogram, dimensions, apodization,prof] = yOCTLoadInterfFromFile(
 % 'ApodizationCorrection'   'Subtract'  What kind apodization correction to do. Can be
 %                                       'Subtract' - Subtract apodization signal from interferogram
 %                                       'None' - No ApodizationCorrection. Raw data is loaded.
+% 'Chirp'                   []          If you loaded chirpfile once andyou have the chirp data, just pass it along here. 
+%                                       If not, this function will downoload it. 
+%                                       Upplicable for thorlabs systems only.
 % OUTPUTS:
 %   - interferogram - interferogram data, apodization corrected. 
 %   - dimensions - describing the interferogram matrix dimensions. 
@@ -64,6 +67,7 @@ end
 OCTSystem = '';
 apodizationCorrection = 'subtract';
 peakOnly = false;
+chirp = [];
 for i=2:2:length(varargin)
     switch(lower(varargin{i}))
         case 'octsystem'
@@ -80,6 +84,8 @@ for i=2:2:length(varargin)
             peakOnly = varargin{i+1};
         case 'apodizationcorrection'
             apodizationCorrection = lower(varargin{i+1});
+        case 'chirp'
+            chirp = (varargin{i+1});
     end
 end
 
@@ -87,36 +93,10 @@ end
 inputDataFolder = varargin{1};
 inputDataFolder = awsModifyPathForCompetability([inputDataFolder '/']);
 
+tt = tic;
 %% Figure out OCT system manufacturer
 if isempty(OCTSystem)
-    % If OCTSystem is unknown, try to figure it out
-    try
-        yOCTLoadInterfFromFile_ThorlabsHeader(inputDataFolder);
-        OCTSystemManufacturer = 'Thorlabs'; %Header can be read by Thorlabs
-    catch e
-        ThorlabsHeaderAnswer = e.message;
-        try 
-            %Is this a Thorlabs system but loads SRR?
-            yOCTLoadInterfFromFile_ThorlabsSRRHeader(inputDataFolder);
-            OCTSystemManufacturer = 'Thorlabs_SRR'; %Header can be read by Thorlabs SRR Mode            
-        catch e
-            ThorlabsSRRHeaderAnswer = e.message;
-            try
-                %Is this a Wasatch System?
-                yOCTLoadInterfFromFile_WasatchHeader(inputDataFolder);
-                OCTSystemManufacturer = 'Wasatch';
-            catch e
-                WasatchAnswer = e.message;
-                %Don't know what system is this, notify user
-                error(sprintf(['Cannot determine OCT system for %s.\n' ...
-                    'ThorlabsHeader Said:\n %s\n' ...
-                    'ThorlabsSRRHeader Said:\n %s\n' ...
-                    'WasatchHeader Said:\n %s\n' ...
-                    ], ...
-                    inputDataFolder,ThorlabsHeaderAnswer,ThorlabsSRRHeaderAnswer,WasatchAnswer)); %#ok<SPERR>
-            end
-        end
-    end 
+    [OCTSystem,OCTSystemManufacturer] = yOCTLoadInterfFromFile_WhatOCTSystemIsIt(inputDataFolder);
 else
     switch(OCTSystem)
         case {'Ganymede','Telesto'}
@@ -131,21 +111,14 @@ else
 end
 
 %% Load Header file, get dimensions
-tt = tic;
 if ~exist('dimensions','var')
     %Load header information
     switch(OCTSystemManufacturer)
         case {'Thorlabs'}
-            try
-                dimensions = yOCTLoadInterfFromFile_ThorlabsHeader(inputDataFolder);
-            catch
-                %This can be read by SRR file maybe?
-                dimensions = yOCTLoadInterfFromFile_ThorlabsSRRHeader(inputDataFolder);
-                OCTSystemManufacturer = 'Thorlabs_SRR'; %Yep, change system to SRR
-            end
+            dimensions = yOCTLoadInterfFromFile_ThorlabsHeader(inputDataFolder, OCTSystem, chirp);
         
         case {'Thorlabs_SRR'}
-            dimensions = yOCTLoadInterfFromFile_ThorlabsSRRHeader(inputDataFolder);
+            dimensions = yOCTLoadInterfFromFile_ThorlabsSRRHeader(inputDataFolder, OCTSystem, chirp);
                 
         case {'Wasatch'}
             dimensions = yOCTLoadInterfFromFile_WasatchHeader(inputDataFolder);

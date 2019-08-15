@@ -2,7 +2,6 @@ function [dimensions] = yOCTLoadInterfFromFile_WasatchHeader(inputDataFolder)
 %This function loads dimensions structure from xml header
 % INPUTS:
 %   - inputDataFolder - OCT folder with header.xml file
-%   - OCTSystem - OCT System name
 
 %% Figure Out basic Parameters
 if (awsIsAWSPath(inputDataFolder))

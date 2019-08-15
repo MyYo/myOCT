@@ -1,5 +1,7 @@
-function dimensions = yOCTLoadInterfFromFile_ThorlabsHeaderLambda(inputDataFolder,OCTSystem)
+function dimensions = yOCTLoadInterfFromFile_ThorlabsHeaderLambda(inputDataFolder,OCTSystem,chirp)
 %This script figures out what is lambda of the data folder
+% Optional inputs, if they are unknown, we will figure them out
+%   chirp - if we have it (otherwise set to [])
 
 %% Figure out basic Parameters
 
@@ -19,22 +21,15 @@ switch(OCTSystem)
 end
 
 %% Load Chirp File
-
-try
-    %try
-        chirp = getChirpFile();
-    %catch
-    %    chirp = getChirpFile(); %Try a second time, cloud sometimes doesnt work the first time around
-    %end
-catch
-    %Couldn't load chirp file, try loading a local file instead
-    warning('Could not find chirp file in OCT folder, loading local file instead');
-    currentFileFolder = [fileparts(mfilename('fullpath')) '/'];
-    if exist([currentFileFolder chirpFileName]','file')
-        ds=fileDatastore([currentFileFolder chirpFileName],'ReadFcn',@readChirpTxt);
-        chirp = ds.read;
-    else
-        error('Did not find chirp file');
+if ~exist('chirp','var') || isempty(chirp)
+    try
+        chirp = yOCTLoadInterfFromFile_ThorlabsLoadChirp(inputDataFolder);
+    catch ME
+        %Couldn't load chirp file, try loading a local file instead
+        warning(['Could not find chirp file in OCT folder, loading local file instead. Message: ' ME.message]);
+        currentFileFolder = [fileparts(mfilename('fullpath')) '/'];
+        
+        chirp = yOCTLoadInterfFromFile_ThorlabsLoadChirp([currentFileFolder chirpFileName]);
     end
 end
 
@@ -51,33 +46,4 @@ dimensions.lambda.order  = 1;
 dimensions.lambda.values = lambda;
 dimensions.lambda.values = dimensions.lambda.values(:)';
 dimensions.lambda.units = 'nm [in air]';
-end
-
-%% Sub functions
-function chirp = readChirpTxt(fp)
-    fid = fopen(fp);
-    chirp = textscan(fid,'%f');
-    chirp = chirp{1};
-    fclose(fid);
-end
-function chirp = readChirpBin(fp)
-    fid = fopen(fp);
-    chirp  = fread(fid, 'float32');
-    fclose(fid);
-end
-
-function chirp = getChirpFile()
-
-try
-    ds=fileDatastore([inputDataFolder '/data/Chirp.data'],'ReadFcn',@readChirpBin);
-catch
-    try
-        %Try another name
-        ds=fileDatastore([inputDataFolder 'Chirp.dat'],'ReadFcn',@readChirpTxt);
-    catch
-        %Try with lower case
-        ds=fileDatastore([inputDataFolder '/data/chirp.data'],'ReadFcn',@readChirpBin);
-    end
-end
-chirp = ds.read;
 end

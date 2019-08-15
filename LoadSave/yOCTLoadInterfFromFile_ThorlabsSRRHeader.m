@@ -1,4 +1,4 @@
-function dimensions = yOCTLoadInterfFromFile_ThorlabsSRRHeader (inputDataFolder)
+function dimensions = yOCTLoadInterfFromFile_ThorlabsSRRHeader (inputDataFolder,OCTSystem,chirp)
 %In case this is a thorlabs file that is saved in srr format.
 %Make sure SRR Name convention is 'Data_Y%04d_Total%d_B%04d_Total%d_%s.srr
 %Specifing (by order)
@@ -7,6 +7,9 @@ function dimensions = yOCTLoadInterfFromFile_ThorlabsSRRHeader (inputDataFolder)
 %   - B0001 = B scan number (B scan average)
 %   - Total1 = Total number of B scan averages
 %   - %s = OCT System+
+% Optional inputs, if they are unknown, we will figure them out
+%   OCTSystem if we know it (otherwise set to '')
+%   chirp - if we have it (otherwise set to [])
 
 if (awsIsAWSPath(inputDataFolder))
     %Load Data from AWS
@@ -15,6 +18,10 @@ if (awsIsAWSPath(inputDataFolder))
     inputDataFolder = awsModifyPathForCompetability(inputDataFolder);
 else
     isAWS = false;
+end
+
+if ~exist('chirp','var')
+    chirp = [];
 end
 
 %% Load SRR File 
@@ -34,13 +41,17 @@ end
 
 sizeY = t{2};
 BScanAvgN = t{4};
-OCTSystem = t{end}{:};
+OCTSystem1 = t{end}{:};
+
+if ~exist('OCTSystem','var') || isempty(OCTSystem)
+    OCTSystem = OCTSystem1; %We had no idea what was the OCT system, now we do
+end
 
 %% Lambda
 order = 1;
 
 %Lambda Size
-dimensions = yOCTLoadInterfFromFile_ThorlabsHeaderLambda(inputDataFolder,OCTSystem);
+dimensions = yOCTLoadInterfFromFile_ThorlabsHeaderLambda(inputDataFolder,OCTSystem,chirp);
 order = order + 1;
 
 if length(dimensions.lambda.values) ~= headerFile.size1
