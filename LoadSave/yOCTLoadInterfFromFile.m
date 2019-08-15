@@ -10,7 +10,8 @@ function [interferogram, dimensions, apodization,prof] = yOCTLoadInterfFromFile(
 %   - inputDataFolder - OCT data folder / AWS data folder (s3:\)
 % LIST OF OPTIONAL PARAMETERS AND VALUES
 % Parameter                 Default     Information & Values
-% 'OCTSystem'               ''          OCT System Name, can be 'Ganymede', 'Telesto' or 'Wasatch'. 
+% 'OCTSystem'               ''          OCT System Name, can be 'Ganymede', 'Telesto' or 'Wasatch'.
+%                                       If loading SRR files use 'Ganymede_SRR' or 'Telesto_SRR'.
 %                                       If set to '', will try to figure out system from the file type.
 % 'BScanAvgFramesToProcess' all         What B-Scan Average frame indexies to process. 
 %                                       Usefull in cases where scan size is too big to be stored in memory, thus only part of the scan is loaded    
@@ -120,6 +121,8 @@ else
     switch(OCTSystem)
         case {'Ganymede','Telesto'}
             OCTSystemManufacturer = 'Thorlabs';
+        case {'Ganymede_SRR','Telesto_SRR'}
+            OCTSystemManufacturer = 'Thorlabs_SRR';
         case {'Wasatch'}
             OCTSystemManufacturer = 'Wasatch';
         otherwise
