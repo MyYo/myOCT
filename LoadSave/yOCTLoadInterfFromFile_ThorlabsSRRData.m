@@ -65,7 +65,9 @@ for fi=1:length(fileIndex)
         inputDataFolder,...
         dimensions.y.index(yI(fi)),dimensions.y.indexMax,...
         dimensions.BScanAvg.index(BScanAvgI(fi)),dimensions.BScanAvg.indexMax,...
-        dimensions.aux.OCTSystem);
+        strrep(dimensions.aux.OCTSystem,'_SRR','') ... Remove _SRR from system
+        );
+    filePath = awsModifyPathForCompetability(filePath);
  
     %Load Data
     ds=fileDatastore(filePath,'ReadFcn',@(a)(DSRead(a,dimensions.aux.headerTotalBytes)));
