@@ -41,7 +41,7 @@ sx = length(dim.x.values);
 s = [sz sx];
 
 %% Save
-write([bigVolumeFolder '\y*.' lower(fileExtensions)],bv,'WriteFcn',@(info, data)writeFunctionBV(info,data,f,s));
+evalc('write([bigVolumeFolder ''\y*.'' lower(fileExtensions)],bv,''WriteFcn'',@(info, data)writeFunctionBV(info,data,f,s));'); %Prevent tall from writing
 
 %JSON
 awsWriteJSON(dim,[bigVolumeFolder '\config.json']);
