@@ -21,11 +21,11 @@ end
 %% Load Chirp File
 
 try
-    try
+    %try
         chirp = getChirpFile();
-    catch
-        chirp = getChirpFile(); %Try a second time, cloud sometimes doesnt work the first time around
-    end
+    %catch
+    %    chirp = getChirpFile(); %Try a second time, cloud sometimes doesnt work the first time around
+    %end
 catch
     %Couldn't load chirp file, try loading a local file instead
     warning('Could not find chirp file in OCT folder, loading local file instead');
