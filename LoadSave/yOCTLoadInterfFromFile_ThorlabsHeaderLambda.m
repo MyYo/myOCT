@@ -22,17 +22,10 @@ end
 
 try
     try
-        ds=fileDatastore([inputDataFolder '/data/Chirp.data'],'ReadFcn',@readChirpBin);
+        chirp = getChirpFile();
     catch
-        try
-            %Try another name
-            ds=fileDatastore([inputDataFolder 'Chirp.dat'],'ReadFcn',@readChirpTxt);
-        catch
-            %Try with lower case
-            ds=fileDatastore([inputDataFolder '/data/chirp.data'],'ReadFcn',@readChirpBin);
-        end
+        chirp = getChirpFile(); %Try a second time, cloud sometimes doesnt work the first time around
     end
-    chirp = ds.read;
 catch
     %Couldn't load chirp file, try loading a local file instead
     warning('Could not find chirp file in OCT folder, loading local file instead');
@@ -71,4 +64,20 @@ function chirp = readChirpBin(fp)
     fid = fopen(fp);
     chirp  = fread(fid, 'float32');
     fclose(fid);
+end
+
+function chirp = getChirpFile()
+
+try
+    ds=fileDatastore([inputDataFolder '/data/Chirp.data'],'ReadFcn',@readChirpBin);
+catch
+    try
+        %Try another name
+        ds=fileDatastore([inputDataFolder 'Chirp.dat'],'ReadFcn',@readChirpTxt);
+    catch
+        %Try with lower case
+        ds=fileDatastore([inputDataFolder '/data/chirp.data'],'ReadFcn',@readChirpBin);
+    end
+end
+chirp = ds.read;
 end
