@@ -12,23 +12,83 @@ dest = awsModifyPathForCompetability(dest);
 
 ds=fileDatastore(dest,'ReadFcn',@(x)(x),'IncludeSubfolders',true,'FileExtensions',{'.getmeout'});
 files = ds.Files;
+froms = cell(size(files));
+tos   = cell(size(files));
 for i=1:length(files)
-    from = files{i};
+    froms{i} = files{i};
     
     %To get the real file name, go up a few folders
     f1 = fileparts(from);
     to = fileparts([f1 '.']);
     
-    if (awsIsAWSPath(dest))
-        cmd = sprintf('aws s3 mv "%s" "%s"',from,to);
-        [status,txt] = system(cmd);
-        if status~=0
-            error('Could not move files, message: %s',txt);
-        end
+    tos{i} = to;
+end
+
+%% Preform the move
+if (awsIsAWSPath(dest))
+    
+    if true
+        %Parallel Version
+        awsCopyFile_MW2_AWSParallel(froms,tos);
     else
-        tmpfn = tempname;
-        movefile(from,tmpfn,'f');
-        rmdir(to,'s');
-        movefile(tmpfn,to,'f');
+        %Sync version
+        for i=1:length(forms)
+            cmd = sprintf('aws s3 mv "%s" "%s"',froms{i},tos{i});
+            [status,txt] = system(cmd);
+            if status~=0
+                error('Could not move files, message: %s',txt);
+            end
+        end
     end
+else
+    for i=1:length(froms)
+        tmpfn = tempname;
+        movefile(froms{i},tmpfn,'f');
+        rmdir(to,'s');
+        movefile(tmpfn,tos{i},'f');
+    end
+end
+
+
+
+function awsCopyFile_MW2_AWS(froms,tos)
+
+%Make the commands
+cmd = cell(size(froms));
+for i=1:length(cmd)
+    cmd{i} = sprintf('aws s3 mv "%s" "%s"',froms{i},tos{i});
+end
+
+%Devide commands into betches
+maxCmdsPerBetch = min(maxNumCompThreads*4,20);
+nBetches = round(length(cmd)/maxCmdsPerBetch);
+cmdBatch = mod((1:length(cmd))-1,nBetches)+1; %This will tell each command in what batch it is
+
+for batchI = 1:nBetches
+
+    %Create a file with all commands
+    tmpBatFP = 'tmp.bat';
+    fid = fopen(tmpBatFP,'w');
+    fprintf(fid,'@echo off\n(\n');
+    
+    cmdsInThisBetch = find(cmdBatch == batchI);
+    for j=1:length(cmdsInThisBetch)
+        fprintf(fid,' start /b %s\n',cmd{cmdsInThisBetch(j)});
+    end
+    fprintf(fid,') | set /P "="');
+    fclose(fid);
+    [status,txt] = system(tmpBatFP);
+    
+    %Known errors to ignore
+    txt = strrep(txt,'Exception ignored in: <_io.TextIOWrapper name=''<stdout>'' mode=''w'' encoding=''cp1252''>','');
+    txt = strrep(txt,'OSError: [Errno 22] Invalid argument','');
+    txt = strtrim(txt);
+    
+    %Error handling
+    if status~=0 && ~isempty(txt)
+        fprintf('problem in MW2:\n%s',txt);
+    end
+    
+    %Cleanup
+    %delete(tmpBatFP);
 end
