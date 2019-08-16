@@ -61,7 +61,7 @@ evalc(... use evalc to reduce number of screen prints
     'write(awsLocation,T,''WriteFcn'',@tallWriter)' ... %Not a trivial implementation but it works
     ); 
 
-if true %For debug, verify that file exists where we wrote it
+if false %For debug, verify that file exists where we wrote it
     try
         fileDatastore(strrep(awsLocation,'*','1'),'ReadFcn',@(x)(x));
     catch ME
