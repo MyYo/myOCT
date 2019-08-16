@@ -25,10 +25,24 @@ catch ME
     error('Error in yOCTLoadInterfFromFile_WhatOCTSystemIsIt');
 end
 
+%Remove from the file captures general tifs that are not representating
+%wasatch data
+files = ds.Files;
+iToDelete = zeros(size(files));
+for i=1:length(files)
+    [~,fname] = fileparts(files{i});
+    d = sscanf(fname,'%sraw_%d');
+    if isempty(d)
+        %Dosen't match wasatch format
+        iToDelete(i) = 1;
+    end
+end
+files(iToDelete) = [];
+
 %Parse file options
-isThorlabs = cellfun(@(x)(contains(x,'.xml')),ds.Files);
-isThorlabs_SRR = cellfun(@(x)(contains(x,'.dat')),ds.Files);
-isWasatch = cellfun(@(x)(contains(x,'.bin')),ds.Files) | cellfun(@(x)(contains(x,'.tif')),ds.Files);
+isThorlabs = cellfun(@(x)(contains(x,'.xml')),files);
+isThorlabs_SRR = cellfun(@(x)(contains(x,'.dat')),files);
+isWasatch = cellfun(@(x)(contains(x,'.bin')),files) | cellfun(@(x)(contains(x,'.tif')),files);
 
 if(max(isThorlabs) + max(isThorlabs_SRR) + max(isWasatch) > 1)
     error('Could''nt determine OCT system, there are multiple manufactuerrs in this folder');
