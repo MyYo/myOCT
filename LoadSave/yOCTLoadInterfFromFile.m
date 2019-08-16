@@ -113,7 +113,6 @@ else
             error('ERROR: Wrong OCTSystem name! (yOCTLoadInterfFromFile)')
     end
 end
-dimensions.aux.OCTSystem = OCTSystem;
 
 %% Load Header file, get dimensions
 if ~exist('dimensions','var')
@@ -128,6 +127,8 @@ if ~exist('dimensions','var')
         case {'Wasatch'}
             dimensions = yOCTLoadInterfFromFile_WasatchHeader(inputDataFolder);
     end
+    
+    dimensions.aux.OCTSystem = OCTSystem; %Add the OCT system we just discovered
 else
     %Header information given by user
 end
