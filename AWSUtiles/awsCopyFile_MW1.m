@@ -63,9 +63,13 @@ evalc(... use evalc to reduce number of screen prints
 
 if true %For debug, verify that file exists where we wrote it
     try
-    ds = fileDatastore(strrep(awsLocation,'*','1'),'ReadFcn',@(x)(x));
-    catch
+        fileDatastore(strrep(awsLocation,'*','1'),'ReadFcn',@(x)(x));
+    catch ME
+        disp('ME Message: ');
+        disp(ME.message);
+
         error('Cannot find a file here:%s',awsLocation);
+        
     end
 end
 
