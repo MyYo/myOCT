@@ -23,18 +23,36 @@ if awsIsAWSPath(dest)
     awsSetCredentials;
 end
 
-%% Get file name
-[~,name,ext] = fileparts(dest);
-fileName = [name ext];
+%% Get source file name
+sourceFolder = fileparts(source);
+if isempty(sourceFolder)
+    %Replace with fullpath of source
+    source = [pwd '/' source];
+end
 
-if isempty(fileName)
+if ~isfile(source)
+    error('Cannot find: %s',source);
+end
+
+%% Get dest file name
+[destfolder,name,ext] = fileparts(dest);
+destfileName = [name ext];
+if isempty(ext)
+    destfolder = [destfolder '/' name];
+
+    %No name at the dest file, use the name from the source
+    [~,name,ext] = fileparts(source); 
+    destfileName = [name ext];
+end
+
+if isempty(destfileName)
     error('Cannot upload folders');
 end
 
 %Generate a location, but also a random temporary name 
 [~,nm] = fileparts([tempname '.']);
 awsLocation = awsModifyPathForCompetability(...
-    sprintf('%s/%s/*.getmeout',dest,fileName,nm)...
+    sprintf('%s/%s/%s/*.getmeout',destfolder,destfileName,nm)...
     );
 
 %% Do The job
@@ -50,9 +68,9 @@ if (info.PartitionIndex ~= 1) || (info.BlockIndexInPartition ~= 1)
     error('info.PartitionIndex = %d, info.BlockIndexInPartition = %d - both should be 1',...
         info.PartitionIndex,info.BlockIndexInPartition);
 end
-ff = strrep(info.RequiredFilePattern,'*','1');%Remove required pattern, its easier that way
-filename1 = sprintf('%s/%s',info.RequiredLocation, ff);
-%filename1 = info.SuggestedFilename;
+%ff = strrep(info.RequiredFilePattern,'*','1');%Remove required pattern, its easier that way
+%filename1 = sprintf('%s/%s',info.RequiredLocation, ff);
+filename1 = info.SuggestedFilename;
 
-movefile(data{:},filename1);
+copyfile(data{:},filename1);
 end
