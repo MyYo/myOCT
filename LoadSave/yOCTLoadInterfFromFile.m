@@ -95,6 +95,10 @@ inputDataFolder = awsModifyPathForCompetability([inputDataFolder '/']);
 
 tt = tic;
 %% Figure out OCT system manufacturer
+if exist('dimensions','var') && isfield(dimensions,'aux') && isfield(dimensions.aux,'OCTSystem')
+    OCTSystem = dimensions.aux.OCTSystem;
+end
+
 if isempty(OCTSystem)
     [OCTSystem,OCTSystemManufacturer] = yOCTLoadInterfFromFile_WhatOCTSystemIsIt(inputDataFolder);
 else
@@ -109,6 +113,7 @@ else
             error('ERROR: Wrong OCTSystem name! (yOCTLoadInterfFromFile)')
     end
 end
+dimensions.aux.OCTSystem = OCTSystem;
 
 %% Load Header file, get dimensions
 if ~exist('dimensions','var')
