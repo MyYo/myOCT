@@ -49,21 +49,35 @@ else
     end
 end
 
+function awsCopyFile_MW2_AWSParallel(froms,tos)
+%A good way to test the function below is with the following code:
+%sourceDir = 's3://<mybucket>/...';
+%destDir   = 's3://<mybucket2>/..';
+%ds = fileDatastore(sourceDir,'FileExtensions','.mat','ReadFcn',@(x)(x));
+%awsCopyFile_MW2_AWSParallel(ds.Files,destDir);
 
 
-function awsCopyFile_MW2_AWS(froms,tos)
+%% Input Checks
+if (length(tos) == 1)
+    to = tos;
+    tos = cell(size(froms));
+    for i=1:length(tos)
+        tos(i) = to;
+    end
+end
 
-%Make the commands
+%% Make the commands
 cmd = cell(size(froms));
 for i=1:length(cmd)
     cmd{i} = sprintf('aws s3 mv "%s" "%s"',froms{i},tos{i});
 end
 
-%Devide commands into betches
+%% Devide commands into betches
 maxCmdsPerBetch = min(maxNumCompThreads*4,20);
 nBetches = round(length(cmd)/maxCmdsPerBetch);
 cmdBatch = mod((1:length(cmd))-1,nBetches)+1; %This will tell each command in what batch it is
 
+%% Run batches
 for batchI = 1:nBetches
 
     %Create a file with all commands
@@ -90,5 +104,5 @@ for batchI = 1:nBetches
     end
     
     %Cleanup
-    %delete(tmpBatFP);
+    delete(tmpBatFP);
 end
