@@ -63,7 +63,7 @@ evalc(... use evalc to reduce number of screen prints
 
 if true %For debug, verify that file exists where we wrote it
     try
-    ds = fileDatastore(awsLocation);
+    ds = fileDatastore(strrep(awsLocation,'*','1'));
     catch
         error('Cannot find a file here:%s',awsLocation);
     end
