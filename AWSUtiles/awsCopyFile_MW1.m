@@ -61,6 +61,14 @@ evalc(... use evalc to reduce number of screen prints
     'write(awsLocation,T,''WriteFcn'',@tallWriter)' ... %Not a trivial implementation but it works
     ); 
 
+if true %For debug, verify that file exists where we wrote it
+    try
+    ds = fileDatastore(awsLocation);
+    catch
+        error('Cannot find a file here:%s',awsLocation);
+    end
+end
+
 end
 
 function tallWriter (info, data)
