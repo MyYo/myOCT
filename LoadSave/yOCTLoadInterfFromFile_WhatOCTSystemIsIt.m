@@ -37,7 +37,6 @@ for i=1:length(files)
         iToDelete(i) = 1;
     end
 end
-if (
 files(iToDelete==1) = [];
 
 %Parse file options
