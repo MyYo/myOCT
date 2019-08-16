@@ -37,7 +37,8 @@ for i=1:length(files)
         iToDelete(i) = 1;
     end
 end
-files(iToDelete) = [];
+if (
+files(iToDelete==1) = [];
 
 %Parse file options
 isThorlabs = cellfun(@(x)(contains(x,'.xml')),files);
