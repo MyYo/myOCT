@@ -68,9 +68,9 @@ if (info.PartitionIndex ~= 1) || (info.BlockIndexInPartition ~= 1)
     error('info.PartitionIndex = %d, info.BlockIndexInPartition = %d - both should be 1',...
         info.PartitionIndex,info.BlockIndexInPartition);
 end
-%ff = strrep(info.RequiredFilePattern,'*','1');%Remove required pattern, its easier that way
-%filename1 = sprintf('%s/%s',info.RequiredLocation, ff);
-filename1 = info.SuggestedFilename;
+ff = strrep(info.RequiredFilePattern,'*','1');%Remove required pattern, its easier that way
+filename1 = sprintf('%s/%s',info.RequiredLocation, ff);
+%filename1 = info.SuggestedFilename;
 
 copyfile(data{:},filename1);
 end
