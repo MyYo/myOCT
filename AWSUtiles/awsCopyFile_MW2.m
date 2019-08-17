@@ -59,11 +59,11 @@ function awsCopyFile_MW2_AWSParallel(froms,tos)
 
 
 %% Input Checks
-if (length(tos) == 1)
-    to = tos;
+if (~iscell(tos) == 1)
+    to = awsModifyPathForCompetability([tos '/']);
     tos = cell(size(froms));
     for i=1:length(tos)
-        tos(i) = to;
+        tos{i} = to;
     end
 end
 
@@ -88,7 +88,7 @@ for batchI = 1:nBetches
     
     cmdsInThisBetch = find(cmdBatch == batchI);
     for j=1:length(cmdsInThisBetch)
-        fprintf(fid,' start /b %s\n',cmd{cmdsInThisBetch(j)});
+        fprintf(fid,' start "" /b cmd /c %s\n',cmd{cmdsInThisBetch(j)});
     end
     fprintf(fid,') | set /P "="');
     fclose(fid);
