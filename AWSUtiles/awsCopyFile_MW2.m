@@ -15,7 +15,8 @@ files = ds.Files;
 froms = cell(size(files));
 tos   = cell(size(files));
 for i=1:length(files)
-    froms{i} = files{i};
+    from = files{i};
+    froms{i} = from;
     
     %To get the real file name, go up a few folders
     f1 = fileparts(from);
