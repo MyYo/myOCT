@@ -75,7 +75,7 @@ end
 
 %% Devide commands into betches
 maxCmdsPerBetch = min(maxNumCompThreads*4,20);
-nBetches = round(length(cmd)/maxCmdsPerBetch);
+nBetches = ceil(length(cmd)/maxCmdsPerBetch);
 cmdBatch = mod((1:length(cmd))-1,nBetches)+1; %This will tell each command in what batch it is
 
 %% Run batches
