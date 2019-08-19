@@ -45,7 +45,7 @@ isThorlabs_SRR = cellfun(@(x)(contains(x,'.dat')),files);
 isWasatch = cellfun(@(x)(contains(x,'.bin')),files) | cellfun(@(x)(contains(x,'.tif')),files);
 
 if(max(isThorlabs) + max(isThorlabs_SRR) + max(isWasatch) > 1)
-    error('Could''nt determine OCT system, there are multiple manufactuerrs in this folder');
+    error('Could''nt determine OCT system, there are multiple manufactuerrs in this folder: %s',inputDataFolder);
 end
 
 if (max(isThorlabs)>0)
