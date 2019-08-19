@@ -45,7 +45,7 @@ else
     for i=1:length(froms)
         tmpfn = tempname;
         movefile(froms{i},tmpfn,'f');
-        rmdir(to,'s');
+        rmdir(tos{i},'s');
         movefile(tmpfn,tos{i},'f');
     end
 end
