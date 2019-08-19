@@ -16,13 +16,13 @@ froms = cell(size(files));
 tos   = cell(size(files));
 for i=1:length(files)
     from = files{i};
-    froms{i} = from;
+    froms{i} = awsModifyPathForCompetability(from,true); %Modify for CLI compatablity
     
     %To get the real file name, go up a few folders
     f1 = fileparts(from);
     to = fileparts([f1 '.']);
     
-    tos{i} = to;
+    tos{i} = awsModifyPathForCompetability(to,true); %Modify for CLI compatablity
 end
 
 %% Preform the move
@@ -88,7 +88,9 @@ for batchI = 1:nBetches
     
     cmdsInThisBetch = find(cmdBatch == batchI);
     for j=1:length(cmdsInThisBetch)
-        fprintf(fid,' start "" /b cmd /c %s\n',cmd{cmdsInThisBetch(j)});
+        c = cmd{cmdsInThisBetch(j)};
+        c = strrep(c,'%','%%'); %If % sign appears in the command it needs to be '%%'
+        fprintf(fid,' start "" /b cmd /c %s\n',c);
     end
     fprintf(fid,') | set /P "="');
     fclose(fid);
@@ -101,7 +103,7 @@ for batchI = 1:nBetches
     
     %Error handling
     if status~=0 && ~isempty(txt)
-        fprintf('problem in MW2:\n%s',txt);
+        fprintf('problem in MW2:\n%s\n',txt);
     end
     
     %Cleanup
