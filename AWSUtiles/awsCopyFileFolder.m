@@ -5,6 +5,10 @@ if ~exist('v','var')
     v = true; %Verboose mode
 end
 
+if isempty(source) || isempty(dest)
+    error('source: "%s", dest: "%s". Cannot copy an empty path');
+end
+
 %% Set Credentials
 awsSetCredentials (1); %Write cridentials are required  
 
