@@ -31,7 +31,7 @@ files = ds.Files;
 iToDelete = zeros(size(files));
 for i=1:length(files)
     [~,fname] = fileparts(files{i});
-    d = sscanf(fname,'%sraw_%d');
+    d = textscan(fname,'%sraw_%d'); d = d{2};
     if isempty(d)
         %Dosen't match wasatch format
         iToDelete(i) = 1;
