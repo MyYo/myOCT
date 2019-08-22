@@ -5,18 +5,40 @@ function p = awsModifyPathForCompetability (p,isAWS_CLI)
 %   p - path
 %   isAWS_CLI - will this path be used with AWS CLI? if so, spaces are
 %   defined slightly differently. If used path for datastore, set to false
+isAWS = awsIsAWSPath(p);
 
-if (awsIsAWSPath(p))
-	if ~exist('isAWS_CLI','var')
+%% Generic replacements
+%Spatial cases
+p = strrep(p,'s3://','~1/');   %Save important structures, s3 paths
+p = [strrep(p(1:2),'\\','~2/') p(3:end)]; %Save important structures, \\127.0.0.1\ Paths
+
+p = strrep(p,'\','/'); %Repalce slashes
+
+%Duplicance
+p = strrep(p,'//','/'); 
+p = strrep(p,'//','/'); 
+
+%Handle '../'
+s = split(p,'/');
+find2Dots = @(s)(cellfun(@(x)strcmp(x,'..'),s));
+iterations = sum(find2Dots(s));
+if (iterations > 0)
+    for i=1:iterations
+        j = find(find2Dots(s) == 1,1,'first');
+        s(j+(-1:0)) = [];
+    end
+    p = join(s,'/');
+end
+
+%Replace back spatial cases
+p = strrep(p,'~1/','s3://');
+p = strrep(p,'~2/','\\');
+
+%% Platform specific paths
+if (isAWS)
+    if ~exist('isAWS_CLI','var')
 		isAWS_CLI = false;
-	end
-
-	p = strrep(p,'\','/'); %Repalce slashes
-
-	%Replace double slashed
-	p = strrep(p,'//','/'); 
-	p = strrep(p,'//','/'); 
-	p = strrep(p,'s3:/','s3://'); 
+    end
 
 	if isAWS_CLI
 		p = strrep(p,'%20',' '); %Replace Spaces
@@ -26,5 +48,4 @@ if (awsIsAWSPath(p))
 else
 	%Regular path
 	p = strrep(p,'/','\'); %Repalce slashes
-	p = [p(1:2) strrep(p(3:end),'\\','\')]; %Replace double slashed, starting 3rd note so if we start with '\\127.0.0.1\' will not replace the begning
 end
