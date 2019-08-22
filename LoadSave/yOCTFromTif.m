@@ -29,7 +29,12 @@ sizeZ = info(1).Height;
 
 scanAbs = zeros(sizeZ,sizeX,sizeY,'single');
 
-c = sscanf(info(1).ImageDescription,'min:%g,max:%g');
+if isfield(info(1),'ImageDescription')
+    c = sscanf(info(1).ImageDescription,'min:%g,max:%g');
+else
+    c =[];
+end 
+
 if isempty(c) || length(c)~=2
     %No Scaling information, use default
     c(1) = 255;

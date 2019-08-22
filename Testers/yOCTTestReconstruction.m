@@ -25,6 +25,7 @@ for i=1:length(folders)
     end
     
     fprintf ('Runnig Test: %s ...\n',testNames{i});
+    fprintf ('Test Folder: %s\n',folders{i});
     %Check for parmeters file
     paramFile = [folders{i} 'parameters.mat'];
     
