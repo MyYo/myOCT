@@ -30,11 +30,13 @@ end
 files = ds.Files;
 iToDelete = zeros(size(files));
 for i=1:length(files)
-    [~,fname] = fileparts(files{i});
-    d = textscan(fname,'%sraw_%d'); d = d{2};
-    if isempty(d)
-        %Dosen't match wasatch format
-        iToDelete(i) = 1;
+    [~,fname,ext] = fileparts(files{i});
+    if strcmp(ext,'.tif')  
+        d = textscan(fname,'%sraw_%d'); d = d{2};
+        if isempty(d)
+            %Dosen't match wasatch format
+            iToDelete(i) = 1;
+        end
     end
 end
 files(iToDelete==1) = [];
@@ -48,6 +50,7 @@ if(max(isThorlabs) + max(isThorlabs_SRR) + max(isWasatch) > 1)
     error('Could''nt determine OCT system, there are multiple manufactuerrs in this folder: %s',inputDataFolder);
 end
 
+OCTSystemManufacturer = [];
 if (max(isThorlabs)>0)
     OCTSystemManufacturer = 'Thorlabs';
 end
