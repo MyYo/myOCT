@@ -15,7 +15,5 @@ ds = fileDatastore(fp,'ReadFcn',@readJSON);
 j = ds.read();
 
 function o = readJSON(filename)
-fid = fopen(filename);
-txt=fscanf(fid,'%s');
-fclose(fid);
+txt=fileread(filename);
 o = jsondecode(txt);
