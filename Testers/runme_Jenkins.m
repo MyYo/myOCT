@@ -39,7 +39,7 @@ try
     %Add path
     currentFileFolder = fileparts(mfilename('fullpath'));
 	yOCTMainFolder = [currentFileFolder '\..\'];
-    d = dir(yOCTMainFolder);yOCTMainFolder = d(1).folder;
+    d = dir(yOCTMainFolder);yOCTMainFolder = [d(1).folder '\'];
 	addpath(genpath(yOCTMainFolder)); %Add current files to path
     
     %% Connect to cluster if needed. Matlab Parallel Server
