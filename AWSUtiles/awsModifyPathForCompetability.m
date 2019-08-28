@@ -27,7 +27,7 @@ if (iterations > 0)
         j = find(find2Dots(s) == 1,1,'first');
         s(j+(-1:0)) = [];
     end
-    p = join(s,'/');
+    p = strjoin(s,'/');
 end
 
 %Replace back spatial cases
