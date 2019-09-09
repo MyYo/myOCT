@@ -41,7 +41,7 @@ for q = 1:length(gridXcc)
         0,       ... rotationAngle [deg]
         100,100,   ... SizeX,sizeY [# of pixels]
         1,       ... B Scan Average
-        folder,   ... Output directory, make sure it exists before running this function
+        folder,   ... Output directory, make sure it doesnt exist before running this function
         dispA      ... Dispersion Parameter
         );
 end

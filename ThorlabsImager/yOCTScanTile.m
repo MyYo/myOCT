@@ -42,8 +42,8 @@ addParameter(p,'tissueRefractiveIndex',1.4,@isnumeric);
 %Single scan parmaeters
 addParameter(p,'xCenter',0,@isnumeric);
 addParameter(p,'yCenter',0,@isnumeric);
-addParameter(p,'xRange',0,@isnumeric);
-addParameter(p,'yRange',0,@isnumeric);
+addParameter(p,'xRange',1,@isnumeric);
+addParameter(p,'yRange',1,@isnumeric);
 addParameter(p,'nXPixels',1000,@isnumeric);
 addParameter(p,'nYPixels',1000,@isnumeric);
 addParameter(p,'nBScanAvg',1,@isnumeric);
@@ -74,7 +74,7 @@ in.gridXcc = in.gridXcc(:);
 in.gridYcc = in.gridYcc(:);
 in.gridZcc = in.gridZcc(:);
 in.scanOrder = 1:length(in.gridZcc);
-in.octFolders = arrayfun(@(x)(sprintf('Data%02d',x)),in.scanOrder,'UniformOutput','false');
+in.octFolders = arrayfun(@(x)(sprintf('Data%02d',x)),in.scanOrder,'UniformOutput',false);
 
 scanOrder = in.scanOrder;
 
@@ -146,7 +146,6 @@ for scanI=1:length(scanOrder)
     
     %Make a folder
     s = sprintf('%s\\%s\\',octFolder,in.octFolders{scanI});
-    mkdir(s);
     
     ThorlabsImagerNET.ThorlabsImager.yOCTScan3DVolume(...
         in.xCenter,in.yCenter, ... centerX, centerY [mm]
@@ -154,7 +153,7 @@ for scanI=1:length(scanOrder)
         0,       ... rotationAngle [deg]
         in.nXPixels,in.nYPixels, ... SizeX,sizeY [# of pixels]
         in.nBScanAvg,       ... B Scan Average
-        s ... Output directory, make sure it exists before running this function
+        s ... Output directory, make sure this folder doesn't exist when starting the scan
         );
     
     if(scanI==1)

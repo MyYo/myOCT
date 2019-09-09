@@ -33,6 +33,7 @@ end
 %Replace back spatial cases
 p = strrep(p,'~1/','s3://');
 p = strrep(p,'~2/','\\');
+p = strrep(p,newline,'');
 
 %% Platform specific paths
 if (isAWS)

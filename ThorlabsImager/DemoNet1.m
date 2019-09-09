@@ -15,7 +15,7 @@ ThorlabsImagerNET.ThorlabsImager.yOCTScan3DVolume(...
 	0,       ... rotationAngle [deg]
     100,3,   ... SizeX,sizeY [# of pixels]
     2,       ... B Scan Average
-    'scan'   ... Output directory
+    'scan'   ... Output directory, make sure it doesnt exist before running this function
     );
 
 disp('yOCTPhotobleachLine')
