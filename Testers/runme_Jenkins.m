@@ -27,14 +27,7 @@ try
     
     %Cleanup path. Allow only Matlab original toolbox to prevent multiple
     %paths from different Jenkins & users colliding
-    p=path;
-    ps = split(p,';');
-    %Find which parts of the path are in the original folder of Matlab
-    isOrig = cellfun(@(x)(contains(x,matlabroot)),ps);
-    psNew = ps(isOrig);%Remove paths which are not matlab toolbox
-    psNew = cellfun(@(x)([x ';']),psNew,'UniformOutput',false);%Add ';' at the end of every path
-    pNew =[psNew{:}];
-    path(pNew); %Set New Path
+    restoredefaultpath;
     
     %Add path
     currentFileFolder = fileparts(mfilename('fullpath'));
