@@ -182,7 +182,7 @@ saveYs = in.saveYs;
 yToSave = round(linspace(1,length(yAll),saveYs));
 
 %% Main loop
-minmaxVals = zeros(length(yIndexes),2); %min and max values for each yFrame. This is used for Tif later on
+minmaxVals = zeros(length(yAll),2); %min and max values for each yFrame. This is used for Tif later on
 printStatsEveryyI = min(floor(length(yAll)/20),1);
 ticBytes(gcp);
 if(v)
@@ -241,7 +241,7 @@ for yI=1:length(yAll)
                 %Save Stack, some files for future (debug)
                 if (sum(yI == yToSave)>0)
                     tn = [tempname '.mat'];
-                    yOCT2Mat(stack,tn)
+                    yOCT2Mat(scan1,tn)
                     awsCopyFile_MW1(tn, ...
                         awsModifyPathForCompetability(sprintf('%s/y%04d_xtile%04d_ztile%04d.mat',yToSaveMatDir,yI,xxI,zzI)) ...
                         );
@@ -315,16 +315,13 @@ end
 c = [prctile(minmaxVals(:,1),20)  prctile(minmaxVals(:,2),95)];
 
 %Load all mat files
-s = fileDatastore(matYFramesFolder,'ReadFcn',@(x)(x),'FileExtensions','.mat','IncludeSubfolders',true); 
+ds = fileDatastore(matYFramesFolder,'ReadFcn',@(x)(x),'FileExtensions','.mat','IncludeSubfolders',true); 
 files = ds.Files;
 
 ticBytes(gcp);
 for yI=1:length(files)
     %Read
     slice = yOCTFromMat(files{yI});
-    
-    %Apply threshold
-    slice(slice<th) = th;
     slice = log(slice);
     
     %Write
@@ -336,7 +333,7 @@ for yI=1:length(files)
     delete(tn);
 end
 %Reorganize
-awsCopyFile_MW2(tiffOutputFolder);
+awsCopyFile_MW2(tifYFramesFolder);
 
 awsRmDir(matYFramesFolder); %Remove mat files, we are done
 
@@ -350,12 +347,12 @@ end
 if ~isempty(yToSave)
     
     %Get the mat files
-    s = fileDatastore(yToSaveMatDir,'ReadFcn',@(x)(x),'FileExtensions','.mat','IncludeSubfolders',true); 
+    ds = fileDatastore(yToSaveMatDir,'ReadFcn',@(x)(x),'FileExtensions','.mat','IncludeSubfolders',true); 
     matFiles = ds.Files;
     
-    tifFiles = cellfun(@(x)(strep(strrep(x,'.mat','.tif'),yToSaveMatDir,yToSaveTifDir)),matFiles,'UniformOutput',false);
+    tifFiles = cellfun(@(x)(strrep(strrep(x,'.mat','.tif'),yToSaveMatDir,yToSaveTifDir)),matFiles,'UniformOutput',false);
 
-    parfor i=1:length(yToSave)
+    parfor i=1:length(matFiles)
         im = yOCTFromMat(matFiles{i});
 
         tn = [tempname '.tif'];
@@ -363,8 +360,8 @@ if ~isempty(yToSave)
         awsCopyFile_MW1(tn, tifFiles{i}); %Matlab worker version of copy files
         delete(tn);
     end
-    awsCopyFile_MW2(tifFiles); %Finish the job
+    awsCopyFile_MW2(yToSaveTifDir); %Finish the job
     
-    awsRmDir(matFiles); %Remove mat files, we are done
+    awsRmDir(yToSaveMatDir); %Remove mat files, we are done
 end
     
