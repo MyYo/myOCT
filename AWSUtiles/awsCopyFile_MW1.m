@@ -23,6 +23,15 @@ if awsIsAWSPath(dest)
     awsSetCredentials;
 end
 
+persistent didICheckVersion
+if (isempty(didICheckVersion))
+    [~, vdate] = version();
+    if datetime(vdate) <= datetime('14-Sep-2017')
+        error('awsCopyFile_MW2 uses tall writer which is not avilable in your current Matlab version');
+    end    
+    didICheckVersion = true;
+end
+
 %% Get source file name
 sourceFolder = fileparts(source);
 if isempty(sourceFolder)
