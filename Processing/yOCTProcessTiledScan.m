@@ -145,9 +145,9 @@ yCenters = json.yCenters;
 %This specifies how to mesh together a tiled scan, each axis seperately
 
 %Dimensions of one tile (mm)
-xOneTile = json.xCenter+json.xRange*linspace(-0.5,0.5,json.nXPixels);
+xOneTile = json.xOffset+json.xRange*linspace(-0.5,0.5,json.nXPixels);
 dx = diff(xOneTile(1:2));
-yOneTile = json.yCenter+json.yRange*linspace(-0.5,0.5,json.nYPixels);
+yOneTile = json.yOffset+json.yRange*linspace(-0.5,0.5,json.nYPixels);
 dy = diff(yOneTile(1:2));
 zOneTile = dimOneTile.z.values(:)'/1000; %[mm]
 dz = diff(zOneTile(1:2));
