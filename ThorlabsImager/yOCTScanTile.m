@@ -6,27 +6,27 @@ function [json] = yOCTScanTile(varargin)
 %   octFolder - folder to save all output information
 %
 %NAME VALUE INPUTS:
-%   Parameter  Default Value    Notes
-%   octProbePath       'probe.ini' Where is the probe.ini is saved to be used
-%   isVerifyMotionRange   true     Try the full range of motion before scanning, to make sure we won't get 'stuck' through the scan
-%   tissueRefractiveIndex 1.4      Refractive index of tissue
+%   Parameter               Default Value   Notes
+%   octProbePath            'probe.ini'     Where is the probe.ini is saved to be used
+%   isVerifyMotionRange     true            Try the full range of motion before scanning, to make sure we won't get 'stuck' through the scan
+%   tissueRefractiveIndex   1.4             Refractive index of tissue
 %Parameter controling each tile:
-%   xOffset,yOffset 0           (0,0) means that the center of the tile scaned is at the center of the galvo range aka lens optical axis. 
-%                               By appling offset, the center of the tile will be positioned differently.Units: mm
-%   xRange, yRange  1           Total range of scan x & y in mm. For example, if xOffset=0, xRange=1, OCT will scan from -0.5 to 0.5mm.
-%   nXPixels        1000        Number of pixels in x direction (equally spaced)
-%   nYPixels        1000        Number of pixels in y direction (equally spaced)
-%   nBScanAvg       1           How many B Scan Averaging to scan
+%   xOffset,yOffset         0               (0,0) means that the center of the tile scaned is at the center of the galvo range aka lens optical axis. 
+%                                           By appling offset, the center of the tile will be positioned differently.Units: mm
+%   xRange, yRange          1               Total range of scan x & y in mm. For example, if xOffset=0, xRange=1, OCT will scan from -0.5 to 0.5mm.
+%   nXPixels                1000            Number of pixels in x direction (equally spaced)
+%   nYPixels                1000            Number of pixels in y direction (equally spaced)
+%   nBScanAvg               1               How many B Scan Averaging to scan
 %Scan tiling parameters, these will cerate a meshgrid relative to position
 %   of stage at the beginning of the scan.
 %   x,y,z parameters in tiling, are in the same direction as x,y,z of the
 %   sacn, you can look at it as an extention of the size of the lens. 
-%   xCenters,yCenters 0         Center positions of each tiles to scan (x,y) Units: mm. 
-%                               Example: 'xCenters', [0 1], 'yCenters', [0 1], 
-%                               will scan 4 OCT volumes centered around [0 0 1 1; 0 1 0 1] + [xOffset; yOffset]
-%   zDepts            0         Scan depths to scan. Positive value is deeper). Units: mm
+%   xCenters,yCenters       0               Center positions of each tiles to scan (x,y) Units: mm. 
+%                                           Example: 'xCenters', [0 1], 'yCenters', [0 1], 
+%                                           will scan 4 OCT volumes centered around [0 0 1 1; 0 1 0 1] + [xOffset; yOffset]
+%   zDepts                  0               Scan depths to scan. Positive value is deeper). Units: mm
 %Debug parameters:
-%   v               true        verbose mode      
+%   v                       true            verbose mode      
 %OUTPUT:
 %   json - config file
 %
