@@ -102,6 +102,9 @@ if (strcmp(in.outputFileFormat,'tif'))
     if ~awsIsAWSPath(tifYFramesFolder) && ~exist(tifYFramesFolder,'dir')
         mkdir(tifYFramesFolder);
     end
+    
+    tifYFrameAllFP = [tifYFramesFolder(1:(end-1)) '_All.tif'];
+    awsRmFile(tiffOutput_AsOneFile);
 end
 
 %Saved stacks dir (if required)
@@ -341,7 +344,36 @@ if (v)
     fprintf('Done saving as tif, toatl time: %.0f[min]\n',toc(tt)/60);
     tocBytes(gcp);
 end
-   
+
+%% Concate all Tifs to one stack
+if(v)
+    fprintf('%s Concatinaing Tiffs to one file ...\n',datestr(datetime)); tt=tic();
+    ticBytes(gcp('nocreate'))
+end
+
+ds = fileDatastore(awsModifyPathForCompetability(tifYFramesFolder),'ReadFcn',@(x)(x),'FileExtensions','.tif','IncludeSubfolders',true); 
+files = ds.Files;
+sz = [length(zAll) length(xAll) length(yAll)];
+if (true)
+%parfor(i=1:1,1) %Run once but on a worker
+    yTiffAll = zeros(sz);
+    
+    for j=1:length(files)
+       yTiffAll(:,:,j) = yOCTFromTif(files{j});
+    end
+    
+    tn = [tempname '.tif'];
+    yOCT2Tif(yTiffAll,tn,log(c));
+    awsCopyFile_MW1(tn,tifYFrameAllFP); %Matlab worker version of copy files
+    delete(tn);
+       
+end
+awsCopyFile_MW2(tifYFrameAllFP);
+
+if (v)
+    fprintf('Done saving as one tif, toatl time: %.0f[min]\n',toc(tt)/60);
+    tocBytes(gcp);
+end
 
 %% Convert to Tif (some stacks)
 if ~isempty(yToSave)

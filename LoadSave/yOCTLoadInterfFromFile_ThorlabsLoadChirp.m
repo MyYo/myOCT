@@ -18,7 +18,7 @@ if isempty(fname)
     if (length(ds.Files) > 1)
         %Go over the files, in 1D mode system will save SpectralFloat.data,
         %its not a chirp file and can be removed
-        is1FFile = cellfun(@(x)(contrains(x,'SpectralFloat.data')), ds.Files);
+        is1FFile = cellfun(@(x)(contains(x,'SpectralFloat.data')), ds.Files);
         ds.Files(is1FFile) = [];
     end
     
