@@ -104,7 +104,7 @@ if (strcmp(in.outputFileFormat,'tif'))
     end
     
     tifYFrameAllFP = [tifYFramesFolder(1:(end-1)) '_All.tif'];
-    awsRmFile(tiffOutput_AsOneFile);
+    awsRmFile(tifYFrameAllFP);
 end
 
 %Saved stacks dir (if required)
@@ -137,9 +137,9 @@ dimOneTile = ...
 	yOCTLoadInterfFromFile([fp(1), reconstructConfig, {'OCTSystem',OCTSystem,'peakOnly',true}]);
 tmp = zeros(size(dimOneTile.lambda.values(:)));
 dimOneTile = yOCTInterfToScanCpx ([{tmp}, {dimOneTile},{'n'},{json.tissueRefractiveIndex}, reconstructConfig, {'peakOnly'},{true}]);
-zToScan = json.zToScan;
-xToScan = json.xToScan;
-yToScan = json.yToScan;
+zDepts = json.zDepts;
+xCenters = json.xCenters;
+yCenters = json.yCenters;
 
 %% Create indexing reference
 %This specifies how to mesh together a tiled scan, each axis seperately
@@ -153,9 +153,9 @@ zOneTile = dimOneTile.z.values(:)'/1000; %[mm]
 dz = diff(zOneTile(1:2));
 
 %Dimensions of the entire stack
-xAll = (min(xToScan)+xOneTile(1)):dx:(max(xToScan)+xOneTile(end)+dx);xAll = xAll(:);
-yAll = (min(yToScan)+yOneTile(1)):dy:(max(yToScan)+yOneTile(end));yAll = yAll(:);
-zAll = (min(zToScan)+zOneTile(1)):dz:(max(zToScan)+zOneTile(end));zAll = zAll(:);
+xAll = (min(xCenters)+xOneTile(1)):dx:(max(xCenters)+xOneTile(end)+dx);xAll = xAll(:);
+yAll = (min(yCenters)+yOneTile(1)):dy:(max(yCenters)+yOneTile(end));yAll = yAll(:);
+zAll = (min(zDepts)+zOneTile(1)):dz:(max(zDepts)+zOneTile(end));zAll = zAll(:);
 in.xAllmm = xAll;
 in.yAllmm = yAll;
 in.zAllmm = zAll;
@@ -163,21 +163,21 @@ in.zAllmm = zAll;
 if(~isnan(focusPositionInImageZpix))
     %Remove Z positions that are way out of focus (if we are doing focus processing)
     zAll( ...
-        ( zAll < min(zToScan) + zOneTile(round(max(focusPositionInImageZpix - 4*in.focusSigma,0))) ) ...
+        ( zAll < min(zDepts) + zOneTile(round(max(focusPositionInImageZpix - 4*in.focusSigma,0))) ) ...
         | ...
-        ( zAll > max(zToScan) + zOneTile(round(min(focusPositionInImageZpix + 4*in.focusSigma,length(zOneTile)))) ) ...
+        ( zAll > max(zDepts) + zOneTile(round(min(focusPositionInImageZpix + 4*in.focusSigma,length(zOneTile)))) ) ...
         ) = []; 
 end
 
 imOutSize = [length(zAll) length(xAll) length(yAll)];
 
 %For each Y, what files are being used
-yGroupSF = zeros(length(json.yToScan),2); %[start yI, end yI]
-yGroupFP =  cell(length(json.yToScan),1); %Which files to use for each group
+yGroupSF = zeros(length(json.yCenters),2); %[start yI, end yI]
+yGroupFP =  cell(length(json.yCenters),1); %Which files to use for each group
 for i=1:length(yGroupFP)
-    yI = abs(yAll-json.yToScan(i)) <= json.yRange/2;
+    yI = abs(yAll-json.yCenters(i)) <= json.yRange/2;
     yGroupSF(i,:) = [find(yI,1,'first') find(yI,1,'last')];
-    yGroupFP(i) = {fp(json.gridYcc == json.yToScan(i))};
+    yGroupFP(i) = {fp(json.gridYcc == json.yCenters(i))};
 end
 
 %Save some stacks
@@ -186,7 +186,7 @@ yToSave = round(linspace(1,length(yAll),saveYs));
 
 %% Main loop
 minmaxVals = zeros(length(yAll),2); %min and max values for each yFrame. This is used for Tif later on
-printStatsEveryyI = min(floor(length(yAll)/20),1);
+printStatsEveryyI = max(floor(length(yAll)/20),1);
 ticBytes(gcp);
 if(v)
     fprintf('%s Stitching ...\n',datestr(datetime)); tt=tic();
@@ -206,9 +206,9 @@ for yI=1:length(yAll)
         yIInFile = yI - yGroupSF(yGroup,1)+1;
         
         %Loop over all x stacks
-        for xxI = 1:length(xToScan)
+        for xxI = 1:length(xCenters)
             %Loop over depths stacks
-            for zzI=1:length(zToScan)
+            for zzI=1:length(zDepts)
                 
                 %Frame Name
                 fpTxt = fps{fileI};
@@ -229,12 +229,12 @@ for yI=1:length(yAll)
                 if ~isnan(focusPositionInImageZpix)
                     factor = repmat(exp(-(zI-focusPositionInImageZpix).^2/(2*focusSigma)^2), [1 size(scan1,2)]);
                 else
-                    factor = 1; %No focus gating
+                    factor = ones(length(zOneTile),length(xOneTile)); %No focus gating
                 end
                 
                 %Figure out what is the x,z position of each pixel in this file
-                x = xOneTile+xToScan(xxI);
-                z = zOneTile+zToScan(zzI);
+                x = xOneTile+xCenters(xxI);
+                z = zOneTile+zDepts(zzI);
                 
                 %Add to stack
                 [xxAll,zzAll] = meshgrid(xAll,zAll);
@@ -273,7 +273,7 @@ for yI=1:length(yAll)
             %Stats time!
             ds = fileDatastore(matYFramesFolder,'ReadFcn',@(x)(x),'FileExtensions','.getmeout','IncludeSubfolders',true); %Count all artifacts
             done = length(ds.Files);
-            fprintf('%s Completed yIs so far: %d/%d (%.1f%%)\n',datestr(datetime),done,length(yIndexes),100*done/length(yIndexes));
+            fprintf('%s Completed yIs so far: %d/%d (%.1f%%)\n',datestr(datetime),done,length(yAll),100*done/length(yAll));
         end
 
     catch ME

@@ -11,17 +11,20 @@ function [json] = yOCTScanTile(varargin)
 %   isVerifyMotionRange   true     Try the full range of motion before scanning, to make sure we won't get 'stuck' through the scan
 %   tissueRefractiveIndex 1.4      Refractive index of tissue
 %Parameter controling each tile:
-%   xCenter         0           Center position of the 3D volume (using galvo). Units: mm
-%   yCenter         0           Center position of the 3D volume (using galvo). Units: mm
-%   xRange          1           Total range of scan, x size in mm. Galvo position to physical size conversion is done by probe model set by yOCTScannerInit
-%   yRange          1           Total range of scan, y size in mm. Galvo position to physical size conversion is done by probe model set by yOCTScannerInit
+%   xOffset,yOffset 0           (0,0) means that the center of the tile scaned is at the center of the galvo range aka lens optical axis. 
+%                               By appling offset, the center of the tile will be positioned differently.Units: mm
+%   xRange, yRange  1           Total range of scan x & y in mm. For example, if xOffset=0, xRange=1, OCT will scan from -0.5 to 0.5mm.
 %   nXPixels        1000        Number of pixels in x direction (equally spaced)
 %   nYPixels        1000        Number of pixels in y direction (equally spaced)
 %   nBScanAvg       1           How many B Scan Averaging to scan
-%Scan tiling parameters, these will cerate a meshgrid (relative to current position of stage)
-%   xToScan         0           scan center x to scan. Default is not to move stage at all. Units: mm
-%   yToScan         0           scan center y to scan. Default is not to move stage at all. Units: mm
-%   zToScan         0           what depths to scan (positive value is deeper). Default is not to move stage at all. Units: mm
+%Scan tiling parameters, these will cerate a meshgrid relative to position
+%   of stage at the beginning of the scan.
+%   x,y,z parameters in tiling, are in the same direction as x,y,z of the
+%   sacn, you can look at it as an extention of the size of the lens. 
+%   xCenters,yCenters 0         Center positions of each tiles to scan (x,y) Units: mm. 
+%                               Example: 'xCenters', [0 1], 'yCenters', [0 1], 
+%                               will scan 4 OCT volumes centered around [0 0 1 1; 0 1 0 1] + [xOffset; yOffset]
+%   zDepts            0         Scan depths to scan. Positive value is deeper). Units: mm
 %Debug parameters:
 %   v               true        verbose mode      
 %OUTPUT:
@@ -40,8 +43,8 @@ addParameter(p,'isVerifyMotionRange',true,@islogical);
 addParameter(p,'tissueRefractiveIndex',1.4,@isnumeric);
 
 %Single scan parmaeters
-addParameter(p,'xCenter',0,@isnumeric);
-addParameter(p,'yCenter',0,@isnumeric);
+addParameter(p,'xOffset',0,@isnumeric);
+addParameter(p,'yOffset',0,@isnumeric);
 addParameter(p,'xRange',1,@isnumeric);
 addParameter(p,'yRange',1,@isnumeric);
 addParameter(p,'nXPixels',1000,@isnumeric);
@@ -49,9 +52,9 @@ addParameter(p,'nYPixels',1000,@isnumeric);
 addParameter(p,'nBScanAvg',1,@isnumeric);
 
 %Tile Parameters
-addParameter(p,'xToScan',0,@isnumeric);
-addParameter(p,'yToScan',0,@isnumeric);
-addParameter(p,'zToScan',0,@isnumeric);
+addParameter(p,'xCenters',0,@isnumeric);
+addParameter(p,'yCenters',0,@isnumeric);
+addParameter(p,'zDepts',0,@isnumeric);
 
 %Debugging
 addParameter(p,'v',true,@islogical);
@@ -69,7 +72,7 @@ in.version = 1; %Version of this file
 %% Scan center list
 
 %Scan order, z changes fastest, x after, y latest
-[in.gridXcc, in.gridZcc,in.gridYcc] = meshgrid(in.xToScan,in.zToScan,in.yToScan); 
+[in.gridXcc, in.gridZcc,in.gridYcc] = meshgrid(in.xCenters,in.zDepts,in.yCenters); 
 in.gridXcc = in.gridXcc(:);
 in.gridYcc = in.gridYcc(:);
 in.gridZcc = in.gridZcc(:);
@@ -95,23 +98,23 @@ if (in.isVerifyMotionRange)
         fprintf('%s Motion Range Test\n',datestr(datetime));
     end
     if (length(in.gridZcc)>1)
-        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('z',z0+min(in.zToScan)); %Movement [mm]
+        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('z',z0+min(in.zDepts)); %Movement [mm]
         pause(0.5);
-        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('z',z0+max(in.zToScan)); %Movement [mm]
+        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('z',z0+max(in.zDepts)); %Movement [mm]
         pause(0.5);
     end
     
     if (length(in.gridYcc)>1)
-        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('y',y0+min(in.yToScan)); %Movement [mm]
+        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('y',y0+min(in.yCenters)); %Movement [mm]
         pause(0.5);
-        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('y',y0+max(in.yToScan)); %Movement [mm]
+        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('y',y0+max(in.yCenters)); %Movement [mm]
         pause(0.5);
     end
     
     if (length(in.gridXcc)>1)
-        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('x',x0+min(in.xToScan)); %Movement [mm]
+        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('x',x0+min(in.xCenters)); %Movement [mm]
         pause(0.5);
-        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('x',x0+max(in.xToScan)); %Movement [mm]
+        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('x',x0+max(in.xCenters)); %Movement [mm]
         pause(0.5);
     end
 end
@@ -148,7 +151,7 @@ for scanI=1:length(scanOrder)
     s = sprintf('%s\\%s\\',octFolder,in.octFolders{scanI});
     
     ThorlabsImagerNET.ThorlabsImager.yOCTScan3DVolume(...
-        in.xCenter,in.yCenter, ... centerX, centerY [mm]
+        in.xOffset,in.yOffset, ... centerX, centerY [mm]
         in.xRange, in.yRange,  ... rangeX,rangeY [mm]
         0,       ... rotationAngle [deg]
         in.nXPixels,in.nYPixels, ... SizeX,sizeY [# of pixels]
