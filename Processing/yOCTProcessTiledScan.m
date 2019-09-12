@@ -136,7 +136,8 @@ OCTSystem = json.OCTSystem; %Provide OCT system to prevent unesscecary polling o
 dimOneTile = ...
 	yOCTLoadInterfFromFile([fp(1), reconstructConfig, {'OCTSystem',OCTSystem,'peakOnly',true}]);
 tmp = zeros(size(dimOneTile.lambda.values(:)));
-dimOneTile = yOCTInterfToScanCpx ([{tmp}, {dimOneTile},{'n'},{json.tissueRefractiveIndex}, reconstructConfig, {'peakOnly'},{true}]);
+dimOneTileProcessed = yOCTInterfToScanCpx ([{tmp}, {dimOneTile},{'n'},{json.tissueRefractiveIndex}, reconstructConfig, {'peakOnly'},{true}]);
+dimOneTile.z = dimOneTileProcessed.z; %Update only z, not lambda [lambda is changed because of equispacing]
 zDepts = json.zDepts;
 xCenters = json.xCenters;
 yCenters = json.yCenters;
