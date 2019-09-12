@@ -14,13 +14,18 @@ if isempty(fname)
             '.data' ... Binary version of chirp, usually saved in non SRR version
             '.dat'  ... Text version of chirp, saved in SRR version
             });
+  
+    %See files that needs to be discarded
+    useFile = zeros(size(ds.Files));
+    for i=1:length(useFile)
+        [~,fname] = fileparts(ds.Files{i});
         
-    if (length(ds.Files) > 1)
-        %Go over the files, in 1D mode system will save SpectralFloat.data,
-        %its not a chirp file and can be removed
-        is1FFile = cellfun(@(x)(contains(x,'SpectralFloat.data')), ds.Files);
-        ds.Files(is1FFile) = [];
+        %See if fname is part of the files that are not chirp
+        if ( strcmpi(fname,'chirp') || strcmpi(fname,'chrp'))
+            useFile(i) = true;
+        end
     end
+    ds.Files(~useFile) = [];
     
     if (length(ds.Files) > 1)
         error('Found too many chirp files in: %s, cant decide what to do',inputFolder);
@@ -32,15 +37,17 @@ else
     ds=fileDatastore(fp,'ReadFcn',@(x)(x));
 end
 
-%% Figure out if we are working with binary or text version of the dataset
-if (contains(fp,'data'))
-    ds.ReadFcn = @readChirpBin;
-else
-    ds.ReadFcn = @readChirpTxt;
-end
-
 %% Read the chirp
+%First try as text
+ds.ReadFcn = @readChirpTxt;
 chirp = ds.read;
+
+if (length(chirp) < 2)
+    %Text reading faild, try binary
+    reset(ds);
+    ds.ReadFcn = @readChirpBin;
+    chirp = ds.read;
+end
 
 end
 
