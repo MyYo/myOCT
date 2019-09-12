@@ -146,17 +146,17 @@ yCenters = json.yCenters;
 %This specifies how to mesh together a tiled scan, each axis seperately
 
 %Dimensions of one tile (mm)
-xOneTile = json.xOffset+json.xRange*linspace(-0.5,0.5,json.nXPixels);
+xOneTile = json.xOffset+json.xRange*linspace(-0.5,0.5,json.nXPixels+1); xOneTile(end) = [];
 dx = diff(xOneTile(1:2));
-yOneTile = json.yOffset+json.yRange*linspace(-0.5,0.5,json.nYPixels);
+yOneTile = json.yOffset+json.yRange*linspace(-0.5,0.5,json.nYPixels+1); yOneTile(end) = [];
 dy = diff(yOneTile(1:2));
 zOneTile = dimOneTile.z.values(:)'/1000; %[mm]
 dz = diff(zOneTile(1:2));
 
 %Dimensions of the entire stack
 xAll = (min(xCenters)+xOneTile(1)):dx:(max(xCenters)+xOneTile(end)+dx);xAll = xAll(:);
-yAll = (min(yCenters)+yOneTile(1)):dy:(max(yCenters)+yOneTile(end));yAll = yAll(:);
-zAll = (min(zDepts)+zOneTile(1)):dz:(max(zDepts)+zOneTile(end));zAll = zAll(:);
+yAll = (min(yCenters)+yOneTile(1)):dy:(max(yCenters)+yOneTile(end)+dy);yAll = yAll(:);
+zAll = (min(zDepts)+zOneTile(1)):dz:(max(zDepts)+zOneTile(end)+dz);zAll = zAll(:);
 in.xAllmm = xAll;
 in.yAllmm = yAll;
 in.zAllmm = zAll;
