@@ -123,6 +123,8 @@ if (in.saveYs > 0)
             mkdir(yToSaveTifDir);
         end
     end
+else
+    yToSaveMatDir = []; %For parfor transperency 
 end
 
 %% Load configuration file & set parameters
@@ -191,7 +193,7 @@ ticBytes(gcp);
 if(v)
     fprintf('%s Stitching ...\n',datestr(datetime)); tt=tic();
 end
-parfor yI=1:length(yAll)
+parfor yI=1:length(yAll) %<-Here
     try
         %Create a container for all data
         stack = zeros(imOutSize(1:2)); %#ok<PFBNS> %z,x,zStach
@@ -235,6 +237,12 @@ parfor yI=1:length(yAll)
                 %Figure out what is the x,z position of each pixel in this file
                 x = xOneTile+xCenters(xxI);
                 z = zOneTile+zDepts(zzI);
+                
+                %Helps with interpolation problems
+                x(1) = x(1) - 1e-10; 
+                x(end) = x(end) + 1e-10; 
+                z(1) = z(1) - 1e-10; 
+                z(end) = z(end) + 1e-10; 
                 
                 %Add to stack
                 [xxAll,zzAll] = meshgrid(xAll,zAll);
@@ -305,7 +313,8 @@ if (v)
 end
 
 %% Save a json file with the results
-awsWriteJSON(in,[outputFolder 'processedScanConfig.json']);
+inToSave = rmfield(in,{'debugFolder','outputFolder','tiledScanInputFolder'});
+awsWriteJSON(inToSave,[outputFolder 'processedScanConfig.json']);
 
 %% Convert to tif if required (main dataset)
 if ~strcmp(in.outputFileFormat,'tif')
@@ -322,18 +331,27 @@ ds = fileDatastore(matYFramesFolder,'ReadFcn',@(x)(x),'FileExtensions','.mat','I
 files = ds.Files;
 
 ticBytes(gcp);
-for yI=1:length(files)
-    %Read
-    slice = yOCTFromMat(files{yI});
-    slice = log(slice);
-    
-    %Write
-    tn = [tempname '.tif'];
-    yOCT2Tif(slice,tn, log(c))
-    awsCopyFile_MW1(tn, ...
-        sprintf('%sy%04d.tif',tifYFramesFolder,yI)...
-        ); %Matlab worker version of copy files
-    delete(tn);
+parfor yI=1:length(files)
+    try
+        %Read
+        slice = yOCTFromMat(files{yI});
+        slice = log(slice);
+
+        %Write
+        tn = [tempname '.tif'];
+        yOCT2Tif(slice,tn, log(c))
+        awsCopyFile_MW1(tn, ...
+            sprintf('%sy%04d.tif',tifYFramesFolder,yI)...
+            ); %Matlab worker version of copy files
+        delete(tn);
+    catch ME
+        fprintf('Error happened in parfor, iteration %d:\n',yI); 
+        disp(ME.message);
+        for j=1:length(ME.stack) 
+            ME.stack(j) 
+        end  
+        error('Error in parfor');
+    end
 end
 %Reorganize
 awsCopyFile_MW2(tifYFramesFolder);
@@ -354,8 +372,7 @@ end
 ds = fileDatastore(awsModifyPathForCompetability(tifYFramesFolder),'ReadFcn',@(x)(x),'FileExtensions','.tif','IncludeSubfolders',true); 
 files = ds.Files;
 sz = [length(zAll) length(xAll) length(yAll)];
-if (true)
-%parfor(i=1:1,1) %Run once but on a worker
+parfor(i=1:1,1) %Run once but on a worker
     yTiffAll = zeros(sz);
     
     for j=1:length(files)
