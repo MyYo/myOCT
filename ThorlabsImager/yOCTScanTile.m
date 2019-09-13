@@ -126,9 +126,8 @@ end
 %% Make sure folder is empty
 if exist(octFolder,'dir')
     rmdir(octFolder,'s');
-else
-    mkdir(octFolder);
 end
+mkdir(octFolder);
 
 %% Preform the scan
 for scanI=1:length(scanOrder)
@@ -149,6 +148,7 @@ for scanI=1:length(scanOrder)
     
     %Make a folder
     s = sprintf('%s\\%s\\',octFolder,in.octFolders{scanI});
+    s = awsModifyPathForCompetability(s);
     
     ThorlabsImagerNET.ThorlabsImager.yOCTScan3DVolume(...
         in.xOffset,in.yOffset, ... centerX, centerY [mm]
