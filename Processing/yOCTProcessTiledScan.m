@@ -78,9 +78,7 @@ else
 end
 in.debugFolder = awsModifyPathForCompetability(in.debugFolder);
 debugFolder = in.debugFolder;
-if ~awsIsAWSPath(debugFolder) && ~exist(debugFolder,'dir')
-    mkdir(debugFolder);
-end
+awsMkDir(debugFolder,false); %Dont clean directory before creating
 
 %Directory to save mat files
 if (~strcmp(in.outputFileFormat,'mat'))
@@ -90,18 +88,12 @@ else
     %Output folder
     matYFramesFolder = outputFolder;
 end
-awsRmDir(matYFramesFolder);
-if ~awsIsAWSPath(matYFramesFolder) && ~exist(matYFramesFolder,'dir')
-    mkdir(matYFramesFolder);
-end
+awsMkDir(matYFramesFolder,true);
 
 %Directory to save tif files (if required)
 if (strcmp(in.outputFileFormat,'tif'))
     tifYFramesFolder = outputFolder;
-    awsRmDir(tifYFramesFolder);
-    if ~awsIsAWSPath(tifYFramesFolder) && ~exist(tifYFramesFolder,'dir')
-        mkdir(tifYFramesFolder);
-    end
+    awsMkDir(tifYFramesFolder,true);
     
     tifYFrameAllFP = [tifYFramesFolder(1:(end-1)) '_All.tif'];
     awsRmFile(tifYFrameAllFP);
@@ -110,21 +102,20 @@ end
 %Saved stacks dir (if required)
 if (in.saveYs > 0)
     yToSaveMatDir = awsModifyPathForCompetability([debugFolder 'savedStacksMat/']);
-    awsRmDir(yToSaveMatDir);
-    if ~awsIsAWSPath(yToSaveMatDir) && ~exist(yToSaveMatDir,'dir')
-        mkdir(yToSaveMatDir);
-    end
+    awsMkDir(yToSaveMatDir,true);
+    
+    yToSaveTotalWeightsDir = awsModifyPathForCompetability([debugFolder 'savedStacksWeight/']);
+    awsMkDir(yToSaveTotalWeightsDir,true);
     
     if (strcmp(in.outputFileFormat,'tif'))
         %Create a Tif version
         yToSaveTifDir = awsModifyPathForCompetability([debugFolder 'savedStacksTif/']);
-        awsRmDir(yToSaveTifDir);
-        if ~awsIsAWSPath(yToSaveTifDir) && ~exist(yToSaveTifDir,'dir')
-            mkdir(yToSaveTifDir);
-        end
+        awsMkDir(yToSaveTifDir,true);
     end
 else
-    yToSaveMatDir = []; %For parfor transperency 
+    %For parfor transperency 
+    yToSaveMatDir = []; 
+    yToSaveTotalWeightsDir = [];
 end
 
 %% Load configuration file & set parameters
@@ -165,9 +156,9 @@ in.zAllmm = zAll;
 if(~isnan(focusPositionInImageZpix))
     %Remove Z positions that are way out of focus (if we are doing focus processing)
     zAll( ...
-        ( zAll < min(zDepts) + zOneTile(round(max(focusPositionInImageZpix - 4*in.focusSigma,0))) ) ...
+        ( zAll < min(zDepts) + zOneTile(round(max(focusPositionInImageZpix - 5*in.focusSigma,0))) ) ...
         | ...
-        ( zAll > max(zDepts) + zOneTile(round(min(focusPositionInImageZpix + 4*in.focusSigma,length(zOneTile)))) ) ...
+        ( zAll > max(zDepts) + zOneTile(round(min(focusPositionInImageZpix + 5*in.focusSigma,length(zOneTile)))) ) ...
         ) = []; 
 end
 
@@ -193,7 +184,7 @@ ticBytes(gcp);
 if(v)
     fprintf('%s Stitching ...\n',datestr(datetime)); tt=tic();
 end
-parfor yI=1:length(yAll) %<-Here
+parfor yI=1:length(yAll) 
     try
         %Create a container for all data
         stack = zeros(imOutSize(1:2)); %#ok<PFBNS> %z,x,zStach
@@ -230,6 +221,10 @@ parfor yI=1:length(yAll) %<-Here
                 zI = 1:length(zOneTile); zI = zI(:);
                 if ~isnan(focusPositionInImageZpix)
                     factor = repmat(exp(-(zI-focusPositionInImageZpix).^2/(2*focusSigma)^2), [1 size(scan1,2)]);
+                    
+                    %Dont allow factor to get too small, it creates an unstable solution
+                    minFactor = exp(-3^2/2);
+                    factor(factor<minFactor) = minFactor;  
                 else
                     factor = ones(length(zOneTile),length(xOneTile)); %No focus gating
                 end
@@ -260,10 +255,10 @@ parfor yI=1:length(yAll) %<-Here
                     
                     if (xxI == length(xCenters) && zzI==length(zDepts))
                         %Save the last weight
-                        tn = [totalWeights '.mat'];
-                        yOCT2Mat(scan1,tn)
+                        tn = [tempname '.mat'];
+                        yOCT2Mat(totalWeights,tn)
                         awsCopyFile_MW1(tn, ...
-                            awsModifyPathForCompetability(sprintf('%s/y%04d_totalWeights.mat',yToSaveMatDir,yI)) ...
+                            awsModifyPathForCompetability(sprintf('%s/y%04d_totalWeights.mat',yToSaveTotalWeightsDir,yI)) ...
                             );
                         delete(tn);
                     end
@@ -408,8 +403,6 @@ if ~isempty(yToSave)
     %Get the mat files
     ds = fileDatastore(yToSaveMatDir,'ReadFcn',@(x)(x),'FileExtensions','.mat','IncludeSubfolders',true); 
     matFiles = ds.Files;
-    isDelete = cellfun(@(x)(contains(x,'totalWeights')),matFiles);
-    matFiles(isDelete) = [];
     
     tifFiles = cellfun(@(x)(strrep(strrep(x,'.mat','.tif'),yToSaveMatDir,yToSaveTifDir)),matFiles,'UniformOutput',false);
 
