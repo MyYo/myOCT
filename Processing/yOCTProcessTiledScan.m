@@ -1,4 +1,4 @@
-%function yOCTProcessTiledScan(varargin)
+function yOCTProcessTiledScan(varargin)
 %This function Processes Tiled scan, my assumption is that scan size is
 %very big, so the processed volume will not be returned directly to Matlab,
 %but will be saved directly to disk (or cloud).
@@ -129,7 +129,6 @@ end
 json = awsReadJSON([tiledScanInputFolder 'ScanInfo.json']);
 
 fp = cellfun(@(x)(awsModifyPathForCompetability([tiledScanInputFolder '\' x '\'])),json.octFolders,'UniformOutput',false);
-n = json.tissueRefractiveIndex;
 focusPositionInImageZpix = in.focusPositionInImageZpix;
 focusSigma = in.focusSigma;
 OCTSystem = json.OCTSystem; %Provide OCT system to prevent unesscecary polling of file system
@@ -192,15 +191,15 @@ ticBytes(gcp);
 if(v)
     fprintf('%s Stitching ...\n',datestr(datetime)); tt=tic();
 end
-for yI=1:length(yAll)
+parfor yI=1:length(yAll)
     try
         %Create a container for all data
         stack = zeros(imOutSize(1:2)); %#ok<PFBNS> %z,x,zStach
-        totalWeights = zeros(imOutSize(1:2)); %#ok<PFBNS> %z,x
+        totalWeights = zeros(imOutSize(1:2)); %z,x
         
         %Relevant OCT files for this y
-        yGroup = find(yGroupSF(:,1) <= yI & yI <= yGroupSF(:,2),1,'first');
-        fps = yGroupFP{yGroup};
+        yGroup = find(yGroupSF(:,1) <= yI & yI <= yGroupSF(:,2),1,'first'); %#ok<PFBNS>
+        fps = yGroupFP{yGroup}; %#ok<PFBNS>
         fileI = 1;
         
         %What is the y index in the file corresponding to this yI
@@ -219,7 +218,7 @@ for yI=1:length(yAll)
                 [int1,dim1] = ...
                     yOCTLoadInterfFromFile([{fpTxt}, reconstructConfig, {'dimensions',dimOneTile, 'YFramesToProcess',yIInFile}]);
                 [scan1,~] = yOCTInterfToScanCpx ([{int1 dim1} reconstructConfig]);
-                int1 = []; %Freeup some memory
+                int1 = []; %#ok<NASGU> %Freeup some memory
                 scan1 = abs(scan1);
                 for i=length(size(scan1)):-1:3 %Average BScan Averages, A Scan etc
                     scan1 = squeeze(mean(scan1,i));
