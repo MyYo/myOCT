@@ -257,6 +257,16 @@ parfor yI=1:length(yAll) %<-Here
                         awsModifyPathForCompetability(sprintf('%s/y%04d_xtile%04d_ztile%04d.mat',yToSaveMatDir,yI,xxI,zzI)) ...
                         );
                     delete(tn);
+                    
+                    if (xxI == length(xCenters) && zzI==length(zDepts))
+                        %Save the last weight
+                        tn = [totalWeights '.mat'];
+                        yOCT2Mat(scan1,tn)
+                        awsCopyFile_MW1(tn, ...
+                            awsModifyPathForCompetability(sprintf('%s/y%04d_totalWeights.mat',yToSaveMatDir,yI)) ...
+                            );
+                        delete(tn);
+                    end
                 end
             end
         end
@@ -398,6 +408,8 @@ if ~isempty(yToSave)
     %Get the mat files
     ds = fileDatastore(yToSaveMatDir,'ReadFcn',@(x)(x),'FileExtensions','.mat','IncludeSubfolders',true); 
     matFiles = ds.Files;
+    isDelete = cellfun(@(x)(contains(x,'totalWeights')),matFiles);
+    matFiles(isDelete) = [];
     
     tifFiles = cellfun(@(x)(strrep(strrep(x,'.mat','.tif'),yToSaveMatDir,yToSaveTifDir)),matFiles,'UniformOutput',false);
 
