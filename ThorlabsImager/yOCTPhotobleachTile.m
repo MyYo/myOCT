@@ -51,11 +51,15 @@ json = rmfield(json,'enableZone');
 if length(json.FOV) == 1
     json.FOV = json.FOV*[1 1];
 end
+FOV = json.FOV;
 
 %Check probe 
 if ~exist(json.octProbePath,'file')
 	error(['Cannot find probe file: ' json.octProbePath]);
 end
+
+v = json.v;
+json = rmfield(json,'v');
 
 %% Pre processing
 
@@ -102,7 +106,7 @@ ycc(em) = [];
 
 %% Initialize Hardware
 
-if (json.v)
+if (v)
     fprintf('%s Initialzing Hardware\n',datestr(datetime));
 end
 
@@ -125,7 +129,7 @@ ThorlabsImagerNET.ThorlabsImager.yOCTScannerInit(json.octProbePath); %Init OCT
 
 %% Photobleach
 for i=1:length(xcc)
-    if (json.v && length(xcc) > 1)
+    if (v && length(xcc) > 1)
         fprintf('%s Moving to positoin (x = %.1fmm, y = %.1fmm) #%d of %d\n',datestr(datetime),xcc(i),ycc(i),i,length(xcc));
     end
 
