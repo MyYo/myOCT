@@ -69,6 +69,10 @@ in = rmfield(in,'v');
 in.units = 'mm'; %All units are mm
 in.version = 1; %Version of this file
 
+if ~exist(in.octProbePath,'file')
+	error(['Cannot find probe file: ' in.octProbePath]);
+end
+
 %% Scan center list
 
 %Scan order, z changes fastest, x after, y latest
