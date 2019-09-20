@@ -138,7 +138,11 @@ for i=1:length(xcc)
         ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('y',y0+ycc(i)); %Movement [mm]
     end
 
-    ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(true); %Switch light on
+    if (i==1)
+        ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(true); %Switch light on, write to screen only for first line
+    else
+        evalc('ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(true);'); %Switch light on, use evalc to prevent writing to window
+    end
 
     %Find lines to photobleach, center along current position of the stage
     ptStart = ptStartcc{i} - [xcc(i);ycc(i)];
@@ -159,7 +163,7 @@ for i=1:length(xcc)
 
     end
 
-    ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(false); %Switch light off
+    evalc('ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(false);'); %Switch light off, use evalc to prevent writing to window
     pause(0.5);
 end
 
