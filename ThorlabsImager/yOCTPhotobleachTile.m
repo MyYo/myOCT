@@ -60,7 +60,7 @@ end
 %% Pre processing
 
 % Apply Enable Zone
-if ~isnan(enableZone)
+if isa(enableZone,'function_handle')
     [ptStart,ptEnd] = yOCTApplyEnableZone(json.ptStart, json.ptEnd, enableZone, 10e-3);
     json.ptStart = ptStart;
     json.ptEnd = ptEnd;
