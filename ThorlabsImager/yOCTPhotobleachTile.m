@@ -88,7 +88,7 @@ for i=1:length(ptStartcc)
         @(x,y)( abs(x-xcc(i))<FOV(1)/2 & abs(y-ycc(i))<FOV(2)/2 ) ...
         , 10e-3);
 
-    %Remove lines which are too short
+    %Remove lines which are too short to photobleach
     d = sqrt(sum((ptStart - ptEnd).^2,1));
     ptStart(:,d<10e-3) = [];
     ptEnd(:,d<10e-3) = [];

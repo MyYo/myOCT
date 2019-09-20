@@ -29,7 +29,7 @@ for i=1:size(ptStart,2)
     pt2 = ptEnd(:,i);
 
     d = sqrt(sum((pt1-pt2).^2));
-    n = d/enableZoonRes; %How many points fit in the line
+    n = max(d/enableZoonRes,1); %How many points fit in the line
 
     %Compute points in between those initial two
     clear p;
