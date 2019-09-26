@@ -62,7 +62,7 @@ end
 in.gridXcc = in.gridXcc(:);
 in.gridYcc = in.gridYcc(:);
 scanOrder = 1:length(in.gridXcc);
-in.imagesFP = arrayfun(@(x)(sprintf('Data%02d',x)),scanOrder,'UniformOutput',false);
+in.imagesFP = arrayfun(@(x)(sprintf('Data%02d.jpg',x)),scanOrder,'UniformOutput',false);
 
 %% Initialize hardware
 if (v)
@@ -133,7 +133,7 @@ for scanI=1:length(scanOrder)
     end
     
     %Make a folder
-    s = sprintf('%s\\%s\\',imageFolder,in.imagesFP{scanI});
+    s = sprintf('%s\\%s',imageFolder,in.imagesFP{scanI});
     s = awsModifyPathForCompetability(s);
     
     ThorlabsImagerNET.ThorlabsImager.yOCTCaptureCameraImage(s);
