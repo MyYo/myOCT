@@ -149,6 +149,16 @@ dz = diff(zOneTile(1:2));
 xAll = (min(xCenters)+xOneTile(1)):dx:(max(xCenters)+xOneTile(end)+dx);xAll = xAll(:);
 yAll = (min(yCenters)+yOneTile(1)):dy:(max(yCenters)+yOneTile(end)+dy);yAll = yAll(:);
 zAll = (min(zDepts)+zOneTile(1)):dz:(max(zDepts)+zOneTile(end)+dz);zAll = zAll(:);
+
+%Correct for the case of only one scan
+if (length(xCenters) == 1)
+    xAll = xAll(1:length(dimOneTileProcessed.x.values));
+end
+if (length(yCenters) == 1)
+    yAll = yAll(1:length(dimOneTileProcessed.y.values));
+end
+
+%Save parameters
 in.xAllmm = xAll;
 in.yAllmm = yAll;
 in.zAllmm = zAll;
