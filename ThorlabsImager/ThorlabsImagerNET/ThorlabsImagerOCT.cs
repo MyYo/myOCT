@@ -48,6 +48,14 @@ namespace ThorlabsImagerNET
             double dispA // Dispersion parameter from ThorImage Software, units unkown
             );
 
+        //Take a picture with camera that is on OCT head
+        [DllImport("ThorlabsImager.dll")]
+        public static extern void yOCTCaptureCameraImage(string filePath); //Where to save
+
+        //Set Camera LED intensity percent
+        [DllImport("ThorlabsImager.dll")]
+        public static extern void yOCTSetCameraRingLightIntensity(int newIntensityPercent); // 0 to 100
+
         #endregion
 
         #region Photobleaching

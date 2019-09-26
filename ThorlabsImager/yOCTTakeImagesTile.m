@@ -1,22 +1,14 @@
-function [json] = yOCTScanTile(varargin)
-%This function preforms an OCT Scan of a volume, and them tile around to
-%stitch together multiple scans. Tiling will be done by 3D translation
+function [json] = yOCTTakeImagesTile(varargin)
+%This function takes pictures all around for tiling
 %stage.
 %INPUTS:
-%   octFolder - folder to save all output information
+%   imageFolder - folder to save all output information
 %
 %NAME VALUE INPUTS:
 %   Parameter               Default Value   Notes
 %   octProbePath            'probe.ini'     Where is the probe.ini is saved to be used
 %   isVerifyMotionRange     true            Try the full range of motion before scanning, to make sure we won't get 'stuck' through the scan
-%   tissueRefractiveIndex   1.4             Refractive index of tissue
-%Parameter controling each tile:
-%   xOffset,yOffset         0               (0,0) means that the center of the tile scaned is at the center of the galvo range aka lens optical axis. 
-%                                           By appling offset, the center of the tile will be positioned differently.Units: mm
-%   xRange, yRange          1               Total range of scan x & y in mm. For example, if xOffset=0, xRange=1, OCT will scan from -0.5 to 0.5mm.
-%   nXPixels                1000            Number of pixels in x direction (equally spaced)
-%   nYPixels                1000            Number of pixels in y direction (equally spaced)
-%   nBScanAvg               1               How many B Scan Averaging to scan
+%   lightRingIntensity      50              Light ring intensity (0-100) for taking fully illuminated images
 %Scan tiling parameters, these will cerate a meshgrid relative to position
 %   of stage at the beginning of the scan.
 %   x,y,z parameters in tiling, are in the same direction as x,y,z of the
@@ -24,7 +16,7 @@ function [json] = yOCTScanTile(varargin)
 %   xCenters,yCenters       0               Center positions of each tiles to scan (x,y) Units: mm. 
 %                                           Example: 'xCenters', [0 1], 'yCenters', [0 1], 
 %                                           will scan 4 OCT volumes centered around [0 0 1 1; 0 1 0 1] + [xOffset; yOffset]
-%   zDepts                  0               Scan depths to scan. Positive value is deeper). Units: mm
+%   zDepth                  0               What scan depth to use. Units: mm
 %Debug parameters:
 %   v                       true            verbose mode      
 %OUTPUT:
@@ -35,26 +27,16 @@ function [json] = yOCTScanTile(varargin)
 
 %% Input Parameters
 p = inputParser;
-addRequired(p,'octFolder',@isstr);
+addRequired(p,'imageFolder',@isstr);
 
 %General parameters
 addParameter(p,'octProbePath','probe.ini',@isstr);
 addParameter(p,'isVerifyMotionRange',true,@islogical);
-addParameter(p,'tissueRefractiveIndex',1.4,@isnumeric);
-
-%Single scan parmaeters
-addParameter(p,'xOffset',0,@isnumeric);
-addParameter(p,'yOffset',0,@isnumeric);
-addParameter(p,'xRange',1,@isnumeric);
-addParameter(p,'yRange',1,@isnumeric);
-addParameter(p,'nXPixels',1000,@isnumeric);
-addParameter(p,'nYPixels',1000,@isnumeric);
-addParameter(p,'nBScanAvg',1,@isnumeric);
-
+addParameter(p,'lightRingIntensity',50,@(x)(isnumeric(x) & x>=0 & x<=100))
 %Tile Parameters
 addParameter(p,'xCenters',0,@isnumeric);
 addParameter(p,'yCenters',0,@isnumeric);
-addParameter(p,'zDepts',0,@isnumeric);
+addParameter(p,'zDepth',0,@isnumeric);
 
 %Debugging
 addParameter(p,'v',true,@islogical);
@@ -62,9 +44,9 @@ addParameter(p,'v',true,@islogical);
 parse(p,varargin{:});
 
 in = p.Results;
-octFolder = in.octFolder;
+imageFolder = in.imageFolder;
 v = in.v;
-in = rmfield(in,'octFolder');
+in = rmfield(in,'imageFolder');
 in = rmfield(in,'v');
 in.units = 'mm'; %All units are mm
 in.version = 1; %Version of this file
@@ -76,14 +58,11 @@ end
 %% Scan center list
 
 %Scan order, z changes fastest, x after, y latest
-[in.gridXcc, in.gridZcc,in.gridYcc] = meshgrid(in.xCenters,in.zDepts,in.yCenters); 
+[in.gridXcc,in.gridYcc] = meshgrid(in.xCenters,in.yCenters); 
 in.gridXcc = in.gridXcc(:);
 in.gridYcc = in.gridYcc(:);
-in.gridZcc = in.gridZcc(:);
-in.scanOrder = 1:length(in.gridZcc);
-in.octFolders = arrayfun(@(x)(sprintf('Data%02d',x)),in.scanOrder,'UniformOutput',false);
-
-scanOrder = in.scanOrder;
+scanOrder = 1:length(in.gridXcc);
+in.imagesFP = arrayfun(@(x)(sprintf('Data%02d',x)),scanOrder,'UniformOutput',false);
 
 %% Initialize hardware
 if (v)
@@ -96,16 +75,22 @@ z0=ThorlabsImagerNET.ThorlabsImager.yOCTStageInit('z'); %Init stage
 x0=ThorlabsImagerNET.ThorlabsImager.yOCTStageInit('x'); %Init stage
 y0=ThorlabsImagerNET.ThorlabsImager.yOCTStageInit('y'); %Init stage
 
+%Set lightring power
+if (v)
+    fprintf('%s Setting light ring...\n',datestr(datetime));
+end
+ThorlabsImagerNET.ThorlabsImager.yOCTSetCameraRingLightIntensity(round(in.lightRingIntensity));
+
+%Move to initial position to make a scan
+if (in.zDepth ~= 0)
+    ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('z',z0+in.zDepth); %Movement [mm]
+    pause(0.5);
+end
+
 %Move 
 if (in.isVerifyMotionRange)
     if (v)
         fprintf('%s Motion Range Test\n',datestr(datetime));
-    end
-    if (length(in.gridZcc)>1)
-        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('z',z0+min(in.zDepts)); %Movement [mm]
-        pause(0.5);
-        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('z',z0+max(in.zDepts)); %Movement [mm]
-        pause(0.5);
     end
     
     if (length(in.gridYcc)>1)
@@ -128,21 +113,18 @@ if (v)
 end
 
 %% Make sure folder is empty
-if exist(octFolder,'dir')
-    rmdir(octFolder,'s');
+if exist(imageFolder,'dir')
+    rmdir(imageFolder,'s');
 end
-mkdir(octFolder);
+mkdir(imageFolder);
 
 %% Preform the scan
 for scanI=1:length(scanOrder)
     if (v)
-        fprintf('%s Scanning Volume %02d of %d\n',datestr(datetime),scanI,length(scanOrder));
+        fprintf('%s Scanning Image %02d of %d\n',datestr(datetime),scanI,length(scanOrder));
     end
         
     %Move to position
-    if length(in.gridZcc)>1
-        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('z',z0+in.gridZcc(scanI)); %Movement [mm]
-    end
     if length(in.gridYcc)>1
         ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('y',y0+in.gridYcc(scanI)); %Movement [mm]
     end
@@ -151,29 +133,10 @@ for scanI=1:length(scanOrder)
     end
     
     %Make a folder
-    s = sprintf('%s\\%s\\',octFolder,in.octFolders{scanI});
+    s = sprintf('%s\\%s\\',imageFolder,in.imagesFP{scanI});
     s = awsModifyPathForCompetability(s);
     
-    ThorlabsImagerNET.ThorlabsImager.yOCTScan3DVolume(...
-        in.xOffset,in.yOffset, ... centerX, centerY [mm]
-        in.xRange, in.yRange,  ... rangeX,rangeY [mm]
-        0,       ... rotationAngle [deg]
-        in.nXPixels,in.nYPixels, ... SizeX,sizeY [# of pixels]
-        in.nBScanAvg,       ... B Scan Average
-        s ... Output directory, make sure this folder doesn't exist when starting the scan
-        );
-    
-    if(scanI==1)
-		%Figure out which OCT System are we scanning in
-		a = dir(s);
-		names = {a.name}; names([a.isdir]) = [];
-		nm = names{round(end/2)};
-        if (contains(lower(nm),'ganymede'))
-			in.OCTSystem = 'Ganymede_SRR';
-		else
-			in.OCTSystem = 'NA';
-        end
-    end
+    ThorlabsImagerNET.ThorlabsImager.yOCTCaptureCameraImage(s);
 end
 
 %% Finalize
@@ -184,7 +147,7 @@ end
 
 %Home (if required)
 pause(0.5);
-if length(in.gridZcc)>1
+if in.zDepth ~= 0
     ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('z',z0); %Movement [mm]
 end
 if length(in.gridYcc)>1
@@ -195,11 +158,17 @@ if length(in.gridXcc)>1
 end
 pause(0.5);
 
+%Set lightring power
+if (v)
+    fprintf('%s Setting light to off...\n',datestr(datetime));
+end
+ThorlabsImagerNET.ThorlabsImager.yOCTSetCameraRingLightIntensity(0);
+
 if (v)
     fprintf('%s Finalizing\n',datestr(datetime));
 end
 ThorlabsImagerNET.ThorlabsImager.yOCTScannerClose(); %Close scanner
 
 %Save scan configuration parameters
-awsWriteJSON(in, [octFolder '\ScanInfo.json']);
+awsWriteJSON(in, [imageFolder '\ImageInfo.json']);
 json = in;

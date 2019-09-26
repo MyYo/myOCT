@@ -18,7 +18,7 @@
  
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//OCT SCANNING CAPABILITIES
+//OCT SCANNER CAPABILITIES
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Initialize OCT Scanner
@@ -54,6 +54,16 @@ MY_EXTERN_C THORLABSIMAGERDLL_API void yOCTScan3DVolumeProcessed(
 	const int    nBScanAvg, //Number of B scan averages (set to 1 if non)
 	const char   outputDirectory[], //Output folder, make sure it doesn't exists, otherwise will return an error
 	const double dispA // Dispersion parameter from ThorImage Software, units unkown
+);
+
+//Take a picture with camera that is on OCT head
+MY_EXTERN_C THORLABSIMAGERDLL_API void yOCTCaptureCameraImage(
+	const char filePath[] //Where to save
+);
+
+//Set Camera LED intensity percent
+MY_EXTERN_C THORLABSIMAGERDLL_API void yOCTSetCameraRingLightIntensity(
+	const int newIntensityPercent // 0 to 100
 );
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
