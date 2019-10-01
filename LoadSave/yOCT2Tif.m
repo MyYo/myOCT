@@ -29,6 +29,8 @@ for yi=1:size(data,3)
     color = uint8( (squeeze(data(:,:,yi))-c(1))/(c(2)-c(1))*255);
     color(color>255) = 255;
     color(color<0) = 0;
+    color(isnan(color)) = 0;
+    
     if (yi==1)
         imwrite(color,filepath,...
             'Description',d ... Description contains min & max values

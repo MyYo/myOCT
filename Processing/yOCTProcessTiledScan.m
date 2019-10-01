@@ -230,11 +230,9 @@ parfor yI=1:length(yAll)
                 %Filter around the focus
                 zI = 1:length(zOneTile); zI = zI(:);
                 if ~isnan(focusPositionInImageZpix)
-                    factor = repmat(exp(-(zI-focusPositionInImageZpix).^2/(2*focusSigma)^2), [1 size(scan1,2)]);
-                    
-                    %Dont allow factor to get too small, it creates an unstable solution
-                    minFactor = exp(-8^2/2);
-                    factor(factor<minFactor) = minFactor;  
+                    factorZ = exp(-(zI-focusPositionInImageZpix).^2/(2*focusSigma)^2) + ...
+                        (zI>focusPositionInImageZpix)*exp(-3^2/2);%Under the focus, its possible to not reduce factor as much 
+                    factor = repmat(factorZ, [1 size(scan1,2)]); 
                 else
                     factor = ones(length(zOneTile),length(xOneTile)); %No focus gating
                 end
@@ -275,11 +273,16 @@ parfor yI=1:length(yAll)
                 end
             end
         end
+                      
+        %Dont allow factor to get too small, it creates an unstable solution
+        minFactor1 = exp(-3^2/2);
+        totalWeights(totalWeights<minFactor1) = NaN; 
             
         %Normalization
         stackmean = stack./totalWeights;
         
         %Save statistics
+        %minmaxVals(yI,:) = [prctile(stackmean(:),30)  prctile(stackmean(:),95)];
         minmaxVals(yI,:) = [min(stackmean(:)) max(stackmean(:))];
         
         %Save results to temporary files to be used later (once we know the
@@ -339,7 +342,8 @@ if(v)
     fprintf('%s Converting to Tiff ...\n',datestr(datetime)); tt=tic();
 end
 
-c = [prctile(minmaxVals(:,1),20)  prctile(minmaxVals(:,2),95)];
+c = [prctile(minmaxVals(:,1),30)  prctile(minmaxVals(:,2),95)];
+%c = mean(minmaxVals);%[prctile(minmaxVals(:,1),30)  prctile(minmaxVals(:,2),95)];
 
 %Load all mat files
 ds = fileDatastore(matYFramesFolder,'ReadFcn',@(x)(x),'FileExtensions','.mat','IncludeSubfolders',true); 
