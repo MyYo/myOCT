@@ -130,7 +130,7 @@ dimOneTile = ...
 tmp = zeros(size(dimOneTile.lambda.values(:)));
 dimOneTileProcessed = yOCTInterfToScanCpx ([{tmp}, {dimOneTile},{'n'},{json.tissueRefractiveIndex}, reconstructConfig, {'peakOnly'},{true}]);
 dimOneTile.z = dimOneTileProcessed.z; %Update only z, not lambda [lambda is changed because of equispacing]
-zDepts = json.zDepts;
+zDepths = json.zDepths;
 xCenters = json.xCenters;
 yCenters = json.yCenters;
 
@@ -148,7 +148,7 @@ dz = diff(zOneTile(1:2));
 %Dimensions of the entire stack
 xAll = (min(xCenters)+xOneTile(1)):dx:(max(xCenters)+xOneTile(end)+dx);xAll = xAll(:);
 yAll = (min(yCenters)+yOneTile(1)):dy:(max(yCenters)+yOneTile(end)+dy);yAll = yAll(:);
-zAll = (min(zDepts)+zOneTile(1)):dz:(max(zDepts)+zOneTile(end)+dz);zAll = zAll(:);
+zAll = (min(zDepths)+zOneTile(1)):dz:(max(zDepths)+zOneTile(end)+dz);zAll = zAll(:);
 
 %Correct for the case of only one scan
 if (length(xCenters) == 1)
@@ -166,9 +166,9 @@ in.zAllmm = zAll;
 if(~isnan(focusPositionInImageZpix))
     %Remove Z positions that are way out of focus (if we are doing focus processing)
     zAll( ...
-        ( zAll < min(zDepts) + zOneTile(round(max(focusPositionInImageZpix - 5*in.focusSigma,0))) ) ...
+        ( zAll < min(zDepths) + zOneTile(round(max(focusPositionInImageZpix - 5*in.focusSigma,0))) ) ...
         | ...
-        ( zAll > max(zDepts) + zOneTile(round(min(focusPositionInImageZpix + 5*in.focusSigma,length(zOneTile)))) ) ...
+        ( zAll > max(zDepths) + zOneTile(round(min(focusPositionInImageZpix + 5*in.focusSigma,length(zOneTile)))) ) ...
         ) = []; 
 end
 
@@ -211,7 +211,7 @@ parfor yI=1:length(yAll)
         %Loop over all x stacks
         for xxI = 1:length(xCenters)
             %Loop over depths stacks
-            for zzI=1:length(zDepts)
+            for zzI=1:length(zDepths)
                 
                 %Frame Name
                 fpTxt = fps{fileI};
@@ -233,7 +233,7 @@ parfor yI=1:length(yAll)
                     factor = repmat(exp(-(zI-focusPositionInImageZpix).^2/(2*focusSigma)^2), [1 size(scan1,2)]);
                     
                     %Dont allow factor to get too small, it creates an unstable solution
-                    minFactor = exp(-3^2/2);
+                    minFactor = exp(-8^2/2);
                     factor(factor<minFactor) = minFactor;  
                 else
                     factor = ones(length(zOneTile),length(xOneTile)); %No focus gating
@@ -241,7 +241,7 @@ parfor yI=1:length(yAll)
                 
                 %Figure out what is the x,z position of each pixel in this file
                 x = xOneTile+xCenters(xxI);
-                z = zOneTile+zDepts(zzI);
+                z = zOneTile+zDepths(zzI);
                 
                 %Helps with interpolation problems
                 x(1) = x(1) - 1e-10; 
@@ -263,7 +263,7 @@ parfor yI=1:length(yAll)
                         );
                     delete(tn);
                     
-                    if (xxI == length(xCenters) && zzI==length(zDepts))
+                    if (xxI == length(xCenters) && zzI==length(zDepths))
                         %Save the last weight
                         tn = [tempname '.mat'];
                         yOCT2Mat(totalWeights,tn)

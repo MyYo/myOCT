@@ -24,7 +24,7 @@ function [json] = yOCTScanTile(varargin)
 %   xCenters,yCenters       0               Center positions of each tiles to scan (x,y) Units: mm. 
 %                                           Example: 'xCenters', [0 1], 'yCenters', [0 1], 
 %                                           will scan 4 OCT volumes centered around [0 0 1 1; 0 1 0 1] + [xOffset; yOffset]
-%   zDepts                  0               Scan depths to scan. Positive value is deeper). Units: mm
+%   zDepths                 0               Scan depths to scan. Positive value is deeper). Units: mm
 %Debug parameters:
 %   v                       true            verbose mode      
 %OUTPUT:
@@ -54,7 +54,7 @@ addParameter(p,'nBScanAvg',1,@isnumeric);
 %Tile Parameters
 addParameter(p,'xCenters',0,@isnumeric);
 addParameter(p,'yCenters',0,@isnumeric);
-addParameter(p,'zDepts',0,@isnumeric);
+addParameter(p,'zDepths',0,@isnumeric);
 
 %Debugging
 addParameter(p,'v',true,@islogical);
@@ -76,7 +76,7 @@ end
 %% Scan center list
 
 %Scan order, z changes fastest, x after, y latest
-[in.gridXcc, in.gridZcc,in.gridYcc] = meshgrid(in.xCenters,in.zDepts,in.yCenters); 
+[in.gridXcc, in.gridZcc,in.gridYcc] = meshgrid(in.xCenters,in.zDepths,in.yCenters); 
 in.gridXcc = in.gridXcc(:);
 in.gridYcc = in.gridYcc(:);
 in.gridZcc = in.gridZcc(:);
@@ -102,9 +102,9 @@ if (in.isVerifyMotionRange)
         fprintf('%s Motion Range Test\n',datestr(datetime));
     end
     if (length(in.gridZcc)>1)
-        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('z',z0+min(in.zDepts)); %Movement [mm]
+        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('z',z0+min(in.zDepths)); %Movement [mm]
         pause(0.5);
-        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('z',z0+max(in.zDepts)); %Movement [mm]
+        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('z',z0+max(in.zDepths)); %Movement [mm]
         pause(0.5);
     end
     
