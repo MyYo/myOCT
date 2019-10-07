@@ -19,6 +19,7 @@ txt = strrep(txt,[newline '":'],'":');
 txt = strrep(txt,[':' newline '"'],':"');
 txt = strrep(txt,[newline '",'],'",');
 txt = strrep(txt,[newline '"}'],['"' newline '}']);
+txt = strrep(txt,[newline '"]'],['"' newline ']']);
 fid = fopen(fpToSave,'w');
 fprintf(fid,'%s',txt);
 fclose(fid);
