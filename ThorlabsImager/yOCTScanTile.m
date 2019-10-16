@@ -25,6 +25,9 @@ function [json] = yOCTScanTile(varargin)
 %                                           Example: 'xCenters', [0 1], 'yCenters', [0 1], 
 %                                           will scan 4 OCT volumes centered around [0 0 1 1; 0 1 0 1] + [xOffset; yOffset]
 %   zDepths                 0               Scan depths to scan. Positive value is deeper). Units: mm
+%   lensWorkingDistance     Inf             If set, will protect lens from going into deep to the sample hiting the lens. Units: mm.
+%                                           The way it works is it computes what is the span of zDepths, compares that to working distance + safety buffer
+%                                           If the number is too high, abort will be initiated.
 %Debug parameters:
 %   v                       true            verbose mode      
 %OUTPUT:
@@ -41,6 +44,7 @@ addRequired(p,'octFolder',@isstr);
 addParameter(p,'octProbePath','probe.ini',@isstr);
 addParameter(p,'isVerifyMotionRange',true,@islogical);
 addParameter(p,'tissueRefractiveIndex',1.4,@isnumeric);
+addParameter(p,'lensWorkingDistance',NaN,@isnumeric);
 
 %Single scan parmaeters
 addParameter(p,'xOffset',0,@isnumeric);
@@ -95,6 +99,13 @@ ThorlabsImagerNET.ThorlabsImager.yOCTScannerInit(in.octProbePath); %Init OCT
 z0=ThorlabsImagerNET.ThorlabsImager.yOCTStageInit('z'); %Init stage
 x0=ThorlabsImagerNET.ThorlabsImager.yOCTStageInit('x'); %Init stage
 y0=ThorlabsImagerNET.ThorlabsImager.yOCTStageInit('y'); %Init stage
+
+%Make sure depths are ok for working distance's sake 
+if (max(in.zDepths) - min(in.zDepths) > in.lensWorkingDistance ...
+        - 0.5) %Buffer
+    error('zDepths requested are from %.1mm to %.1mm, which is too close to lens working distance of %.1fmm. Aborting', ...
+        min(in.zDepths), max(in.zDepths), in.lensWorkingDistance);
+end
 
 %Move 
 if (in.isVerifyMotionRange)
