@@ -63,6 +63,11 @@ json = rmfield(json,'v');
 
 %% Pre processing
 
+if isempty(json.ptStart) || isempty(json.ptEnd)
+	%Nothing to photobleach
+	return;
+end
+
 % Apply Enable Zone
 if isa(enableZone,'function_handle')
     [ptStart,ptEnd] = yOCTApplyEnableZone(json.ptStart, json.ptEnd, enableZone, 10e-3);
