@@ -14,7 +14,7 @@ end
 
 %If folder to write JSON doesn't exist, make it
 fldr = fileparts(fpToSave);
-if ~exist(fldr,'dir')
+if ~isempty(fldr) && ~exist(fldr,'dir')
     mkdir(fldr);
 end
 
