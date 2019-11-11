@@ -12,6 +12,12 @@ else
     fpToSave = fp;
 end
 
+%If folder to write JSON doesn't exist, make it
+fldr = fileparts(fpToSave);
+if ~exist(fldr,'dir')
+    mkdir(fldr);
+end
+
 %Encode and save
 txt = jsonencode(json);
 txt = strrep(txt,'"',[newline '"']);
