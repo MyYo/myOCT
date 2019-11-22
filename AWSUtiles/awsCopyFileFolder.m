@@ -85,7 +85,24 @@ if ~isSourceAWS && isDestAWS
     if err~=0
         error(['error happend while using aws: ' txt]);
     end
-
+%% Copy withing aws mode
+elseif (isSourceAWS && isDestAWS)
+    if (source(end) == '/')
+        %This is a directory copy
+        [err,txt] = system(...
+            ['aws s3 cp "' source '" "' dest '" --recursive']);
+    else
+        %Single file
+        [err,txt] = system(...
+            ['aws s3 cp "' source '" "' dest '"']);
+    end
+    
+    if (err ~= 0)
+        error(txt);
+    end
+    if (v)
+        disp(txt);
+    end
 %% Copy local file mode
 elseif (~isSourceAWS && ~isDestAWS)
     
