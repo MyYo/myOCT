@@ -1,5 +1,5 @@
 function [lsContent, lsContentFullName] = awsls (rootLSFolder)
-%Lists the files and folders in the rootLSFolder
+%Lists the files and folders in the rootLSFolder path
 %lsContent - returns just file/folder names
 %lsContentFull - returns full path
 
