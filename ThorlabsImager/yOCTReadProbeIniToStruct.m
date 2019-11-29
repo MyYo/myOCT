@@ -2,8 +2,6 @@ function st = yOCTReadProbeIniToStruct(probeIniPath)
 % This function reads probe ini and returns a struct with all the
 % information in it to be used later
 
-probeIniPath = 'Y:\Work\_de la Zerda Lab Scripts\HashtagAlignmentRepo\01 OCT Scan and Pattern\Thorlabs\Probe - Olympus 10x.ini';
-
 %% Get the text in the probe ini
 txt = fileread(probeIniPath);
 txtlines = strsplit(txt,'\n');

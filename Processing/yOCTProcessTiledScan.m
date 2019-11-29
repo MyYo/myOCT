@@ -227,6 +227,9 @@ parfor yI=1:length(yAll)
                     scan1 = squeeze(mean(scan1,i));
                 end
                 
+                %Lens abberation / optical path correction
+                %TBD
+                
                 %Filter around the focus
                 zI = 1:length(zOneTile); zI = zI(:);
                 if ~isnan(focusPositionInImageZpix)
