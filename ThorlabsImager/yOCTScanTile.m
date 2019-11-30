@@ -25,9 +25,6 @@ function [json] = yOCTScanTile(varargin)
 %                                           Example: 'xCenters', [0 1], 'yCenters', [0 1], 
 %                                           will scan 4 OCT volumes centered around [0 0 1 1; 0 1 0 1] + [xOffset; yOffset]
 %   zDepths                 0               Scan depths to scan. Positive value is deeper). Units: mm
-%   lensWorkingDistance     Inf             If set, will protect lens from going into deep to the sample hiting the lens. Units: mm.
-%                                           The way it works is it computes what is the span of zDepths, compares that to working distance + safety buffer
-%                                           If the number is too high, abort will be initiated.
 %Debug parameters:
 %   v                       true            verbose mode      
 %OUTPUT:
@@ -44,7 +41,6 @@ addRequired(p,'octFolder',@isstr);
 addParameter(p,'octProbePath','probe.ini',@isstr);
 addParameter(p,'isVerifyMotionRange',true,@islogical);
 addParameter(p,'tissueRefractiveIndex',1.4,@isnumeric);
-addParameter(p,'lensWorkingDistance',NaN,@isnumeric);
 
 %Single scan parmaeters
 addParameter(p,'xOffset',0,@isnumeric);
@@ -71,11 +67,24 @@ v = in.v;
 in = rmfield(in,'octFolder');
 in = rmfield(in,'v');
 in.units = 'mm'; %All units are mm
-in.version = 1; %Version of this file
+in.version = 1.1; %Version of this file
 
 if ~exist(in.octProbePath,'file')
 	error(['Cannot find probe file: ' in.octProbePath]);
 end
+
+%% Parse our parameters from probe
+in.octProbe = yOCTReadProbeIniToStruct(in.octProbePath);
+
+% If set, will protect lens from going into deep to the sample hiting the lens. Units: mm.
+% The way it works is it computes what is the span of zDepths, compares that to working distance + safety buffer
+% If the number is too high, abort will be initiated.
+if isfield(in.octProbe,'ObjectiveWorkingDistance')
+    objectiveWorkingDistance = in.octProbe.ObjectiveWorkingDistance;
+else
+    objectiveWorkingDistance = Inf;
+end
+
 
 %% Scan center list
 
@@ -91,7 +100,7 @@ scanOrder = in.scanOrder;
 
 %% Initialize hardware
 if (v)
-    fprintf('%s Initialzing Hardware...\n',datestr(datetime));
+    fprintf('%s Initialzing Hardware... (if Matlab is taking more than 2 minutes to finish this stage, restart hardware and try again)\n',datestr(datetime));
 end
  
 ThorlabsImagerNETLoadLib(); %Init library
@@ -100,11 +109,15 @@ z0=ThorlabsImagerNET.ThorlabsImager.yOCTStageInit('z'); %Init stage
 x0=ThorlabsImagerNET.ThorlabsImager.yOCTStageInit('x'); %Init stage
 y0=ThorlabsImagerNET.ThorlabsImager.yOCTStageInit('y'); %Init stage
 
+if (v)
+    fprintf('%s Initialzing Hardware Completed\n',datestr(datetime));
+end
+
 %Make sure depths are ok for working distance's sake 
-if (max(in.zDepths) - min(in.zDepths) > in.lensWorkingDistance ...
+if (max(in.zDepths) - min(in.zDepths) > objectiveWorkingDistance ...
         - 0.5) %Buffer
     error('zDepths requested are from %.1mm to %.1mm, which is too close to lens working distance of %.1fmm. Aborting', ...
-        min(in.zDepths), max(in.zDepths), in.lensWorkingDistance);
+        min(in.zDepths), max(in.zDepths), objectiveWorkingDistance);
 end
 
 %Move 
@@ -166,8 +179,8 @@ for scanI=1:length(scanOrder)
     s = awsModifyPathForCompetability(s);
     
     ThorlabsImagerNET.ThorlabsImager.yOCTScan3DVolume(...
-        in.xOffset,in.yOffset, ... centerX, centerY [mm]
-        in.xRange, in.yRange,  ... rangeX,rangeY [mm]
+        in.xOffset+in.octProbe.DynamicOffsetX,in.yOffset, ... centerX, centerY [mm]
+        in.xRange.*in.octProbe.DynamicFactorX, in.yRange,  ... rangeX,rangeY [mm]
         0,       ... rotationAngle [deg]
         in.nXPixels,in.nYPixels, ... SizeX,sizeY [# of pixels]
         in.nBScanAvg,       ... B Scan Average

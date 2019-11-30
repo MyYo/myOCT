@@ -9,7 +9,6 @@ function json = yOCTPhotobleachTile(varargin)
 %   Parameter               Default Value   Notes
 %Probe defenitions:
 %   octProbePath            'probe.ini'     Where is the probe.ini is saved to be used
-%   FOV                     [Inf, Inf]      FOV of the lens (mm, x and y)
 %Photobleaching Parameters:
 %   z                       0               Photobleaching depth (compared to corrent position in mm)
 %   exposure                15              How much time to expose each spot to laser light. Units sec/mm 
@@ -32,7 +31,6 @@ addRequired(p,'ptEnd');
 
 %General parameters
 addParameter(p,'octProbePath','probe.ini',@isstr);
-addParameter(p,'FOV',[Inf Inf],@isnumeric);
 addParameter(p,'z',0,@isnumeric);
 addParameter(p,'exposure',15,@isnumeric);
 addParameter(p,'nPasses',2,@isnumeric);
@@ -47,16 +45,17 @@ json.units = 'mm or mm/sec';
 enableZone = json.enableZone;
 json = rmfield(json,'enableZone');
 
-%If one value is given for FOV, assume x and y FOVs are the same
-if length(json.FOV) == 1
-    json.FOV = json.FOV*[1 1];
-end
-FOV = json.FOV;
-
 %Check probe 
 if ~exist(json.octProbePath,'file')
 	error(['Cannot find probe file: ' json.octProbePath]);
 end
+
+%Load probe ini
+ini = yOCTReadProbeIniToStruct(json.octProbePath);
+
+%Load FOV
+json.FOV = [ini.RangeMaxX ini.RangeMaxY];
+FOV = json.FOV;
 
 v = json.v;
 json = rmfield(json,'v');

@@ -121,6 +121,11 @@ end
 %% Load configuration file & set parameters
 json = awsReadJSON([tiledScanInputFolder 'ScanInfo.json']);
 
+%Figure out dispersion parameters
+if ~isfield(in,'dispersionParameterA') || isempty(in.dispersionParameterA)
+   in.dispersionParameterA = json.octProbe.DefaultDispersionParameterA;
+end
+
 fp = cellfun(@(x)(awsModifyPathForCompetability([tiledScanInputFolder '\' x '\'])),json.octFolders,'UniformOutput',false);
 focusPositionInImageZpix = in.focusPositionInImageZpix;
 focusSigma = in.focusSigma;
