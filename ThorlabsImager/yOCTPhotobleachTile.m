@@ -111,7 +111,7 @@ ycc(em) = [];
 %% Initialize Hardware
 
 if (v)
-    fprintf('%s Initialzing Hardware\n',datestr(datetime));
+    fprintf('%s Initialzing Hardware... (if Matlab is taking more than 2 minutes to finish this step, restart hardware and try again)\n',datestr(datetime));
 end
 
 ThorlabsImagerNETLoadLib(); %Init library
@@ -130,6 +130,10 @@ end
 
 %Initialize scanner
 ThorlabsImagerNET.ThorlabsImager.yOCTScannerInit(json.octProbePath); %Init OCT
+
+if (v)
+    fprintf('%s Initialzing Hardware Completed\n',datestr(datetime));
+end
 
 %% Photobleach
 for i=1:length(xcc)
