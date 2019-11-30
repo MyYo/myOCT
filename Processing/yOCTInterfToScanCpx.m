@@ -89,7 +89,7 @@ if ~exist('dispersionParameterA','var') || isempty(dispersionParameterA)
     disp('Please Enter dispersionParameterA (quadratic correction), recomendations [nm^2/rad]:')
     disp('100 is a good value to start from');
     disp('You can also try running Demo_DispersionCorrection, to figure out the best Value for you');
-    return;
+    error('Read above');
 end
 
 %Quadratic term only omega

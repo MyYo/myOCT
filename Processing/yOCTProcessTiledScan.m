@@ -124,6 +124,7 @@ json = awsReadJSON([tiledScanInputFolder 'ScanInfo.json']);
 %Figure out dispersion parameters
 if ~isfield(in,'dispersionParameterA') || isempty(in.dispersionParameterA)
    in.dispersionParameterA = json.octProbe.DefaultDispersionParameterA;
+   reconstructConfig = [reconstructConfig {'dispersionParameterA', in.dispersionParameterA}];
 end
 
 fp = cellfun(@(x)(awsModifyPathForCompetability([tiledScanInputFolder '\' x '\'])),json.octFolders,'UniformOutput',false);
