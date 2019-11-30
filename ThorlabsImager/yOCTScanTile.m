@@ -100,7 +100,7 @@ scanOrder = in.scanOrder;
 
 %% Initialize hardware
 if (v)
-    fprintf('%s Initialzing Hardware... (if Matlab is taking more than 2 minutes to finish this stage, restart hardware and try again)\n',datestr(datetime));
+    fprintf('%s Initialzing Hardware... (if Matlab is taking more than 2 minutes to finish this step, restart hardware and try again)\n',datestr(datetime));
 end
  
 ThorlabsImagerNETLoadLib(); %Init library
