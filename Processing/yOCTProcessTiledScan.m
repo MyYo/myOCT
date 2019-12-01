@@ -234,7 +234,14 @@ parfor yI=1:length(yAll)
                 end
                 
                 %Lens abberation / optical path correction
-                %TBD
+                %(TODO:Edwin) TBD
+                %Use polynomial in
+                %json.octProbe.OpticalPathCorrectionPolynomial to correct
+                %scan1 such that OCT alignment is in effect. Polynomial
+                %coefficents are from the fit:
+                %p(1)*x+p(2)*y+p(3)*x^2+p(4)*y^2+p(5)*x*y
+                %x,y are in microns, and the result of the polynomial is in
+                %microns as well.
                 
                 %Filter around the focus
                 zI = 1:length(zOneTile); zI = zI(:);
