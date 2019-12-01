@@ -1,10 +1,11 @@
-function yOCT2Tif (data, filepath, c)
+function yOCT2Tif (data, filepath, c, dim)
 %This function saves a grayscale version of data to a Tiff stack file.
 %Dimensions are (z,x) and each frame is y
 %INPUTS
 %   filpath - filepath of output tif file
 %   data - scan data (dimensions are (z,x,y)
 %   c - [min, max] of the grayscale
+%   dim - dimention structure, to be saved along
 
 %% Input check
 if ~exist('c','var') || isempty(c)
@@ -23,8 +24,17 @@ else
     isAWS = false;
 end
 
+%% Meta data to be saved along with the file
+if exist('dim','var')
+    meta.dim = dim;
+else
+    meta.dim = [];
+end
+meta.c = c;
+meta.version = 2;
+d = jsonencode(meta);
+
 %% Preform writing to the file
-d = sprintf('min:%.5g,max:%.5g',c(1),c(2));
 for yi=1:size(data,3)
     color = uint8( (squeeze(data(:,:,yi))-c(1))/(c(2)-c(1))*255);
     color(color>255) = 255;

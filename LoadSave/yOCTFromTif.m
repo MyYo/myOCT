@@ -1,9 +1,12 @@
-function scanAbs = yOCTFromTif (filepath, yI)
+function [scanAbs, dim] = yOCTFromTif (filepath, yI)
 %This function loads a grayscale version of scanAbs from a Tiff stack file.
 %Dimensions are (z,x,y)
 %INPUTS
 %   filpath - filepath of output tif file (stack is z,x and each frame is y)
 %   yI - Optional, which y frames to load
+%OUTPUTS:
+%   scanAbs - data saved from tif
+%   dim - dimention structure, if present as meta data
 
 if (awsIsAWSPath(filepath))
     %Load Data from AWS
@@ -29,10 +32,27 @@ sizeZ = info(1).Height;
 
 scanAbs = zeros(sizeZ,sizeX,sizeY,'single');
 
+%% Get meta data
+persistent timeOfLastWarningHappend; 
+
 if isfield(info(1),'ImageDescription')
-    c = sscanf(info(1).ImageDescription,'min:%g,max:%g');
+    description = info(1).ImageDescription;
+    if (description(1) ~= '{')
+        % Support for version 1, depriciated!
+        c = sscanf(info(1).ImageDescription,'min:%g,max:%g');
+       
+        if isemprt(timeOfLastWarningHappend) || ...
+                timeOfLastWarningHappend < now-1/86400 %Last warning is old by n seconds
+            warning('%s has a depriciated version of meta data, update please',filepath);
+        end
+    else
+        meta = jsondecode(description);
+        c = meta.c;
+        dim = meta.dim;
+    end
 else
     c =[];
+    dim = [];
 end 
 
 if isempty(c) || length(c)~=2
