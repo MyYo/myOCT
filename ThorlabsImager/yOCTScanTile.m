@@ -121,7 +121,8 @@ if (max(in.zDepths) - min(in.zDepths) > objectiveWorkingDistance ...
 end
 
 %Move 
-if (in.isVerifyMotionRange)
+if (in.isVerifyMotionRange && ...
+    (length(in.gridZcc)>1 || length(in.gridYcc)>1 || length(in.gridXcc)>1))
     if (v)
         fprintf('%s Motion Range Test\n',datestr(datetime));
     end
