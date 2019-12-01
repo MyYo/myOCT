@@ -363,7 +363,7 @@ parfor yI=1:length(files)
     try
         %Read
         slice = yOCTFromMat(files{yI});
-        slice = log(slice);
+        slice = mag2db(slice);
 
         %Write
         tn = [tempname '.tif'];
