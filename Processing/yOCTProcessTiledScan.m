@@ -212,6 +212,13 @@ parfor yI=1:length(yAll)
         fileI = 1;
         
         %What is the y index in the file corresponding to this yI
+        %Example, let us assume we took two tiles in the y direction each
+        %tile has 4 scans in the y direction. Total number of scans is 8.
+        %The first scan in the stitched file is tile #1 scan #1, then scan 2
+        %and finally tile #1 scan #3. After this one, we need to move to 
+        %tile #2 scan #1. We need to have a varible specifing which scan in
+        %the file to grab. Altough we are processing the overall scan #5
+        %thus yI=5, the scan we would like to grab is yInFile=1
         yIInFile = yI - yGroupSF(yGroup,1)+1;
         
         %Loop over all x stacks
