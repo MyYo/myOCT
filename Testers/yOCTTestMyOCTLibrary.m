@@ -10,6 +10,9 @@ mainTestVectorFolder2 = 's3://delazerdamatlab/Users/Jenkins/'; %S3 version
 currentFileFolder = fileparts(mfilename('fullpath'));
 yOCTMainFolder = [currentFileFolder '\..\'];
 
+%% Low level test
+yOCTLowLevelTest
+
 %% Test Reconstruction
 disp('Reconstruction Tests... (Local Folder Version)');
 yOCTTestReconstruction([mainTestVectorFolder1 'SampleOCTVolumes\']);

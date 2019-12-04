@@ -1,4 +1,4 @@
-function [scanCpx,dimensions] = yOCTInterfToScanCpx (varargin)
+function [scanCpx,dimensionsOut] = yOCTInterfToScanCpx (varargin)
 %This function takes the interferogram loaded from yOCTLoadInterfFromFile
 %and converts it to a complex scanCpx datastructure
 %
@@ -31,7 +31,7 @@ if (iscell(varargin{1}))
 end 
 
 interferogram = varargin{1};
-dimensions = varargin{2};
+dimensionsIn = varargin{2};
 
 %Optional Parameters
 dispersionParameterA = 100; %Default Value
@@ -48,6 +48,7 @@ if (peakOnly)
 end	
 
 %% Check if interferogram is equispaced. If not, equispace it before processing
+dimensions = yOCTChangeDimensionsStructureUnits(dimensionsIn,'nm');
 lambda = dimensions.lambda.values;
 k = 2*pi./(lambda); %Get wave lumber in [1/nm]
 
@@ -122,6 +123,9 @@ zStepSizeMedium = zStepSizeAir/n;
 dimensions.z.values = linspace(0,zStepSizeMedium*N/2,N/2); 
 dimensions.z.units = 'microns [in medium]';
 
+dimensionsOut = dimensionsIn;
+dimensionsOut.z = dimensions.z;
+
 if (peakOnly)
-	scanCpx = dimensions;
+	scanCpx = dimensionsOut;
 end	

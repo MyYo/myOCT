@@ -32,7 +32,7 @@ end
 s = size(interf);
 lambda = dimensions.lambda.values(:);
 
-k = 2*pi./(lambda); %Get wave lumber in [1/nm]
+k = 2*pi./(lambda); %Get wave lumber in [1/distance]
 kLin = linspace(max(k),min(k),length(k))'; %Linear
 
 %% Interferogram
