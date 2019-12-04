@@ -21,6 +21,8 @@ function yOCTProcessTiledScan(varargin)
 %   focusPositionInImageZpix NaN        Z position [pix] of focus in each scan (one number)
 %   debugFolder         ''              Where to save debug information (if needed). if empty will save at the output folder: outputFolder/../debug/
 %   saveYs              3               How many Y planes to save (for future reference)
+%   applyPathLengthCorrection true      Apply path link correction, if
+%                                       probe ini has the information.
 %   v                   true            verbose mode      
 %OUTPUT:
 %   No output is returned. Will save scan Abs to outputFolder, and
@@ -42,6 +44,9 @@ addParameter(p,'focusPositionInImageZpix',NaN,@isnumeric);
 addParameter(p,'debugFolder','',@isstr);
 addParameter(p,'saveYs',3,@isnumeric);
 addParameter(p,'v',true,@islogical);
+
+%TODO(yonatan) shift this parameter to ProcessScanFunction
+addParameter(p,'applyPathLengthCorrection',true);
 
 p.KeepUnmatched = true;
 parse(p,varargin{:});
@@ -139,6 +144,16 @@ dimOneTile.z = dimOneTileProcessed.z; %Update only z, not lambda [lambda is chan
 zDepths = json.zDepths;
 xCenters = json.xCenters;
 yCenters = json.yCenters;
+
+%TODO(yonatan) move as well
+%see if parameter exists
+if (in.applyPathLengthCorrection && isfield(json.octProbe,'OpticalPathCorrectionPolynomial'))
+    OP_p = json.octProbe.OpticalPathCorrectionPolynomial;
+    OP_p = OP_p(:)';
+else 
+    %No correction
+    OP_p = [0 0 0 0 0];
+end
 
 %% Create indexing reference
 %This specifies how to mesh together a tiled scan, each axis seperately
@@ -240,15 +255,17 @@ parfor yI=1:length(yAll)
                     scan1 = squeeze(mean(scan1,i));
                 end
                 
+                %Change dimensions to microns units
+                dim1 = yOCTChangeDimensionsStructureUnits(dim1,'microns');
+                
                 %Lens abberation / optical path correction
-                %(TODO:Edwin) TBD
-                %Use polynomial in
-                %json.octProbe.OpticalPathCorrectionPolynomial to correct
-                %scan1 such that OCT alignment is in effect. Polynomial
-                %coefficents are from the fit:
-                %p(1)*x+p(2)*y+p(3)*x^2+p(4)*y^2+p(5)*x*y
-                %x,y are in microns, and the result of the polynomial is in
-                %microns as well.
+                %TODO(yonatan) Add this to a seperate function as well so
+                %we can call it from any Processing function
+                correction = @(x,y)(x*OP_p(1)+y*OP_p(2)+x.^2*OP_p(3)+y.^2*OP_p(4)+x.*y*OP_p(5)); %x,y are in microns
+                [xx,zz] = meshgrid(dim1.x.values,dim1.z.values); %um                
+                scan1_min = min(scan1(:));
+                scan1 = interp2(xx,zz,scan1,xx,zz-correction(xx,dim1.y.values));
+                scan1(scan1<scan1_min) = scan1_min; %Dont let interpolation value go too low
                 
                 %Filter around the focus
                 zI = 1:length(zOneTile); zI = zI(:);
