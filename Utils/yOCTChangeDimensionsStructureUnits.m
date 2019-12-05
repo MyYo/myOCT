@@ -32,10 +32,14 @@ end
 function fOut = correctField(f, fToNewUnits, newUnitsName)
 fOut = f;
 
+% Compute overall factor
 fFromOldUnits = 1/howToConvertFromMetersTo(f.units);
-fOut.values = fOut.values*fFromOldUnits*fToNewUnits;
+factorTotal = fFromOldUnits*fToNewUnits;
 
-fOut.units = newUnitsName;
+if (~isnan(factorTotal)) %Apply factor only if it exists
+    fOut.values = fOut.values*factorTotal;
+    fOut.units = newUnitsName;
+end
 
 function factor = howToConvertFromMetersTo (unitsName)
 
