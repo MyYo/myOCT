@@ -3,7 +3,7 @@ function dimOut = yOCTChangeDimensionsStructureUnits(dim,newUnits)
 % INPUTS:
 %   dim - dimensions structure to be converted
 %   newUnits - string specifing what are the new units, can be
-%       'mm' or 'milimeters' - for milimeters
+%       'mm' or 'millimeters' - for milimeters
 %       'um' or 'microns' - for micrometers
 %       'm'  or 'meters' - for meters
 % OUTPUTS:
@@ -48,7 +48,7 @@ unitsName(unitsName == ')') = '';
 unitsName = strtrim(unitsName);
 
 %Find what units is this
-if (contains(unitsName,'mm') || contains(unitsName,'milimeter'))
+if (contains(unitsName,'mm') || contains(unitsName,'millimeter'))
     factor = 1e3;
 elseif (contains(unitsName,'um') || contains(unitsName,'micron') || contains(unitsName,'micrometer'))
     factor = 1e6;
