@@ -11,7 +11,7 @@ currentFileFolder = fileparts(mfilename('fullpath'));
 yOCTMainFolder = [currentFileFolder '\..\'];
 
 %% Low level test
-yOCTLowLevelTest
+yOCTTestLowLevel();
 
 %% Test Reconstruction
 disp('Reconstruction Tests... (Local Folder Version)');
