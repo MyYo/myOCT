@@ -54,9 +54,9 @@ elseif (contains(unitsName,'um') || contains(unitsName,'micron') || contains(uni
     factor = 1e6;
 elseif (contains(unitsName,'nm') || contains(unitsName,'nanometer'))
     factor = 1e9;
-elseif (contains(unitsName,'meter') || strcmp(strtrim(unitsName),'m'))
+elseif (contains(unitsName,'meter') || strcmp(unitsName,'m'))
     factor = 1;
-elseif strcmp(strtrim(unitsName),'na')
+elseif strcmp(unitsName,'na') || strcmp(unitsName,'nan')
     %Unit nane is NA, conversion factor doesn't exist
     factor = NaN;
 else
