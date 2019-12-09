@@ -41,7 +41,7 @@ if isfield(info(1),'ImageDescription')
         % Support for version 1, depriciated!
         c = sscanf(info(1).ImageDescription,'min:%g,max:%g');
        
-        if isemprt(timeOfLastWarningHappend) || ...
+        if isempty(timeOfLastWarningHappend) || ...
                 timeOfLastWarningHappend < now-1/86400 %Last warning is old by n seconds
             warning('%s has a depriciated version of meta data, update please',filepath);
         end
