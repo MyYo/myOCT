@@ -111,17 +111,19 @@ ycc(em) = [];
 %% Initialize Hardware Library
 
 if (v)
-    fprintf('%s Initialzing Hardware Dll Library... \n\t(if Matlab is taking more than 2 minutes to finish this step, restart matlab and try again)\n',datestr(datetime));
+    fprintf('%s Initialzing Hardware Dll Library...',datestr(datetime));
+    lineLength=fprintf('\n\t(if Matlab is taking more than 2 minutes to finish this step, restart matlab and try again)\n');
 end
 ThorlabsImagerNETLoadLib(); %Init library
 if (v)
-    fprintf('%s Done Hardware Dll Init.\n',datestr(datetime));
+    fprintf('%s Done.\n',repmat(sprintf('\b'),1,lineLength))
 end
 
 %% Initialize Translation Stage
 
 if (v)
-    fprintf('%s Initialzing Motorized Translation Stage Hardware... \n\t(if Matlab is taking more than 2 minutes to finish this step, restart hardware and try again)\n',datestr(datetime));
+    fprintf('%s Initialzing Motorized Translation Stage Hardware...',datestr(datetime));
+    lineLength=fprintf('\n\t(if Matlab is taking more than 2 minutes to finish this step, restart hardware and try again)\n');
 end
 
 %Initialize x,y stage if we need to translate
@@ -140,7 +142,7 @@ end
 ThorlabsImagerNET.ThorlabsImager.yOCTScannerInit(json.octProbePath); %Init OCT
 
 if (v)
-    fprintf('%s Initialzing Motorized Translation Stage Hardware Completed\n',datestr(datetime));
+    fprintf('%s Done.\n',repmat(sprintf('\b'),1,lineLength))
 end
 
 %% Photobleach
