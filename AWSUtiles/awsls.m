@@ -3,6 +3,19 @@ function [lsContent, lsContentFullName] = awsls (rootLSFolder)
 %lsContent - returns just file/folder names
 %lsContentFull - returns full path
 
+%% Handel the case where pointing to local folder
+if (~awsIsAWSPath(rootLSFolder))
+    % Get content
+    tmp = dir(rootLSFolder);
+    
+    lsContent = {tmp(3:end).name};
+    lsContentFullName = cellfun(@(x)(...
+        awsModifyPathForCompetability([rootLSFolder,x],false)), ...
+        lsContent,'UniformOutput',false);
+    
+    return;
+end
+
 %% Credentials check
 awsSetCredentials(1);
 rootLSFolder = awsModifyPathForCompetability([rootLSFolder '/'],true);

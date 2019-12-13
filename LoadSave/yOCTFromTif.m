@@ -1,4 +1,4 @@
-function [scanAbs, dim] = yOCTFromTif (filepath, yI)
+function [scanAbs, dim, c] = yOCTFromTif (filepath, yI)
 %This function loads a grayscale version of scanAbs from a Tiff stack file.
 %Dimensions are (z,x,y)
 %INPUTS
@@ -7,6 +7,7 @@ function [scanAbs, dim] = yOCTFromTif (filepath, yI)
 %OUTPUTS:
 %   scanAbs - data saved from tif
 %   dim - dimention structure, if present as meta data
+%   c - limits used to create the file
 
 if (awsIsAWSPath(filepath))
     %Load Data from AWS
