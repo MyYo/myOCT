@@ -268,7 +268,7 @@ parfor yI=1:length(yAll)
                 correction = @(x,y)(x*OP_p(1)+y*OP_p(2)+x.^2*OP_p(3)+y.^2*OP_p(4)+x.*y*OP_p(5)); %x,y are in microns
                 [xx,zz] = meshgrid(dim1.x.values,dim1.z.values); %um                
                 scan1_min = min(scan1(:));
-                scan1 = interp2(xx,zz,scan1,xx,zz+correction(xx,dim1.y.values));
+                scan1 = interp2(xx,zz,scan1,xx,zz+correction(xx,dim1.y.values),'nearest');
                 scan1(scan1<scan1_min) = scan1_min; %Dont let interpolation value go too low
                 
                 %Filter around the focus
@@ -326,8 +326,8 @@ parfor yI=1:length(yAll)
         stackmean = stack./totalWeights;
         
         %Save statistics
-        %minmaxVals(yI,:) = [prctile(stackmean(:),30)  prctile(stackmean(:),95)];
-        minmaxVals(yI,:) = [min(stackmean(:)) max(stackmean(:))];
+        minmaxVals(yI,:) = [prctile(stackmean(:),20)  prctile(stackmean(:),99.999)];
+        %minmaxVals(yI,:) = [min(stackmean(:)) max(stackmean(:))];
         
         %Save results to temporary files to be used later (once we know the
         %scale of the images to write
@@ -386,8 +386,8 @@ if(v)
     fprintf('%s Converting to Tiff ...\n',datestr(datetime)); tt=tic();
 end
 
-c = [prctile(minmaxVals(:,1),30)  prctile(minmaxVals(:,2),95)];
-%c = mean(minmaxVals);%[prctile(minmaxVals(:,1),30)  prctile(minmaxVals(:,2),95)];
+%c = [prctile(minmaxVals(:,1),30)  prctile(minmaxVals(:,2),95)];
+c = mean(minmaxVals);%[prctile(minmaxVals(:,1),30)  prctile(minmaxVals(:,2),95)];
 
 %Load all mat files
 ds = fileDatastore(matYFramesFolder,'ReadFcn',@(x)(x),'FileExtensions','.mat','IncludeSubfolders',true); 
@@ -402,7 +402,7 @@ parfor yI=1:length(files)
 
         %Write
         tn = [tempname '.tif'];
-        yOCT2Tif(slice,tn, log(c))
+        yOCT2Tif(slice,tn, 20*log10(c))
         awsCopyFile_MW1(tn, ...
             sprintf('%sy%04d.tif',tifYFramesFolder,yI)...
             ); %Matlab worker version of copy files
@@ -443,7 +443,7 @@ parfor(i=1:1,1) %Run once but on a worker
     end
     
     tn = [tempname '.tif'];
-    yOCT2Tif(yTiffAll,tn,log(c));
+    yOCT2Tif(yTiffAll,tn,20*log10(c));
     awsCopyFile_MW1(tn,tifYFrameAllFP); %Matlab worker version of copy files
     delete(tn);
        
