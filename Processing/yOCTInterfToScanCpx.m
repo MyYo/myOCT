@@ -19,7 +19,7 @@ function [scanCpx,dimensionsOut] = yOCTInterfToScanCpx (varargin)
 %		- 'peakOnly' - if set to true, only returns dimensions update. Default: false
 %			dimensions = yOCTInterfToScanCpx (varargin)
 %OUTPUT
-%   BScanCpx - where lambda dimension is replaced by z
+%   scanCpx - 2D or 3D volume with dimensions (z,x,y)
 %	dimensions - updated dimesions, adding dimesions for z
 %
 %Author: Yonatan W (Dec 27, 2017)
