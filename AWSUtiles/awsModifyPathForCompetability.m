@@ -5,8 +5,11 @@ function p = awsModifyPathForCompetability (p,isAWS_CLI)
 %   p - path
 %   isAWS_CLI - will this path be used with AWS CLI? if so, spaces are
 %   defined slightly differently. If used path for datastore, set to false
-isAWS = awsIsAWSPath(p);
+if (length(p)<2)
+    return; %No modifications needed
+end
 
+isAWS = awsIsAWSPath(p);
 %% Generic replacements
 %Spatial cases
 p = strrep(p,'s3://','~1/');   %Save important structures, s3 paths

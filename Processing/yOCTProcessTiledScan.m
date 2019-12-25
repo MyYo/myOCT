@@ -270,7 +270,7 @@ parfor yI=1:length(yAll)
                 scan1_min = min(scan1(:));
                 scan1 = interp2(xx,zz,scan1,xx,zz+correction(xx,dim1.y.values),'nearest');
                 scan1(scan1<scan1_min) = scan1_min; %Dont let interpolation value go too low
-                
+
                 %Filter around the focus
                 zI = 1:length(zOneTile); zI = zI(:);
                 if ~isnan(focusPositionInImageZpix)
@@ -402,7 +402,7 @@ parfor yI=1:length(files)
 
         %Write
         tn = [tempname '.tif'];
-        yOCT2Tif(slice,tn, 20*log10(c))
+        yOCT2Tif(slice,tn,'clim',mag2db(c))
         awsCopyFile_MW1(tn, ...
             sprintf('%sy%04d.tif',tifYFramesFolder,yI)...
             ); %Matlab worker version of copy files
@@ -443,7 +443,7 @@ parfor(i=1:1,1) %Run once but on a worker
     end
     
     tn = [tempname '.tif'];
-    yOCT2Tif(yTiffAll,tn,20*log10(c));
+    yOCT2Tif(yTiffAll,tn,'clim',mag2db(c));
     awsCopyFile_MW1(tn,tifYFrameAllFP); %Matlab worker version of copy files
     delete(tn);
        
