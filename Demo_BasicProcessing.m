@@ -39,7 +39,7 @@ for i=1:length(filePaths)
         sv = sv.*(meanAbs > 0.8); %Gate speckle variance, threshold should be based on air signal
         
         yOCT2Tif(sv,[filePrefix '_SpeckleVariance.tif'],...
-            [0 1]); %Image grayscale border
+            'clim',[0 1]); %Image grayscale border
     end
     
     toc;
