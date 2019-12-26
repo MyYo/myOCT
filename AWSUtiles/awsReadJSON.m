@@ -7,6 +7,7 @@ if (awsIsAWSPath(fp))
     awsSetCredentials;
     fp = awsModifyPathForCompetability(fp,false);
 else
+    fp = awsModifyPathForCompetability(fp);
     isAWS = false;
 end
 

@@ -2,6 +2,7 @@ function awsRmDir(myDir)
 %This function will remove dir if it exists (either in AWS or locally)
 
 if ~awsIsAWSPath(myDir)
+    myDir = awsModifyPathForCompetability(myDir);
     if exist(myDir,'dir')
         rmdir(myDir,'s');
     end

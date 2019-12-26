@@ -9,7 +9,7 @@ if (awsIsAWSPath(fp))
     fpToSave = 'tmp.json';
 else
     isAWS = false;
-    fpToSave = fp;
+    fpToSave = awsModifyPathForCompetability(fp);
 end
 
 %If folder to write JSON doesn't exist, make it

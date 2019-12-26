@@ -209,50 +209,76 @@ else
     % Finish WM work
     awsCopyFile_MW2(outputFilePaths{2});
     
-    if (isempty(c)) %<-IS IT REQUIRED->
-        %Get all the JSON files, so we can read c
-        dsJsons = fileDatastore(outputFilePaths{2},'ReadFcn',@awsReadJSON, ...
-            'FileExtensions','.json'); 
-        cJsons = dsJsons.readall();
-        cmin = cellfun(@(x)(min(x.c)),cJsons);
-        cmax = cellfun(@(x)(max(x.c)),cJsons);
-        c = [cmin cmax];
+    %Get all the JSON files, so we can read c
+    dsJsons = fileDatastore(outputFilePaths{2},'ReadFcn',@awsReadJSON, ...
+        'FileExtensions','.json'); 
+    cJsons = dsJsons.readall();
+    cmin = cellfun(@(x)(min(x.c)),cJsons);
+    cmax = cellfun(@(x)(max(x.c)),cJsons);
+    
+    if isempty(c)
+        c = [min(cmin) max(cmax)];
+    end
+   
+    % Clear Json files that contain c, they are no longer required
+    for i=1:length(dsJsons.Files)
+        awsRmFile(dsJsons.Files{i});
     end
     
-    % Finish processing, but try running on the cloud for that
+    % Rewrite individual slides with the same c boundray for all
     parfor(parforI=1:1,1) %Run once but on a worker
         % Make sure worker has the right credentials
         awsSetCredentials;
         
+        for frameI = 1:length(cmin)
+            % Read frame
+            fp = awsModifyPathForCompetability(sprintf('%s/y%04d.tif',...
+                outputFilePaths{2},frameI)); 
+            ds = fileDatastore(fp,'readFcn',@imread);
+            dat = ds.read();
+            
+            % Delete existing frame
+            awsRmFile(fp);
+           
+            % Write a new frame
+            tn = [tempname '.tif'];
+            imwrite( ...
+                uint16(...
+                (double(dat)*(cmax(frameI)-cmin(frameI)) + cmin(frameI) - c(1))/diff(c) ...
+                ),tn);
+            awsCopyFile_MW1(tn,fp); %Matlab worker version of copy files
+            delete(tn);
+        end 
     end %Run once but on a worker
+    awsCopyFile_MW2(outputFilePaths{2});
     
-    % Load clim for each of the files
+    % Finish generating a folder by placing metadata
+    metaJson = GenerateMetaData(metadata,c);
+    awsWriteJSON(metaJson, ...
+                [outputFilePaths{2} '/TifMetadata.json']);
     
     % Generate a single file if required
     if isOutputFile
-        fileOutputPath = outputFilePaths{1};
-        ds = fileDatastore(fileOutputPath,'ReadFcn',@(x)(x),'FileExtensions','.tif','IncludeSubfolders',true); 
-        files = ds.Files;
+        outputFileTmpFolder = awsModifyPathForCompetability([outputFilePaths{2} 'all\all.tif']);
         parfor(parforI=1:1,1) %Run once but on a worker
-            yTiffAll = zeros(sz);
-
-            for j=1:length(files)
-               dat = yOCTFromTif(files{j});
-
-               if (j==1)
-                   yTiffAll = zeros([size(dat,1), size(dat,2) length(files)]);
-               end
-
-               yTiffAll(:,:,j) = dat;  
-            end
-
+            % Load data
+            dat = yOCTFromTif(outputFilePaths{2});
+            
+            % Save it as a single file
             tn = [tempname '.tif'];
-            yOCT2Tif(yTiffAll,tn,'clim',c,'metadata',metadata);
-            awsCopyFile_MW1(tn,fileOutputPath); %Matlab worker version of copy files
+            yOCT2Tif(dat,tn,'clim',c,'metadata',metadata);
+            awsCopyFile_MW1(tn,outputFileTmpFolder); %Matlab worker version of copy files
             delete(tn);
 
         end
-        awsCopyFile_MW2(fileOutputPath);
+        awsCopyFile_MW2([outputFileTmpFolder '/../']);
+        awsCopyFileFolder(outputFileTmpFolder,outputFilePaths{1});
+        awsRmDir([outputFileTmpFolder '/../']);
+    end
+    
+    % If output folder is not required, delete it
+    if ~isOutputFolder
+        awsRmDir(outputFilePaths{2});
     end
 
 end
