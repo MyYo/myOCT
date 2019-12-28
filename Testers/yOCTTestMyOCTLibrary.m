@@ -15,9 +15,9 @@ yOCTTestLowLevel();
 
 %% Test Reconstruction
 disp('Reconstruction Tests... (Local Folder Version)');
-yOCTTestReconstruction([mainTestVectorFolder1 'SampleOCTVolumes\']);
+yOCTTestReconstruction([mainTestVectorFolder1 'SampleOCTVolumes\'],true);
 disp('Reconstruction Tests... (S3 Version)');
-yOCTTestReconstruction([mainTestVectorFolder2 'SmallSampleOCTVolumes/']);
+yOCTTestReconstruction([mainTestVectorFolder2 'SmallSampleOCTVolumes/'],true);
 
 %% Test that Demos are working
 disp('Demo Tests');

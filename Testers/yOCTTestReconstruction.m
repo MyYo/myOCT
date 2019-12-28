@@ -1,50 +1,84 @@
-function yOCTTestReconstruction(TestVectorFolder)
-%This tester loads OCT files and check preformances and imagery 
-%
-%To generate a parameters file
+function yOCTTestReconstruction(baseFolder, isLookForTestVectorsInBaseFolder)
+% This tester loads OCT files and check preformances and imagery.
+% Will try to reconstruct OCT in basefolder according to information in
+% parameters.json.
+% INPUTS:
+%   baseFolder - contains OCT data and may contain parameters.json
+%       parameters.json can contain:
+%           .reconstructionFunction - can be 'yOCTProcessScan' or
+%              'yOCTProcessTiledScan'
+%           .reconstructionParameters - cell array of parameters to send to
+%              reconstructionFunction
+%   isLookForTestVectorsInBaseFolder - when set to true (default is false)
+%       will look for OCT folders inside the baseFoldera and run function
+%       on all of them
+
+%% Setup & Input checks
+% To generate a parameters file
 %parameters = {'OCTSystem','Wasatch','dispersionParameterA',100,'BScanAvgFramesToProcess',1:2};
-%save('parameters.mat','parameters');
 
 %clear;
 close all;
 
-%Determine if we are running on AWS
-if (strcmpi(TestVectorFolder(1:3),'s3:'))
-    isAWS = true;
-else
-    isAWS = false;
+if ~exist('isLookForTestVectorsInBaseFolder','var')
+    isLookForTestVectorsInBaseFolder = false;
 end
 
-%% Get list of tests
-[folders,testNames] = yOCTGetOCTFoldersInPath (TestVectorFolder);
+%% List files
+if isLookForTestVectorsInBaseFolder
+    [folders,testNames] = yOCTGetOCTFoldersInPath(baseFolder);
+else
+    folders = awsModifyPathForCompetability([baseFolder '/']);
+    [~,testNames] = fileparts([folders '.a']);
+    folders = {folders};
+    testNames = {testNames};
+end
 
 %% Loop for each folder, and test
 for i=1:length(folders)
+    %Determine if we are running on AWS
+    isAWS = awsIsAWSPath(folders{i});
+    
     if isAWS
         testNames{i} = [testNames{i} 'AWS'];
     end
     
     fprintf ('Runnig Test: %s ...\n',testNames{i});
     fprintf ('Test Folder: %s\n',folders{i});
-    %Check for parmeters file
-    paramFile = [folders{i} 'parameters.mat'];
     
-    parameters = {};
-    if ~isAWS
-        %This part doesn't work as is on AWS
-        if exist(paramFile,'file')
-            parameters = load(paramFile);
-            parameters = parameters.parameters;
-        end
-    end    
+    % Check if .mat parameters file exist, if it does convert to json
+    paramFile = [folders{i} 'parameters.mat'];
+    if ~isAWS && exist(paramFile,'file')
+        parameters = load(paramFile);
+        json.reconstructionFunction = 'yOCTProcessScan';
+        json.reconstructionParameters = parameters.parameters;
+        json.version = 1;
+        
+        awsWriteJSON(json,[folders{i} 'parameters.json']);
+        awsRmFile(paramFile);
+    end
+    
+    % Load parmeters file, if exist
+    paramFile = [folders{i} 'parameters.json'];
+    if awsExist(paramFile,'file')
+        json = awsReadJSON(paramFile);
+    else
+        json.reconstructionFunction = 'yOCTProcessScan';
+    end
+    if (isempty(json.reconstructionParameters))
+        json.reconstructionParameters = {};
+    end
     
     %Run the test
     tic;
-    [meanAbs,speckleVariance,dimensions] = yOCTProcessScan({ ...
-        folders{i}, ...
-        {'meanAbs','speckleVariance'}, ... Which functions would you like to process. Option exist for function hendel
-        parameters{:}, ...
-        'showStats',true});
+    switch(json.reconstructionFunction)
+        case 'yOCTProcessScan'
+            [meanAbs,speckleVariance,dimensions] = yOCTProcessScan({ ...
+                folders{i}, ...
+                {'meanAbs','speckleVariance'}, ... Which functions would you like to process. Option exist for function hendel
+                json.reconstructionParameters{:}, ...
+                'showStats',true});
+    end
     totalRunTime = toc;
     testDate = datenum(datetime);
     

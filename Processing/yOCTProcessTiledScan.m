@@ -17,6 +17,7 @@ function yOCTProcessTiledScan(varargin)
 %NAME VALUE INPUTS:
 %   Parameter           Default Value   Notes
 %   outputFileFormat    'tif'           Can be 'tif' or 'mat' files
+%                                       mat files not currently supported.
 %   focusSigma          20              If stitching along Z axis (multiple focus points), what is the size of each focus in z [pixel]
 %   focusPositionInImageZpix NaN        Z position [pix] of focus in each scan (one number)
 %   debugFolder         ''              Where to save debug information (if needed). if empty will save at the output folder: outputFolder/../debug/
@@ -84,16 +85,6 @@ end
 in.debugFolder = awsModifyPathForCompetability(in.debugFolder);
 debugFolder = in.debugFolder;
 awsMkDir(debugFolder,false); %Dont clean directory before creating
-
-%Directory to save mat files
-if (~strcmp(in.outputFileFormat,'mat'))
-    %Final output is not mat, so save them in a temoprary location
-    matYFramesFolder = awsModifyPathForCompetability([debugFolder 'yFrames/']);
-else
-    %Output folder
-    matYFramesFolder = outputFolder;
-end
-awsMkDir(matYFramesFolder,true);
 
 %Directory to save tif files (if required)
 if (strcmp(in.outputFileFormat,'tif'))
