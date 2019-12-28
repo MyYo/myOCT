@@ -65,7 +65,8 @@ for i=1:length(folders)
     else
         json.reconstructionFunction = 'yOCTProcessScan';
     end
-    if (isempty(json.reconstructionParameters))
+    if (~isfield(json,'reconstructionParameters') || ...
+            isempty(json.reconstructionParameters))
         json.reconstructionParameters = {};
     end
     
