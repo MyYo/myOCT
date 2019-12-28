@@ -29,7 +29,7 @@ if isLookForTestVectorsInBaseFolder
     [folders,testNames] = yOCTGetOCTFoldersInPath(baseFolder);
 else
     folders = awsModifyPathForCompetability([baseFolder '/']);
-    [~,testNames] = fileparts([folders '.a']);
+    [~,testNames] = fileparts([folders(1:(end-1)) '.a']);
     folders = {folders};
     testNames = {testNames};
 end
@@ -79,6 +79,15 @@ for i=1:length(folders)
                 {'meanAbs','speckleVariance'}, ... Which functions would you like to process. Option exist for function hendel
                 json.reconstructionParameters{:}, ...
                 'showStats',true});
+        case 'yOCTProcessTiledScan'
+            yOCTProcessTiledScan({ ...
+                folders{i}, 'tmpReconstruction\', ...
+                json.reconstructionParameters{:}, ...
+                'v',true});
+            
+            speckleVariance = 0; %Not applicable
+            [meanAbs,dimensions] = yOCTFromTif('tmpReconstruction\');
+            awsRmDir('tmpReconstruction\'); %Cleanup
     end
     totalRunTime = toc;
     testDate = datenum(datetime);

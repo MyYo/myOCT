@@ -6,53 +6,61 @@ function yOCTProcessTiledScan(varargin)
 %local or both on the cloud. In case, both are on the cloud - run using
 %cluster.
 %USAGE:
-%   yOCTProcessTiledScan(tiledScanInputFolder,outputFolder,[params])
+%   yOCTProcessTiledScan(tiledScanInputFolder,outputPath,[params])
+%   yOCTProcessTiledScan({parameters})
 %INPUTS:
 %   - tiledScanInputFolder - where tiled scan is saved. Make sure the
 %       ScanInfo.json is present in the folder
-%   - outputFolder - where products of the processing are saved. Make sure
-%       its empty.
+%   - outputPath - where products of the processing are saved. can be a
+%       a string (path) to tif file or folder (for tif folder). If you
+%       input a cell array with both file and folder, will save both
 %   - params can be any processing parameters used by
 %     yOCTLoadInterfFromFile or yOCTInterfToScanCpx or any of those below
 %NAME VALUE INPUTS:
 %   Parameter           Default Value   Notes
-%   outputFileFormat    'tif'           Can be 'tif' or 'mat' files
-%                                       mat files not currently supported.
-%   focusSigma          20              If stitching along Z axis (multiple focus points), what is the size of each focus in z [pixel]
-%   focusPositionInImageZpix NaN        Z position [pix] of focus in each scan (one number)
-%   debugFolder         ''              Where to save debug information (if needed). if empty will save at the output folder: outputFolder/../debug/
-%   saveYs              3               How many Y planes to save (for future reference)
-%   applyPathLengthCorrection true      Apply path link correction, if
-%                                       probe ini has the information.
-%   v                   true            verbose mode      
+%Z position stitching:
+%   focusSigma          20          If stitching along Z axis (multiple focus points), what is the size of each focus in z [pixel]
+%   focusPositionInImageZpix NaN    Z position [pix] of focus in each scan (one number)
+%Save some Y planes in a debug folder:
+%   yPlanesOutputFolder ''          If set will save some y planes for debug purpose in that folder
+%   howManyYPlanes      3           How many y planes to save (if yPlanesOutput folder is set)
+%Other parameters:
+%   applyPathLengthCorrection true  Apply path link correction, if probe ini has the information.
+%   v                   true        verbose mode      
+%
 %OUTPUT:
-%   No output is returned. Will save scan Abs to outputFolder, and
+%   No output is returned. Will save scan Abs to outputPath, and
 %   debugFolder
 
 %% Processing of input
 p = inputParser;
 addRequired(p,'tiledScanInputFolder',@isstr);
 
-%Define the outputs
-addRequired(p,'outputFolder',@isstr);
-addParameter(p,'outputFileFormat','tif',@(x)(strcmpi(x,'tif') | strcmpi(x,'mat')))
+% Define the outputs
+addRequired(p,'outputPath');
 
-%General parameters
+% Z position stitching
 addParameter(p,'focusSigma',20,@isnumeric);
 addParameter(p,'focusPositionInImageZpix',NaN,@isnumeric);
 
-%Debug parameters
-addParameter(p,'debugFolder','',@isstr);
-addParameter(p,'saveYs',3,@isnumeric);
+% Save some Y planes in a debug folder
+addParameter(p,'yPlanesOutputFolder','',@isstr);
+addParameter(p,'howManyYPlanes',3,@isnumeric);
+
+% Debug
 addParameter(p,'v',true,@islogical);
 
 %TODO(yonatan) shift this parameter to ProcessScanFunction
 addParameter(p,'applyPathLengthCorrection',true);
 
 p.KeepUnmatched = true;
-parse(p,varargin{:});
+if (~iscell(varargin{1}))
+    parse(p,varargin{:});
+else
+    parse(p,varargin{1}{:});
+end
 
-%Gather unmatched varibles, we will use them as passing inputs
+% Gather unmatched varibles, we will use them as passing inputs
 vals = struct2cell(p.Unmatched);
 nams = fieldnames(p.Unmatched);
 tmp = [nams(:)'; vals(:)']; 
@@ -60,58 +68,23 @@ reconstructConfig = tmp(:)';
 
 in = p.Results;
 v = in.v;
-in.outputFileFormat = lower(in.outputFileFormat);
+
+% Fix input path
+tiledScanInputFolder = awsModifyPathForCompetability([fileparts(in.tiledScanInputFolder) '/']);
+
+% Fix output path
+outputPath = in.outputPath;
+if ischar(outputPath)
+    outputPath = {outputPath};
+end
 
 %Set credentials
-if awsIsAWSPath(in.outputFolder)
+if any(cellfun(@(x)(awsIsAWSPath(x)),outputPath))
+    % Any of the output folders is on the cloud
     awsSetCredentials(1);
 elseif awsIsAWSPath(in.tiledScanInputFolder)
+    % Input folder is on the cloud
     awsSetCredentials();
-end
-
-%% Setup directories
-
-%Input & Output directories
-tiledScanInputFolder = awsModifyPathForCompetability([fileparts(in.tiledScanInputFolder) '/']);
-in.outputFolder = awsModifyPathForCompetability([in.outputFolder '/']);
-outputFolder = in.outputFolder;
-
-%Debug directory
-if isempty(in.debugFolder)
-    in.debugFolder = awsModifyPathForCompetability([outputFolder '../debug/']);
-else
-    in.debugFolder = [in.debugFolder '/'];
-end
-in.debugFolder = awsModifyPathForCompetability(in.debugFolder);
-debugFolder = in.debugFolder;
-awsMkDir(debugFolder,false); %Dont clean directory before creating
-
-%Directory to save tif files (if required)
-if (strcmp(in.outputFileFormat,'tif'))
-    tifYFramesFolder = outputFolder;
-    awsMkDir(tifYFramesFolder,true);
-    
-    tifYFrameAllFP = [tifYFramesFolder(1:(end-1)) '_All.tif'];
-    awsRmFile(tifYFrameAllFP);
-end
-
-%Saved stacks dir (if required)
-if (in.saveYs > 0)
-    yToSaveMatDir = awsModifyPathForCompetability([debugFolder 'savedStacksMat/']);
-    awsMkDir(yToSaveMatDir,true);
-    
-    yToSaveTotalWeightsDir = awsModifyPathForCompetability([debugFolder 'savedStacksWeight/']);
-    awsMkDir(yToSaveTotalWeightsDir,true);
-    
-    if (strcmp(in.outputFileFormat,'tif'))
-        %Create a Tif version
-        yToSaveTifDir = awsModifyPathForCompetability([debugFolder 'savedStacksTif/']);
-        awsMkDir(yToSaveTifDir,true);
-    end
-else
-    %For parfor transperency 
-    yToSaveMatDir = []; 
-    yToSaveTotalWeightsDir = [];
 end
 
 %% Load configuration file & set parameters
@@ -136,9 +109,7 @@ dimOneTile.x.values = linspace(-0.5,0.5,length(dimOneTile.x.values))*json.xRange
 dimOneTile.y.values = linspace(-0.5,0.5,length(dimOneTile.y.values))*json.yRange;
 dimOneTile.x.units = 'millimeters';
 dimOneTile.y.units = 'millimeters';
-zDepths = json.zDepths;
-xCenters = json.xCenters;
-yCenters = json.yCenters;
+dimOneTile = yOCTChangeDimensionsStructureUnits(dimOneTile,'mm');
 
 %TODO(yonatan) move as well
 %see if parameter exists
@@ -150,15 +121,17 @@ else
     OP_p = [0 0 0 0 0];
 end
 
-%% Create indexing reference
-%This specifies how to mesh together a tiled scan, each axis seperately
+%% Create dimensions structure for the entire tiled volume
+zDepths = json.zDepths;
+xCenters = json.xCenters;
+yCenters = json.yCenters;
 
-%Dimensions of one tile (mm)
+% Dimensions of one tile (mm)
 xOneTile = json.xOffset+json.xRange*linspace(-0.5,0.5,json.nXPixels+1); xOneTile(end) = [];
 dx = diff(xOneTile(1:2));
 yOneTile = json.yOffset+json.yRange*linspace(-0.5,0.5,json.nYPixels+1); yOneTile(end) = [];
 dy = diff(yOneTile(1:2));
-zOneTile = dimOneTile.z.values(:)'/1000; %[mm]
+zOneTile = dimOneTile.z.values(:)'; %[mm]
 dz = diff(zOneTile(1:2));
 
 %Dimensions of the entire stack
@@ -166,7 +139,7 @@ xAll = (min(xCenters)+xOneTile(1)):dx:(max(xCenters)+xOneTile(end)+dx);xAll = xA
 yAll = (min(yCenters)+yOneTile(1)):dy:(max(yCenters)+yOneTile(end)+dy);yAll = yAll(:);
 zAll = (min(zDepths)+zOneTile(1)):dz:(max(zDepths)+zOneTile(end)+dz);zAll = zAll(:);
 
-%Correct for the case of only one scan
+% Correct for the case of only one scan
 if (length(xCenters) == 1)
     xAll = xAll(1:length(dimOneTileProcessed.x.values));
 end
@@ -174,13 +147,8 @@ if (length(yCenters) == 1)
     yAll = yAll(1:length(dimOneTileProcessed.y.values));
 end
 
-%Save parameters
-in.xAllmm = xAll;
-in.yAllmm = yAll;
-in.zAllmm = zAll;
-
+% Remove Z positions that are way out of focus (if we are doing focus processing)
 if(~isnan(focusPositionInImageZpix))
-    %Remove Z positions that are way out of focus (if we are doing focus processing)
     zAll( ...
         ( zAll < min(zDepths) + zOneTile(round(max(focusPositionInImageZpix - 5*in.focusSigma,0))) ) ...
         | ...
@@ -188,23 +156,52 @@ if(~isnan(focusPositionInImageZpix))
         ) = []; 
 end
 
-imOutSize = [length(zAll) length(xAll) length(yAll)];
+% Dimensions of everything
+dimOutput.lambda = dimOneTile.lambda;
+dimOutput.z = dimOneTile.z;
+dimOutput.z.values = zAll(:)';
+dimOutput.x = dimOneTile.x;
+dimOutput.x.values = xAll(:)';
+dimOutput.y = dimOneTile.x;
+dimOutput.y.values = yAll(:)';
+dimOutput.aux = dimOneTile.aux;
+
+%% Save some Y planes in a debug folder if needed
+if ~isempty(in.yPlanesOutputFolder) && in.howManyYPlanes > 0
+    isSaveSomeYPlanes = true;
+    yPlanesOutputFolder = awsModifyPathForCompetability([in.yPlanesOutputFolder '/']);
+    
+    % Clear folder if it exists
+    if awsExist(yPlanesOutputFolder)
+        awsRmDir(yPlanesOutputFolder);
+    end
+    
+    %Save some stacks, which ones?
+    yToSaveI = round(linspace(1,length(dimOutput.y.values),in.saveYs));
+else
+    isSaveSomeYPlanes = false;
+    yPlanesOutputFolder = '';
+    yToSaveI = [];
+end
+
+%% Create indexing reference
+%This specifies how to mesh together a tiled scan, each axis seperately
+
+imOutSize = [...
+    length(dimOutput.z.values) ...
+    length(dimOutput.x.values) ...
+    length(dimOutput.y.values)];
 
 %For each Y, what files are being used
 yGroupSF = zeros(length(json.yCenters),2); %[start yI, end yI]
 yGroupFP =  cell(length(json.yCenters),1); %Which files to use for each group
 for i=1:length(yGroupFP)
-    yI = abs(yAll-json.yCenters(i)) <= json.yRange/2;
+    yI = abs(dimOutput.y.values-json.yCenters(i)) <= json.yRange/2;
     yGroupSF(i,:) = [find(yI,1,'first') find(yI,1,'last')];
     yGroupFP(i) = {fp(json.gridYcc == json.yCenters(i))};
 end
 
-%Save some stacks
-saveYs = in.saveYs;
-yToSave = round(linspace(1,length(yAll),saveYs));
-
 %% Main loop
-minmaxVals = zeros(length(yAll),2); %min and max values for each yFrame. This is used for Tif later on
 printStatsEveryyI = max(floor(length(yAll)/20),1);
 ticBytes(gcp);
 if(v)
@@ -232,7 +229,7 @@ parfor yI=1:length(yAll)
         yIInFile = yI - yGroupSF(yGroup,1)+1;
         
         %Loop over all x stacks
-        for xxI = 1:length(xCenters)
+        for xxI=1:length(xCenters)
             %Loop over depths stacks
             for zzI=1:length(zDepths)
                 
@@ -242,7 +239,8 @@ parfor yI=1:length(yAll)
                 
                 %Load Frame
                 [int1,dim1] = ...
-                    yOCTLoadInterfFromFile([{fpTxt}, reconstructConfig, {'dimensions',dimOneTile, 'YFramesToProcess',yIInFile}]);
+                    yOCTLoadInterfFromFile([{fpTxt}, reconstructConfig, ...
+                    {'dimensions', dimOneTile, 'YFramesToProcess', yIInFile}]);
                 [scan1,~] = yOCTInterfToScanCpx ([{int1 dim1} reconstructConfig]);
                 int1 = []; %#ok<NASGU> %Freeup some memory
                 scan1 = abs(scan1);
@@ -288,20 +286,21 @@ parfor yI=1:length(yAll)
                 totalWeights = totalWeights + interp2(x,z,factor,xxAll,zzAll,'linear',0);
                 
                 %Save Stack, some files for future (debug)
-                if (sum(yI == yToSave)>0)
-                    tn = [tempname '.mat'];
-                    yOCT2Mat(scan1,tn)
+                if (isSaveSomeYPlanes && sum(yI == yToSaveI)>0)
+                    
+                    tn = [tempname '.tif'];
+                    yOCT2Tif(mag2db(scan1),tn)
                     awsCopyFile_MW1(tn, ...
-                        awsModifyPathForCompetability(sprintf('%s/y%04d_xtile%04d_ztile%04d.mat',yToSaveMatDir,yI,xxI,zzI)) ...
+                        awsModifyPathForCompetability(sprintf('%s/y%04d_xtile%04d_ztile%04d.tif',yPlanesOutputFolder,yI,xxI,zzI)) ...
                         );
                     delete(tn);
                     
                     if (xxI == length(xCenters) && zzI==length(zDepths))
                         %Save the last weight
-                        tn = [tempname '.mat'];
-                        yOCT2Mat(totalWeights,tn)
+                        tn = [tempname '.tif'];
+                        yOCT2Tif(totalWeights,tn)
                         awsCopyFile_MW1(tn, ...
-                            awsModifyPathForCompetability(sprintf('%s/y%04d_totalWeights.mat',yToSaveTotalWeightsDir,yI)) ...
+                            awsModifyPathForCompetability(sprintf('%s/y%04d_totalWeights.mat',yPlanesOutputFolder,yI)) ...
                             );
                         delete(tn);
                     end
@@ -316,22 +315,13 @@ parfor yI=1:length(yAll)
         %Normalization
         stackmean = stack./totalWeights;
         
-        %Save statistics
-        minmaxVals(yI,:) = [prctile(stackmean(:),20)  prctile(stackmean(:),99.999)];
-        %minmaxVals(yI,:) = [min(stackmean(:)) max(stackmean(:))];
+        % Save
+        yOCT2Tif(mag2db(stackmean), outputPath, ...
+            'partialFileMode', 1, 'partialFileModeIndex', yI)
         
-        %Save results to temporary files to be used later (once we know the
-        %scale of the images to write
-        tn = [tempname '.mat'];
-        yOCT2Mat(stackmean,tn)
-        awsCopyFile_MW1(tn, ...
-            awsModifyPathForCompetability(sprintf('%s/y%04d.mat',matYFramesFolder,yI))...
-            ); %Matlab worker version of copy files
-        delete(tn);
-
-        %Is it time to print statistics?
+        % Is it time to print statistics?
         if mod(yI,printStatsEveryyI)==0 && v
-            %Stats time!
+            % Stats time!
             ds = fileDatastore(matYFramesFolder,'ReadFcn',@(x)(x),'FileExtensions','.getmeout','IncludeSubfolders',true); %Count all artifacts
             done = length(ds.Files);
             fprintf('%s Completed yIs so far: %d/%d (%.1f%%)\n',datestr(datetime),done,length(yAll),100*done/length(yAll));
@@ -347,8 +337,6 @@ parfor yI=1:length(yAll)
     end
 end %parfor
 
-in.minmaxVals = minmaxVals; %Save statistics
-
 if (v)
     fprintf('Done stitching, toatl time: %.0f[min]\n',toc(tt)/60);
     tocBytes(gcp)
@@ -360,111 +348,14 @@ if (v)
     fprintf('%s Reorg files ... ',datestr(datetime));
     tt=tic;
 end
-awsCopyFile_MW2(debugFolder);
+
+% Get the main data out
+yOCT2Tif([], outputPath, 'metadata', dimOutput, 'partialFileMode', 2);
+
+% Get saved y planes out
+if isSaveSomeYPlanes
+    awsCopyFile_MW2(yPlanesOutputFolder);
+end
 if (v)
     fprintf('Done! took %.1f[min]\n',toc(tt)/60);
 end
-
-%% Save a json file with the results
-inToSave = rmfield(in,{'debugFolder','outputFolder','tiledScanInputFolder'});
-awsWriteJSON(inToSave,[outputFolder 'processedScanConfig.json']);
-
-%% Convert to tif if required (main dataset)
-if ~strcmp(in.outputFileFormat,'tif')
-    return; %We are done
-end
-if(v)
-    fprintf('%s Converting to Tiff ...\n',datestr(datetime)); tt=tic();
-end
-
-%c = [prctile(minmaxVals(:,1),30)  prctile(minmaxVals(:,2),95)];
-c = mean(minmaxVals);%[prctile(minmaxVals(:,1),30)  prctile(minmaxVals(:,2),95)];
-
-%Load all mat files
-ds = fileDatastore(matYFramesFolder,'ReadFcn',@(x)(x),'FileExtensions','.mat','IncludeSubfolders',true); 
-files = ds.Files;
-
-ticBytes(gcp);
-parfor yI=1:length(files)
-    try
-        %Read
-        slice = yOCTFromMat(files{yI});
-        slice = mag2db(slice);
-
-        %Write
-        tn = [tempname '.tif'];
-        yOCT2Tif(slice,tn,'clim',mag2db(c))
-        awsCopyFile_MW1(tn, ...
-            sprintf('%sy%04d.tif',tifYFramesFolder,yI)...
-            ); %Matlab worker version of copy files
-        delete(tn);
-    catch ME
-        fprintf('Error happened in parfor, iteration %d:\n',yI); 
-        disp(ME.message);
-        for j=1:length(ME.stack) 
-            ME.stack(j) 
-        end  
-        error('Error in parfor');
-    end
-end
-%Reorganize
-awsCopyFile_MW2(tifYFramesFolder);
-
-awsRmDir(matYFramesFolder); %Remove mat files, we are done
-
-if (v)
-    fprintf('Done saving as tif, toatl time: %.0f[min]\n',toc(tt)/60);
-    tocBytes(gcp);
-end
-
-%% Concate all Tifs to one stack
-if(v)
-    fprintf('%s Concatinaing Tiffs to one file ...\n',datestr(datetime)); tt=tic();
-    ticBytes(gcp('nocreate'))
-end
-
-ds = fileDatastore(awsModifyPathForCompetability(tifYFramesFolder),'ReadFcn',@(x)(x),'FileExtensions','.tif','IncludeSubfolders',true); 
-files = ds.Files;
-sz = [length(zAll) length(xAll) length(yAll)];
-parfor(i=1:1,1) %Run once but on a worker
-    yTiffAll = zeros(sz);
-    
-    for j=1:length(files)
-       yTiffAll(:,:,j) = yOCTFromTif(files{j});
-    end
-    
-    tn = [tempname '.tif'];
-    yOCT2Tif(yTiffAll,tn,'clim',mag2db(c));
-    awsCopyFile_MW1(tn,tifYFrameAllFP); %Matlab worker version of copy files
-    delete(tn);
-       
-end
-awsCopyFile_MW2(tifYFrameAllFP);
-
-if (v)
-    fprintf('Done saving as one tif, toatl time: %.0f[min]\n',toc(tt)/60);
-    tocBytes(gcp);
-end
-
-%% Convert to Tif (some stacks)
-if ~isempty(yToSave)
-    
-    %Get the mat files
-    ds = fileDatastore(yToSaveMatDir,'ReadFcn',@(x)(x),'FileExtensions','.mat','IncludeSubfolders',true); 
-    matFiles = ds.Files;
-    
-    tifFiles = cellfun(@(x)(strrep(strrep(x,'.mat','.tif'),yToSaveMatDir,yToSaveTifDir)),matFiles,'UniformOutput',false);
-
-    parfor i=1:length(matFiles)
-        im = yOCTFromMat(matFiles{i});
-
-        tn = [tempname '.tif'];
-        yOCT2Tif(log(im),tn); %Save to temp file
-        awsCopyFile_MW1(tn, tifFiles{i}); %Matlab worker version of copy files
-        delete(tn);
-    end
-    awsCopyFile_MW2(yToSaveTifDir); %Finish the job
-    
-    awsRmDir(yToSaveMatDir); %Remove mat files, we are done
-end
-    
