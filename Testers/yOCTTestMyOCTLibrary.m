@@ -43,6 +43,9 @@ myOCTBatchProcess([mainTestVectorFolder2 'SmallSampleOCTVolumes/'],{'parallelOpt
 %% Test Load and save Tif files
 yOCTTestLoadSaveTif;
 
+%% Test tiled scan reconstruction
+yOCTTestReconstruction([mainTestVectorFolder2 'TiledScans/TiledXYZ/']);
+
 
 %% Done!
 disp('All Tests Completed');

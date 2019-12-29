@@ -78,7 +78,7 @@ if ischar(outputPath)
     outputPath = {outputPath};
 end
 
-%Set credentials
+% Set credentials
 if any(cellfun(@(x)(awsIsAWSPath(x)),outputPath))
     % Any of the output folders is on the cloud
     awsSetCredentials(1);
@@ -177,7 +177,7 @@ if ~isempty(in.yPlanesOutputFolder) && in.howManyYPlanes > 0
     end
     
     %Save some stacks, which ones?
-    yToSaveI = round(linspace(1,length(dimOutput.y.values),in.saveYs));
+    yToSaveI = round(linspace(1,length(dimOutput.y.values),in.howManyYPlanes));
 else
     isSaveSomeYPlanes = false;
     yPlanesOutputFolder = '';
@@ -207,6 +207,7 @@ ticBytes(gcp);
 if(v)
     fprintf('%s Stitching ...\n',datestr(datetime)); tt=tic();
 end
+yOCT2Tif([], outputPath, 'partialFileMode', 1); %Init
 parfor yI=1:length(yAll) 
     try
         %Create a container for all data
@@ -289,7 +290,7 @@ parfor yI=1:length(yAll)
                 if (isSaveSomeYPlanes && sum(yI == yToSaveI)>0)
                     
                     tn = [tempname '.tif'];
-                    yOCT2Tif(mag2db(scan1),tn)
+                    yOCT2Tif(mag2db(scan1),tn);
                     awsCopyFile_MW1(tn, ...
                         awsModifyPathForCompetability(sprintf('%s/y%04d_xtile%04d_ztile%04d.tif',yPlanesOutputFolder,yI,xxI,zzI)) ...
                         );
@@ -298,7 +299,7 @@ parfor yI=1:length(yAll)
                     if (xxI == length(xCenters) && zzI==length(zDepths))
                         %Save the last weight
                         tn = [tempname '.tif'];
-                        yOCT2Tif(totalWeights,tn)
+                        yOCT2Tif(totalWeights,tn);
                         awsCopyFile_MW1(tn, ...
                             awsModifyPathForCompetability(sprintf('%s/y%04d_totalWeights.mat',yPlanesOutputFolder,yI)) ...
                             );
@@ -316,14 +317,17 @@ parfor yI=1:length(yAll)
         stackmean = stack./totalWeights;
         
         % Save
-        yOCT2Tif(mag2db(stackmean), outputPath, ...
-            'partialFileMode', 1, 'partialFileModeIndex', yI)
+        whereAreMyFiles = yOCT2Tif(mag2db(stackmean), outputPath, ...
+            'partialFileMode', 2, 'partialFileModeIndex', yI); 
+            % Since we are in partialFileMode 1, whereAreMyFiles will
+            % contain the folder that code is working on right now.
         
         % Is it time to print statistics?
         if mod(yI,printStatsEveryyI)==0 && v
             % Stats time!
-            ds = fileDatastore(matYFramesFolder,'ReadFcn',@(x)(x),'FileExtensions','.getmeout','IncludeSubfolders',true); %Count all artifacts
-            done = length(ds.Files);
+            ds = fileDatastore(whereAreMyFiles,'ReadFcn',@(x)(x),'FileExtensions','.getmeout','IncludeSubfolders',true); %Count all artifacts
+            isFile = cellfun(@(x)(contains(lower(x),'.json')),ds.Files);
+            done = sum(isFile);
             fprintf('%s Completed yIs so far: %d/%d (%.1f%%)\n',datestr(datetime),done,length(yAll),100*done/length(yAll));
         end
 
@@ -350,7 +354,7 @@ if (v)
 end
 
 % Get the main data out
-yOCT2Tif([], outputPath, 'metadata', dimOutput, 'partialFileMode', 2);
+yOCT2Tif([], outputPath, 'metadata', dimOutput, 'partialFileMode', 3);
 
 % Get saved y planes out
 if isSaveSomeYPlanes

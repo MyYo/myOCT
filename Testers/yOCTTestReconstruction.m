@@ -87,6 +87,7 @@ for i=1:length(folders)
             
             speckleVariance = 0; %Not applicable
             [meanAbs,dimensions] = yOCTFromTif('tmpReconstruction\');
+            meanAbs = db2mag(meanAbs);
             awsRmDir('tmpReconstruction\'); %Cleanup
     end
     totalRunTime = toc;

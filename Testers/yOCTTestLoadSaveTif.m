@@ -46,17 +46,20 @@ LoadReadSeeItsTheSame(data,{fp_localFolder, fp_localFile}); %Save 3D to folder
 %% Test Partial Save
 fprintf('%s Saving in partial mode\n',datestr(now))
 
-LoadReadSeeItsTheSame(data(:,:,1),fp_localFolder,[],[],1,1);
-LoadReadSeeItsTheSame(data(:,:,2),fp_localFolder,[],[],1,2);
-LoadReadSeeItsTheSame(data(:,:,1:2),fp_localFolder,[],[],2,[]); %Data is not required but useful for comparing output
+LoadReadSeeItsTheSame([],fp_localFolder,[],[],1,[]); % Init
+LoadReadSeeItsTheSame(data(:,:,1),fp_localFolder,[],[],2,1);
+LoadReadSeeItsTheSame(data(:,:,2),fp_localFolder,[],[],2,2);
+LoadReadSeeItsTheSame(data(:,:,1:2),fp_localFolder,[],[],3,[]); %Data is not required but useful for comparing output
 
-LoadReadSeeItsTheSame(data(:,:,1),fp_localFile,[],[],1,1)
-LoadReadSeeItsTheSame(data(:,:,2),fp_localFile,[],[],1,2)
-LoadReadSeeItsTheSame(data(:,:,1:2),fp_localFile,[],[],2,[]); %Data is not required but useful for comparing output
+LoadReadSeeItsTheSame([],fp_localFile,[],[],1,[]); % Init
+LoadReadSeeItsTheSame(data(:,:,1),fp_localFile,[],[],2,1)
+LoadReadSeeItsTheSame(data(:,:,2),fp_localFile,[],[],2,2)
+LoadReadSeeItsTheSame(data(:,:,1:2),fp_localFile,[],[],3,[]); %Data is not required but useful for comparing output
 
-LoadReadSeeItsTheSame(data(:,:,1),{fp_localFolder,fp_localFile},[],[],1,1)
-LoadReadSeeItsTheSame(data(:,:,2),{fp_localFolder,fp_localFile},[],[],1,2)
-LoadReadSeeItsTheSame(data(:,:,1:2),{fp_localFolder,fp_localFile},meta,[0 2],2,[]); %Data is not required but useful for comparing output
+LoadReadSeeItsTheSame([],{fp_localFolder,fp_localFile},[],[],1,[]); % Init
+LoadReadSeeItsTheSame(data(:,:,1),{fp_localFolder,fp_localFile},[],[],2,1)
+LoadReadSeeItsTheSame(data(:,:,2),{fp_localFolder,fp_localFile},[],[],2,2)
+LoadReadSeeItsTheSame(data(:,:,1:2),{fp_localFolder,fp_localFile},meta,[0 2],3,[]); %Data is not required but useful for comparing output
 
 fprintf('%s Test Done\n',datestr(now))
 
@@ -89,7 +92,7 @@ else
     filePaths = filePath;
 end
 
-if (partialFileMode == 1)
+if (partialFileMode == 1 || partialFileMode == 2)
 	return; %No time for testing just yet
 end
 

@@ -1,4 +1,4 @@
-function yOCT2Tif (varargin)
+function whereAreMyFiles = yOCT2Tif (varargin)
 % This function saves a grayscale version of data to a Tiff stack file.
 % There are a few options to save:
 %   1) Save to a single large tif file, good for ImageJ viewing, less good
@@ -27,23 +27,30 @@ function yOCT2Tif (varargin)
 %   'clim' - [min, max] of the grayscale, default will be minimum and
 %       maximum of the data
 %   'metadata' - i.e. dimention structure, to be saved alongside with the data
-%       metadata is ignoted if partialFileMode = 1
-%   'partialFileMode' - can be 0 (not active), 1 and 2. If partialFileMode
-%       is 1, please set partialFileModeIndex. See partial mode below
+%       metadata is only valid at partialFileMode = 0 or 3
+%   'partialFileMode' - can be 0 (not active), 1, 2 or 3. If partialFileMode
+%       is 2, please set partialFileModeIndex. See partial mode below.
+%       1 - initialize
+%       2 - save each frame in partial mode
+%       3 - cleanup
 %   'partialFileModeIndex' - index along the y axis (each y is saved in a
-%       different tif file) that data is assocated with
+%       different tif file) that data is assocated with.
 %
 % PARTIAL FILE MODE - EXPLENATION:
 % In case we would like to process an OCT file which is much larger than 
 % can be stored in memory, or we would like to process OCT file in parfor, 
 % use this function. The general schematic for processing will be:
+%   yOCT2Tif([],'C:\myOCTVolume\', 'partialFileMode',1); %Initialize
 %   parfor bScanY=1:n %Loop over all B-Scans
 %       resultScan = <Process B Scan> %Result scan dimensions are (y,x)
-%       yOCT2Tif('C:\myOCTVolume\',resultScan, ...
-%       'partialFileMode',1,'partialFileModeIndex',bScanY); %Save a scan 
+%       yOCT2Tif(resultScan,'C:\myOCTVolume\', ...
+%           'partialFileMode',2,'partialFileModeIndex',bScanY); %Save a scan 
 %   end
-%   yOCT2Tif('C:\myOCTVolume\',[],'partialFileMode',2); % Finalize saving
-
+%   yOCT2Tif('C:\myOCTVolume\',[],'partialFileMode',3); % Finalize saving
+%
+% OUPTUTS:
+%   whereAreMyFiles - where files are saved, very useful in partial file mode, to
+%       indicate to user where are the files.
 
 %% Input Processing
 p = inputParser;
@@ -64,11 +71,11 @@ metadata = in.metadata;
 
 % Partial Mode checks
 mode = in.partialFileMode;
-if (mode == 1)
+if (mode == 2)
     if (isempty(in.partialFileModeIndex))
-        error('Please specify partialFileModeIndex when working in partialFileMode=1');
+        error('Please specify partialFileModeIndex when working in partialFileMode=2');
     elseif (length(in.partialFileModeIndex) ~= size(data,3))
-        error('Please make sure partialFileModeIndex is the same as data 3 axis');
+        error('Please make sure partialFileModeIndex is the same as data''s 3rd axis');
     end
 end
 
@@ -103,6 +110,7 @@ end
 
 isOutputFile = ~isempty(outputFilePaths{1});
 isOutputFolder = ~isempty(outputFilePaths{2});
+whereAreMyFiles = outputFilePaths;
 
 if ~isOutputFolder
     %Generate a folder path name from the file, just in case
@@ -114,20 +122,22 @@ end
 if (awsIsAWSPath(filePath))
     isAWS = true;
     
-    if mode == 0 || mode == 2
-        awsSetCredentials(1); %Use the advanced version as uploading is more challenging
-    elseif mode == 1
-        awsSetCredentials(0); %Use the advanced version as uploading is more challenging
+    switch(mode)
+        case {0,1,3}
+            awsSetCredentials(1); %Use the advanced version as uploading is more challenging
+        case {2}
+            awsSetCredentials(0); %Use the advanced version as uploading is more challenging
     end
     
     %We will use this path for AWS CLI
     awsOutputFilePath{1} = awsModifyPathForCompetability(outputFilePaths{1},true); 
     awsOutputFilePath{2} = awsModifyPathForCompetability(outputFilePaths{2},true); 
     
-    if (mode == 0) % Save locally
+    % Where to save data prior to upload
+    if (mode == 0) % In mode=0 save data locally than upload
         outputFilePaths{1} = [tempname '.tif']; %Temporary local file path
         outputFilePaths{2} = [tempname '\']; %Temporary local file path
-    else
+    else % In all other modes, you can upload directly
         outputFilePaths = awsOutputFilePath;
     end
 else
@@ -178,8 +188,15 @@ if mode == 0
         rmdir(outputFilePaths{2},'s'); %Cleanup
     end
 
-%% Actual writing of data, partial file mode (loop part)
+%% Actual writing of data, partial file mode (initialization)
 elseif mode == 1
+    if awsExist(outputFilePaths{2},'dir')
+        awsRmDir(outputFilePaths{2});
+    end
+    
+%% Actual writing of data, partial file mode (loop part)
+elseif mode == 2    
+    
     % clim
     if isempty(c)
         c = [min(data(:)) max(data(:))];
@@ -203,6 +220,9 @@ elseif mode == 1
         awsCopyFile_MW1(tn2,[p '.json']); ...
         delete(tn2); % Cleanup   
     end
+    
+    % My files are actually only in the folder at this point.
+    whereAreMyFiles = outputFilePaths{2};
     
 %% Actual writing of data, partial file mode (finalization part)
 else
@@ -279,8 +299,7 @@ else
     % If output folder is not required, delete it
     if ~isOutputFolder
         awsRmDir(outputFilePaths{2});
-    end
-
+    end 
 end
 
 function bits = data2bits(data,c)
