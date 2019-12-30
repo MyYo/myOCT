@@ -9,8 +9,14 @@ end
 dest = awsModifyPathForCompetability(dest);
 
 %% Get all the files that need loving
-
-ds=fileDatastore(dest,'ReadFcn',@(x)(x),'IncludeSubfolders',true,'FileExtensions',{'.getmeout'});
+try
+    ds = fileDatastore(...
+        dest,'ReadFcn',@(x)(x),'IncludeSubfolders',true,...
+        'FileExtensions',{'.getmeout'});
+catch ME
+    fprintf('Processing "%s"...\n',dest);
+    rethrow(ME)
+end
 files = ds.Files;
 froms = cell(size(files));
 tos   = cell(size(files));
