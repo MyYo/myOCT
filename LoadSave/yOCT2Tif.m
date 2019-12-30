@@ -118,6 +118,9 @@ if ~isOutputFolder
         outputFilePaths{1} '.fldr/']);
 end
 
+% For partial mode
+outputFilePaths{3} = awsModifyPathForCompetability([outputFilePaths{2} '/partialMode/']);
+
 %% If upload to AWS, make arrengements
 if (awsIsAWSPath(filePath))
     isAWS = true;
@@ -190,8 +193,8 @@ if mode == 0
 
 %% Actual writing of data, partial file mode (initialization)
 elseif mode == 1
-    if awsExist(outputFilePaths{2},'dir')
-        awsRmDir(outputFilePaths{2});
+    if awsExist(outputFilePaths{3},'dir')
+        awsRmDir(outputFilePaths{3});
     end
     
 %% Actual writing of data, partial file mode (loop part)
@@ -205,7 +208,7 @@ elseif mode == 2
     for yI=1:size(data,3)
         bits = data2bits(data(:,:,yI),c);
         
-        p = yScanPath(outputFilePaths{2},in.partialFileModeIndex(yI));
+        p = yScanPath(outputFilePaths{3},in.partialFileModeIndex(yI));
         
         % Save Tif stack file
         tn1 = [tempname '.tif'];
@@ -222,15 +225,15 @@ elseif mode == 2
     end
     
     % My files are actually only in the folder at this point.
-    whereAreMyFiles = outputFilePaths{2};
+    whereAreMyFiles = outputFilePaths{3};
     
 %% Actual writing of data, partial file mode (finalization part)
 else
     % Finish WM work
-    awsCopyFile_MW2(outputFilePaths{2});
+    awsCopyFile_MW2(outputFilePaths{3});
     
     %Get all the JSON files, so we can read c
-    dsJsons = fileDatastore(outputFilePaths{2},'ReadFcn',@awsReadJSON, ...
+    dsJsons = fileDatastore(outputFilePaths{3},'ReadFcn',@awsReadJSON, ...
         'FileExtensions','.json'); 
     cJsons = dsJsons.readall();
     cmin = cellfun(@(x)(min(x.c)),cJsons);
@@ -238,11 +241,6 @@ else
     
     if isempty(c)
         c = [min(cmin) max(cmax)];
-    end
-   
-    % Clear Json files that contain c, they are no longer required
-    for i=1:length(dsJsons.Files)
-        awsRmFile(dsJsons.Files{i});
     end
     
     % Rewrite individual slides with the same c boundray for all
@@ -252,24 +250,27 @@ else
         
         for frameI = 1:length(cmin)
             % Read frame
-            fp = awsModifyPathForCompetability(sprintf('%s/y%04d.tif',...
-                outputFilePaths{2},frameI)); 
-            ds = fileDatastore(fp,'readFcn',@imread);
+            fpIn = yScanPath(outputFilePaths{3},frameI);
+            fpOut = yScanPath(outputFilePaths{2},frameI);
+            
+            ds = fileDatastore(fpIn,'readFcn',@imread);
             dat = ds.read();
             
-            % Delete existing frame
-            awsRmFile(fp);
-           
             % Write a new frame
             tn = [tempname '.tif'];
             imwrite( ...
                 uint16(...
                 (double(dat)*(cmax(frameI)-cmin(frameI)) + cmin(frameI) - c(1))/diff(c) ...
                 ),tn);
-            awsCopyFile_MW1(tn,fp); %Matlab worker version of copy files
+            awsCopyFile_MW1(tn,fpOut); %Matlab worker version of copy files
             delete(tn);
         end 
     end %Run once but on a worker
+    
+    % Remove partial tifs
+    awsRmDir(outputFilePaths{3});
+
+    % Finish up copying files
     awsCopyFile_MW2(outputFilePaths{2});
     
     % Finish generating a folder by placing metadata
@@ -279,7 +280,7 @@ else
     
     % Generate a single file if required
     if isOutputFile
-        outputFileTmpFolder = awsModifyPathForCompetability([outputFilePaths{2} 'all\all.tif']);
+        outputFileTmpPath = awsModifyPathForCompetability([outputFilePaths{3} '\all.tif']);
         parfor(parforI=1:1,1) %Run once but on a worker
             % Load data
             dat = yOCTFromTif(outputFilePaths{2});
@@ -287,13 +288,13 @@ else
             % Save it as a single file
             tn = [tempname '.tif'];
             yOCT2Tif(dat,tn,'clim',c,'metadata',metadata);
-            awsCopyFile_MW1(tn,outputFileTmpFolder); %Matlab worker version of copy files
+            awsCopyFile_MW1(tn,outputFileTmpPath); %Matlab worker version of copy files
             delete(tn);
 
         end
-        awsCopyFile_MW2([outputFileTmpFolder '/../']);
-        awsCopyFileFolder(outputFileTmpFolder,outputFilePaths{1});
-        awsRmDir([outputFileTmpFolder '/../']);
+        awsCopyFile_MW2(outputFilePaths{3});
+        awsCopyFileFolder(outputFileTmpPath,outputFilePaths{1});
+        awsRmDir(outputFilePaths{3});
     end
     
     % If output folder is not required, delete it
