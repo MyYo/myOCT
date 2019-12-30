@@ -133,13 +133,16 @@ if (awsIsAWSPath(filePath))
     end
     
     %We will use this path for AWS CLI
-    awsOutputFilePath{1} = awsModifyPathForCompetability(outputFilePaths{1},true); 
-    awsOutputFilePath{2} = awsModifyPathForCompetability(outputFilePaths{2},true); 
+    awsOutputFilePath = cell(size(outputFilePaths));
+    for i=1:length(outputFilePaths)
+        awsOutputFilePath{i} = awsModifyPathForCompetability(outputFilePaths{i},true); 
+    end
     
     % Where to save data prior to upload
     if (mode == 0) % In mode=0 save data locally than upload
         outputFilePaths{1} = [tempname '.tif']; %Temporary local file path
         outputFilePaths{2} = [tempname '\']; %Temporary local file path
+        outputFilePaths{3} = []; %No partial mode in mode 0
     else % In all other modes, you can upload directly
         outputFilePaths = awsOutputFilePath;
     end
@@ -193,7 +196,6 @@ if mode == 0
 
 %% Actual writing of data, partial file mode (initialization)
 elseif mode == 1
-    outputFilePaths
     
     if awsExist(outputFilePaths{3},'dir')
         awsRmDir(outputFilePaths{3});
