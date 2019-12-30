@@ -120,7 +120,6 @@ end
 
 % For partial mode
 outputFilePaths{3} = awsModifyPathForCompetability([outputFilePaths{2} '/partialMode/']);
-outputFilePaths{3}
 
 %% If upload to AWS, make arrengements
 if (awsIsAWSPath(filePath))
@@ -194,6 +193,8 @@ if mode == 0
 
 %% Actual writing of data, partial file mode (initialization)
 elseif mode == 1
+    outputFilePaths
+    
     if awsExist(outputFilePaths{3},'dir')
         awsRmDir(outputFilePaths{3});
     end
