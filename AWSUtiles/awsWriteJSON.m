@@ -27,6 +27,9 @@ txt = strrep(txt,[newline '",'],'",');
 txt = strrep(txt,[newline '"}'],['"' newline '}']);
 txt = strrep(txt,[newline '"]'],['"' newline ']']);
 fid = fopen(fpToSave,'w');
+if (fid == -1)
+    error('Couldn''t open file %s for write mode',fpToSave);
+end
 fprintf(fid,'%s',txt);
 fclose(fid);
 

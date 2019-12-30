@@ -51,5 +51,9 @@ if (isAWS)
 	end
 else
 	%Regular path
-	p = strrep(p,'/','\'); %Repalce slashes
+    if ispc
+        p = strrep(p,'/','\'); %Repalce slashes if running on windows
+    else
+        p = strrep(p,'\','/');
+    end
 end
