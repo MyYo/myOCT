@@ -89,16 +89,15 @@ if ~isSourceAWS && isDestAWS
 elseif (isSourceAWS && isDestAWS)
     if (source(end) == '/')
         %This is a directory copy
-        [err,txt] = system(...
-            ['aws s3 cp "' source '" "' dest '" --recursive']);
+        syscmd = ['aws s3 cp "' source '" "' dest '" --recursive'];
     else
         %Single file
-        [err,txt] = system(...
-            ['aws s3 cp "' source '" "' dest '"']);
+        syscmd = ['aws s3 cp "' source '" "' dest '"'];
     end
     
+    [err,txt] = system(syscmd);
     if (err ~= 0)
-        error(txt);
+        error('%s resulted in an error: %s',syscmd,txt);
     end
     if (v)
         disp(txt);
