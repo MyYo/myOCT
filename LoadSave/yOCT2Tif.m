@@ -120,6 +120,7 @@ end
 
 % For partial mode
 outputFilePaths{3} = awsModifyPathForCompetability([outputFilePaths{2} '/partialMode/']);
+outputFilePaths{3}
 
 %% If upload to AWS, make arrengements
 if (awsIsAWSPath(filePath))
