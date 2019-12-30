@@ -242,6 +242,7 @@ else
     cJsons = dsJsons.readall();
     cmin = cellfun(@(x)(min(x.c)),cJsons);
     cmax = cellfun(@(x)(max(x.c)),cJsons);
+    numberOfYPlanes = length(cJsons);
     
     if isempty(c)
         c = [min(cmin) max(cmax)];
@@ -287,7 +288,7 @@ else
         outputFileTmpPath = awsModifyPathForCompetability([outputFilePaths{3} '\all.tif']);
         parfor(parforI=1:1,1) %Run once but on a worker
             % Load data
-            dat = yOCTFromTif(outputFilePaths{2});
+            dat = yOCTFromTif(outputFilePaths{2},1:numberOfYPlanes);
             
             % Save it as a single file
             tn = [tempname '.tif'];
