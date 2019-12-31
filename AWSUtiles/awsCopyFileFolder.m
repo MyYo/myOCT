@@ -97,6 +97,11 @@ elseif (isSourceAWS && isDestAWS)
     
     [err,txt] = system(syscmd);
     if (err ~= 0)
+        %Try again
+        pause(0.1);
+        [err,txt] = system(syscmd);
+    end
+    if (err ~= 0)
         error('%s resulted in an error: %s',syscmd,txt);
     end
     if (v)
