@@ -95,15 +95,23 @@ elseif (isSourceAWS && isDestAWS)
         syscmd = ['aws s3 cp "' source '" "' dest '"'];
     end
     
-    [err,txt] = system(syscmd);
-    if (err ~= 0)
-        %Try again
-        pause(0.1);
+    for retryI=3:-1:0 % Re try x times
         [err,txt] = system(syscmd);
+        if (err ~= 0)
+            emessage = sprintf('%s\nResulted in an error code %d: %s',...
+                syscmd, err, txt);
+            if (retryI > 0)
+                warning('%s. retry in 1 sec.',emessage);
+                pause(1);
+            else
+                error('%s',emessage);
+            end
+        else
+            %Good code, no need to retry
+            break;
+        end
     end
-    if (err ~= 0)
-        error('%s resulted in an error: %s',syscmd,txt);
-    end
+       
     if (v)
         disp(txt);
     end
