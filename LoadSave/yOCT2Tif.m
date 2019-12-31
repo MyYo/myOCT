@@ -152,6 +152,24 @@ end
 
 %% Actuall writing of data, regular mode
 if mode == 0
+    
+    % Clear up if needed
+    if isAWS
+        if awsExist(awsOutputFilePath{1},'file') && isOutputFile
+            awsRmFile(awsOutputFilePath{1}); %Clear file
+        end
+        if awsExist(awsOutputFilePath{2},'dir') && isOutputFolder
+            awsRmFile(awsOutputFilePath{2}); %Clear dir
+        end
+    else
+        if awsExist(outputFilePaths{1},'file') && isOutputFile
+            awsRmFile(outputFilePaths{1}); %Clear file
+        end
+        if awsExist(outputFilePaths{2},'dir') && isOutputFolder
+            awsRmFile(outputFilePaths{2}); %Clear dir
+        end
+    end
+    
     % clim
     if isempty(c)
         c = [min(data(:)) max(data(:))];
@@ -197,10 +215,21 @@ if mode == 0
 %% Actual writing of data, partial file mode (initialization)
 elseif mode == 1
     
+    % If output a file, clear it before writing
+    if awsExist(outputFilePaths{1},'file') && isOutputFile
+        awsRmFile(outputFilePaths{1}); %Clear file
+    end
+
+    % Always outputing a folder, clear it
+    if awsExist(outputFilePaths{2},'dir')
+        awsRmFile(outputFilePaths{2}); %Clear dir
+    end
+    
+    % Clear the temporary folder as well
     if awsExist(outputFilePaths{3},'dir')
         awsRmDir(outputFilePaths{3});
     end
-    
+
 %% Actual writing of data, partial file mode (loop part)
 elseif mode == 2    
     
