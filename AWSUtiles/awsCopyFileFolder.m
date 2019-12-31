@@ -53,10 +53,9 @@ if ~isSourceAWS && isDestAWS
     end
     
     %Preform the upload
-    txt = [];
     switch(mode)
         case 'UploadFile'
-            [err,txt] = system(['aws s3 cp "' source '" "' dest '"']);
+            awsCmd(['aws s3 cp "' source '" "' dest '"'], [], v);
         case {'UploadDir','UploadDirManySmallFiles'}
             if (v)
                 fprintf('Uploading %.1f GBytes, %d files...\n',totalDataTransferVolume,numberOfFiles);
@@ -64,9 +63,8 @@ if ~isSourceAWS && isDestAWS
             end
 
             if strcmp(mode,'UploadDir')
-                [err,txt] = system(['aws s3 sync "' source '" "' dest '"']);
+                awsCmd(['aws s3 sync "' source '" "' dest '"'], [], v);
             elseif strcmp(mode,'UploadDirManySmallFiles')
-                err = 0;
                 awsCopyFileFolder_ManySmallFiles(source,dest,v);
             end
 
@@ -82,39 +80,16 @@ if ~isSourceAWS && isDestAWS
             error('Couldn''t figure out the mode of operation');
     end
 
-    if err~=0
-        error(['error happend while using aws: ' txt]);
-    end
 %% Copy withing aws mode
 elseif (isSourceAWS && isDestAWS)
     if (source(end) == '/')
         %This is a directory copy
-        syscmd = ['aws s3 cp "' source '" "' dest '" --recursive'];
+        awsCmd(['aws s3 cp "' source '" "' dest '" --recursive'], [], v);
     else
         %Single file
-        syscmd = ['aws s3 cp "' source '" "' dest '"'];
+        awsCmd(['aws s3 cp "' source '" "' dest '"'], [], v);
     end
     
-    for retryI=3:-1:0 % Re try x times
-        [err,txt] = system(syscmd);
-        if (err ~= 0)
-            emessage = sprintf('%s\nResulted in an error code %d: %s',...
-                syscmd, err, txt);
-            if (retryI > 0)
-                warning('%s. retry in 1 sec.',emessage);
-                pause(1);
-            else
-                error('%s',emessage);
-            end
-        else
-            %Good code, no need to retry
-            break;
-        end
-    end
-       
-    if (v)
-        disp(txt);
-    end
 %% Copy local file mode
 elseif (~isSourceAWS && ~isDestAWS)
     

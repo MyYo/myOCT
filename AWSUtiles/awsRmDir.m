@@ -9,5 +9,5 @@ if ~awsIsAWSPath(myDir)
 else
     awsSetCredentials(1);
     myDir = awsModifyPathForCompetability(myDir,true);
-    [~,~] = system(['aws s3 rm "' myDir '" --recursive']);
+    awsCmd(['aws s3 rm "' myDir '" --recursive']);
 end

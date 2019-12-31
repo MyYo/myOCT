@@ -8,5 +8,5 @@ if ~awsIsAWSPath(myFile)
 else
     awsSetCredentials(1);
     myFile = awsModifyPathForCompetability(myFile,true);
-    [~,~] = system(['aws s3 rm "' myFile '"']);
+    awsCmd(['aws s3 rm "' myFile '"']);
 end

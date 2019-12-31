@@ -34,17 +34,13 @@ end
 %% Preform the move
 if (awsIsAWSPath(dest))
     
-    if true
+    if length(froms) > 5 %Many files are been copied
         %Parallel Version
         awsCopyFile_MW2_AWSParallel(froms,tos);
-    else
+    else % Few files are beying copied
         %Sync version
-        for i=1:length(forms)
-            cmd = sprintf('aws s3 mv "%s" "%s"',froms{i},tos{i});
-            [status,txt] = system(cmd);
-            if status~=0
-                error('Could not move files, message: %s',txt);
-            end
+        for i=1:length(froms)
+            awsCmd(sprintf('aws s3 mv "%s" "%s"',froms{i},tos{i}));
         end
     end
 else
@@ -100,18 +96,12 @@ for batchI = 1:nBetches
     end
     fprintf(fid,') | set /P "="');
     fclose(fid);
-    [status,txt] = system(tmpBatFP);
     
-    %Known errors to ignore
-    txt = strrep(txt,'Exception ignored in: <_io.TextIOWrapper name=''<stdout>'' mode=''w'' encoding=''cp1252''>','');
-    txt = strrep(txt,'OSError: [Errno 22] Invalid argument','');
-    txt = strtrim(txt);
-    
-    %Error handling
-    if status~=0 && ~isempty(txt)
-        fprintf('problem in MW2:\n%s\n',txt);
-    end
-    
+    awsCmd(tmpBatFP, {...
+        'Exception ignored in: <_io.TextIOWrapper name=''<stdout>'' mode=''w'' encoding=''cp1252''>', ...
+        'OSError: [Errno 22] Invalid argument' ...
+        });
+   
     %Cleanup
     delete(tmpBatFP);
 end
