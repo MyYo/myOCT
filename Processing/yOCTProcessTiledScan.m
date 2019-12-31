@@ -349,7 +349,7 @@ end
 %% Reorganizing files
 % Move files outside of their folder
 if (v)
-    fprintf('%s Reorg files ... ',datestr(datetime));
+    fprintf('%s Finalizing saving tif file ... ',datestr(datetime));
     tt=tic;
 end
 
@@ -358,6 +358,9 @@ yOCT2Tif([], outputPath, 'metadata', dimOutput, 'partialFileMode', 3);
 
 % Get saved y planes out
 if isSaveSomeYPlanes
+    if (v)
+        fprintf('%s Reorg some y planes ... ',datestr(datetime));
+    end
     awsCopyFile_MW2(yPlanesOutputFolder);
 end
 if (v)
