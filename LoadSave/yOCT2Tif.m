@@ -159,14 +159,14 @@ if mode == 0
             awsRmFile(awsOutputFilePath{1}); %Clear file
         end
         if awsExist(awsOutputFilePath{2},'dir') && isOutputFolder
-            awsRmFile(awsOutputFilePath{2}); %Clear dir
+            awsRmDir(awsOutputFilePath{2}); %Clear dir
         end
     else
         if awsExist(outputFilePaths{1},'file') && isOutputFile
             awsRmFile(outputFilePaths{1}); %Clear file
         end
         if awsExist(outputFilePaths{2},'dir') && isOutputFolder
-            awsRmFile(outputFilePaths{2}); %Clear dir
+            awsRmDir(outputFilePaths{2}); %Clear dir
         end
     end
     
@@ -222,7 +222,7 @@ elseif mode == 1
 
     % Always outputing a folder, clear it
     if awsExist(outputFilePaths{2},'dir')
-        awsRmFile(outputFilePaths{2}); %Clear dir
+        awsRmDir(outputFilePaths{2}); %Clear dir
     end
     
     % Clear the temporary folder as well
