@@ -236,24 +236,28 @@ else
     % Finish WM work
     awsCopyFile_MW2(outputFilePaths{3});
     
-    %Get all the JSON files, so we can read c
-    dsJsons = fileDatastore(outputFilePaths{3},'ReadFcn',@awsReadJSON, ...
-        'FileExtensions','.json'); 
-    cJsons = dsJsons.readall();
-    cmin = cellfun(@(x)(min(x.c)),cJsons);
-    cmax = cellfun(@(x)(max(x.c)),cJsons);
-    numberOfYPlanes = length(cJsons);
-    
-    if isempty(c)
-        c = [min(cmin) max(cmax)];
-    end
-    
-    % Rewrite individual slides with the same c boundray for all
-    parfor(parforI=1:1,1) %Run once but on a worker
+    numberOfYPlanes=NaN;
+    parfor(parforI=1:1,1) %Run once but on a worker, to save trafic
         % Make sure worker has the right credentials
         awsSetCredentials;
+    
+        %Get all the JSON files, so we can read c
+        dsJsons = fileDatastore(outputFilePaths{3},'ReadFcn',@awsReadJSON, ...
+            'FileExtensions','.json'); 
+        cJsons = dsJsons.readall();
+        cmin = cellfun(@(x)(min(x.c)),cJsons);
+        cmax = cellfun(@(x)(max(x.c)),cJsons);
         
-        for frameI = 1:length(cmin)
+        numberOfYPlanes(parforI) = length(cJsons);
+        cOut(parforI,:) = [min(cmin) max(cmax)];
+        if isempty(c) %Set the internal value
+            cWorker = cOut(parforI,:); % Use the value from the worker
+        else
+            cWorker = c;
+        end
+
+        % Rewrite individual slides with the same c boundray for all
+        for frameI = 1:numberOfYPlanes(parforI)
             % Read frame
             fpIn = yScanPath(outputFilePaths{3},frameI);
             fpOut = yScanPath(outputFilePaths{2},frameI);
@@ -265,12 +269,15 @@ else
             tn = [tempname '.tif'];
             imwrite( ...
                 uint16(...
-                (double(dat)*(cmax(frameI)-cmin(frameI)) + cmin(frameI) - c(1))/diff(c) ...
+                (double(dat)*(cmax(frameI)-cmin(frameI)) + cmin(frameI) - cWorker(1))/diff(cWorker) ...
                 ),tn);
             awsCopyFile_MW1(tn,fpOut); %Matlab worker version of copy files
             delete(tn);
         end 
     end %Run once but on a worker
+    if isempty(c)
+        c = cOut; % Use the value from the worker
+    end
     
     % Remove partial tifs
     awsRmDir(outputFilePaths{3});
