@@ -28,6 +28,27 @@ if awsExist(fp_s3File,'file')
     awsRmFile(fp_s3File);
 end
 
+%% Test bit conversion
+r1 = rand(10);
+c = [0 1];
+r2 = yOCT2Tif_ConvertBitsData(yOCT2Tif_ConvertBitsData(r1,c, false),c, true);
+if (max(abs(r1(:)-r2(:))) > 2^-14)
+    error('Bit conversion test failed');
+end
+
+r1 =[0 2 2^(16-1)-1];
+c = [0 2^(16-1)-1];
+r2 = yOCT2Tif_ConvertBitsData(yOCT2Tif_ConvertBitsData(r1,c, false),c, true);
+if (max(abs(r2-r1)) ~= 0)
+    error('Bit conversion');
+end
+
+if isnan(yOCT2Tif_ConvertBitsData(NaN,c, false)) || ...
+        ~isnan(yOCT2Tif_ConvertBitsData(yOCT2Tif_ConvertBitsData(NaN,c, false),c, true))
+    error('NaN Conversion Error');
+end
+
+
 %% Save to Tif File
 fprintf('%s Tif File Tests Started\n',datestr(now))
 LoadReadSeeItsTheSame(data(:,:,1),fp_localFile,[],[],0,[],[],false); %Save 2D, don't cleanup
@@ -156,7 +177,7 @@ for i=1:length(filePaths)
         disp('Not cleaning up!');
     end
     %% Compare
-    if max(abs(data(:)-data_(:)))>1/2^12
+    if max(abs(data(:)-data_(:)))>2^-(16-1-4)
         fprintf('Testing: %s\n',filePath);
         fprintf('Max difference between original and loaded data: %.1f%%. File Size: %.2f Bytes/Data Point\n',...
             max(abs(data(:)-data_(:)))*100,sum([d(:).bytes])/numel(data))

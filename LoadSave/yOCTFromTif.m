@@ -90,7 +90,8 @@ for i=1:length(yI)
     if (i==1)
         data = zeros(size(bits,1),size(bits,2),length(yI),'single');
     end
-    data(:,:,i) = double(bits)*(c(2)-c(1))/maxbit+c(1); %Rescale to the original values
+    
+    data(:,:,i) = yOCT2Tif_ConvertBitsData(bits,c,true,maxbit); %Rescale to the original values
 end
 
 if isAWS && isInputFile
@@ -135,7 +136,7 @@ else
         % Good version
         metaData = jsn.metadata;
         c = jsn.clim;
-        maxbit = 2^16-1;
+        maxbit = []; %Latest version
     end
 end
 

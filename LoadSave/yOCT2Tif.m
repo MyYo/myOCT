@@ -179,7 +179,7 @@ if mode == 0
     metaJson = GenerateMetaData(metadata,c);
     
     for yI=1:size(data,3)
-        bits = data2bits(data(:,:,yI),c);
+        bits = yOCT2Tif_ConvertBitsData(data(:,:,yI),c,false);
         
         % Save file
         if isOutputFile
@@ -239,7 +239,7 @@ elseif mode == 2
     end
     
     for yI=1:size(data,3)
-        bits = data2bits(data(:,:,yI),c);
+        bits = yOCT2Tif_ConvertBitsData(data(:,:,yI),c,false);
         
         p = yScanPath(outputFilePaths{3},in.partialFileModeIndex(yI));
         
@@ -297,12 +297,12 @@ else
             
             % Write a new frame
             tn = [tempname '.tif'];
-            maxbit = 2^16-1;
-            imwrite( ...
-                uint16(...
-                (double(bits)*(cFrameMaxs(frameI)-cFrameMins(frameI)) + ...
-                (cFrameMins(frameI) - cStack(1))*maxbit)/diff(cStack) ...
-                ),tn);
+            
+            data = yOCT2Tif_ConvertBitsData(bits,...
+                [cFrameMins(frameI) cFrameMaxs(frameI)],true);
+            newBits = yOCT2Tif_ConvertBitsData(data,cStack,false);
+
+            imwrite(newBits,tn);
             awsCopyFile_MW1(tn,fpOut); %Matlab worker version of copy files
             delete(tn);
         end 
@@ -347,13 +347,6 @@ else
         awsRmDir(outputFilePaths{2});
     end 
 end
-
-function bits = data2bits(data,c)
-maxbit = 2^16-1;
-bits = uint16((squeeze(data)-c(1))/(c(2)-c(1))*maxbit);
-bits(bits>maxbit) = maxbit;
-bits(bits<0) = 0;
-bits(isnan(bits)) = 0;
 
 function p = yScanPath(outputFilePaths,yIndex)
 p = awsModifyPathForCompetability(... 
