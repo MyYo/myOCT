@@ -100,12 +100,19 @@ elseif (~isSourceAWS && ~isDestAWS)
         %Folder copy
         system(['xcopy "' source '" "' dest '" /S /C /Q /Y']);
     end
-    
+elseif (isSourceAWS && ~isDestAWS)
+    if (source(end) == '/')
+        %This is a directory copy, remove last '\' from dest if exist
+        dest = awsModifyPathForCompetability([dest '/']);
+        awsCmd(['aws s3 cp "' source '" "' dest(1:(end-1)) '" --recursive'], [], v);
+    else
+        %Single file
+        awsCmd(['aws s3 cp "' source '" "' dest '"'], [], v);
+    end
 %% Other
 else
     error('Don''t know how to isSourceAWS: %d, isDestAWS: %d',isSourceAWS,isDestAWS)
 end
-
 
 %% Fast copy of many small files
 function awsCopyFileFolder_ManySmallFiles(localSource,s3Dest,v)
