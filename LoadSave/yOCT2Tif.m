@@ -266,6 +266,7 @@ else
     awsCopyFile_MW2(outputFilePaths{3});
     
     numberOfYPlanes=NaN;
+    %for parforI=1:1
     parfor(parforI=1:1,1) %Run once but on a worker, to save trafic
         % Make sure worker has the right credentials
         awsSetCredentials;
@@ -274,15 +275,15 @@ else
         dsJsons = fileDatastore(outputFilePaths{3},'ReadFcn',@awsReadJSON, ...
             'FileExtensions','.json'); 
         cJsons = dsJsons.readall();
-        cmin = cellfun(@(x)(min(x.c)),cJsons);
-        cmax = cellfun(@(x)(max(x.c)),cJsons);
+        cFrameMins = cellfun(@(x)(min(x.c)),cJsons);
+        cFrameMaxs = cellfun(@(x)(max(x.c)),cJsons);
         
         numberOfYPlanes(parforI) = length(cJsons);
-        cOut(parforI,:) = [min(cmin) max(cmax)];
+        cOut(parforI,:) = [min(cFrameMins) max(cFrameMaxs)];
         if isempty(c) %Set the internal value
-            cWorker = cOut(parforI,:); % Use the value from the worker
+            cStack = cOut(parforI,:); % Use the value from the worker
         else
-            cWorker = c;
+            cStack = c;
         end
 
         % Rewrite individual slides with the same c boundray for all
@@ -292,13 +293,15 @@ else
             fpOut = yScanPath(outputFilePaths{2},frameI);
             
             ds = fileDatastore(fpIn,'readFcn',@imread);
-            dat = ds.read();
+            bits = ds.read();
             
             % Write a new frame
             tn = [tempname '.tif'];
+            maxbit = 2^16-1;
             imwrite( ...
                 uint16(...
-                (double(dat)*(cmax(frameI)-cmin(frameI)) + cmin(frameI) - cWorker(1))/diff(cWorker) ...
+                (double(bits)*(cFrameMaxs(frameI)-cFrameMins(frameI)) + ...
+                (cFrameMins(frameI) - cStack(1))*maxbit)/diff(cStack) ...
                 ),tn);
             awsCopyFile_MW1(tn,fpOut); %Matlab worker version of copy files
             delete(tn);
@@ -322,6 +325,7 @@ else
     % Generate a single file if required
     if isOutputFile
         outputFileTmpPath = awsModifyPathForCompetability([outputFilePaths{3} '\all.tif']);
+        %for parforI=1:1
         parfor(parforI=1:1,1) %Run once but on a worker
             % Load data
             dat = yOCTFromTif(outputFilePaths{2},1:numberOfYPlanes);

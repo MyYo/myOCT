@@ -2,6 +2,7 @@
 
 %% Define data for this plane
 data = rand(1024,1024,5);
+data(:,:,2) = data(:,:,2)+2;
 clear meta;
 meta.mymeta = (1:10)';
 
@@ -53,17 +54,17 @@ fprintf('%s Saving in partial mode\n',datestr(now))
 LoadReadSeeItsTheSame([],fp_localFolder,[],[],1,[]); % Init
 LoadReadSeeItsTheSame(data(:,:,1),fp_localFolder,[],[],2,1);
 LoadReadSeeItsTheSame(data(:,:,2),fp_localFolder,[],[],2,2);
-LoadReadSeeItsTheSame(data(:,:,1:2),fp_localFolder,[],[],3,[],[],false); %Data is not required but useful for comparing output
+LoadReadSeeItsTheSame(data(:,:,1:2),fp_localFolder,[],[],3,[],[]); %Data is not required but useful for comparing output
 
 LoadReadSeeItsTheSame([],fp_localFile,[],[],1,[]); % Init
 LoadReadSeeItsTheSame(data(:,:,1),fp_localFile,[],[],2,1)
 LoadReadSeeItsTheSame(data(:,:,2),fp_localFile,[],[],2,2)
-LoadReadSeeItsTheSame(data(:,:,1:2),fp_localFile,[],[],3,[],[],false); %Data is not required but useful for comparing output
+LoadReadSeeItsTheSame(data(:,:,1:2),fp_localFile,[],[],3,[],[]); %Data is not required but useful for comparing output
 
 LoadReadSeeItsTheSame([],{fp_localFolder,fp_localFile},[],[],1,[]); % Init
 LoadReadSeeItsTheSame(data(:,:,1),{fp_localFolder,fp_localFile},[],[],2,1)
 LoadReadSeeItsTheSame(data(:,:,2),{fp_localFolder,fp_localFile},[],[],2,2)
-LoadReadSeeItsTheSame(data(:,:,1:2),{fp_localFolder,fp_localFile},meta,[0 2],3,[]); %Data is not required but useful for comparing output
+LoadReadSeeItsTheSame(data(:,:,1:2),{fp_localFolder,fp_localFile},meta,[0 3],3,[]); %Data is not required but useful for comparing output
 
 %% Test Partial Save in cloud
 fprintf('%s Saving in partial mode in cloud\n',datestr(now))
@@ -81,7 +82,7 @@ LoadReadSeeItsTheSame(data(:,:,1:2),fp_s3File,[],[],3,[],[],false); %Data is not
 LoadReadSeeItsTheSame([],{fp_s3Folder,fp_s3File},[],[],1,[]); % Init
 LoadReadSeeItsTheSame(data(:,:,1),{fp_s3Folder,fp_s3File},[],[],2,1)
 LoadReadSeeItsTheSame(data(:,:,2),{fp_s3Folder,fp_s3File},[],[],2,2)
-LoadReadSeeItsTheSame(data(:,:,1:2),{fp_s3Folder,fp_s3File},meta,[0 2],3,[]); %Data is not required but useful for comparing output
+LoadReadSeeItsTheSame(data(:,:,1:2),{fp_s3Folder,fp_s3File},meta,[0 3],3,[]); %Data is not required but useful for comparing output
 
 fprintf('%s Test Done\n',datestr(now))
 
@@ -152,6 +153,7 @@ for i=1:length(filePaths)
     end
     %% Compare
     if max(abs(data(:)-data_(:)))>1/2^14
+        fprintf('Testing: %s\n',filePath);
         fprintf('Max difference between original and loaded data: %.1f%%. File Size: %.2f Bytes/Data Point\n',...
             max(abs(data(:)-data_(:)))*100,sum([d(:).bytes])/numel(data))
         error('Saving Data is not lossless');

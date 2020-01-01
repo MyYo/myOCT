@@ -78,19 +78,19 @@ for i=1:length(yI)
 
     if (isInputFile)
         % Single file mode
-        dat = imread(filepath,'index',yI(i));
+        bits = imread(filepath,'index',yI(i));
     else
         % Folder mode
         ds = fileDatastore(...
             awsModifyPathForCompetability(sprintf('%s/y%04d.tif',filepath,yI(i))), ...
             'ReadFcn',@imread);
-        dat = ds.read();
+        bits = ds.read();
     end
 
     if (i==1)
-        data = zeros(size(dat,1),size(dat,2),length(yI),'single');
+        data = zeros(size(bits,1),size(bits,2),length(yI),'single');
     end
-    data(:,:,i) = double(dat)*(c(2)-c(1))/maxbit+c(1); %Rescale to the original values
+    data(:,:,i) = double(bits)*(c(2)-c(1))/maxbit+c(1); %Rescale to the original values
 end
 
 if isAWS && isInputFile
