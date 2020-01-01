@@ -2,7 +2,7 @@ function awsCopyFileFolder(source,dest,v)
 %This function copys files and folders to from/aws
 
 if ~exist('v','var')
-    v = true; %Verboose mode
+    v = false; %Verboose mode
 end
 
 if isempty(source) || isempty(dest)
