@@ -1,8 +1,11 @@
 % This script tests loading and saving of Tif files
 
 %% Define data for this plane
-data = rand(1024,1024,5);
+data = rand(256,256,5);
 data(:,:,2) = data(:,:,2)+2;
+data(:,:,3) = -data(:,:,3);
+data(:,:,4) = -data(:,:,4)-2;
+data(:,:,5) = 10*data(:,:,5);
 clear meta;
 meta.mymeta = (1:10)';
 
@@ -62,9 +65,10 @@ LoadReadSeeItsTheSame(data(:,:,2),fp_localFile,[],[],2,2)
 LoadReadSeeItsTheSame(data(:,:,1:2),fp_localFile,[],[],3,[],[]); %Data is not required but useful for comparing output
 
 LoadReadSeeItsTheSame([],{fp_localFolder,fp_localFile},[],[],1,[]); % Init
-LoadReadSeeItsTheSame(data(:,:,1),{fp_localFolder,fp_localFile},[],[],2,1)
-LoadReadSeeItsTheSame(data(:,:,2),{fp_localFolder,fp_localFile},[],[],2,2)
-LoadReadSeeItsTheSame(data(:,:,1:2),{fp_localFolder,fp_localFile},meta,[0 3],3,[]); %Data is not required but useful for comparing output
+for i=1:size(data,3)
+    LoadReadSeeItsTheSame(data(:,:,i),{fp_localFolder,fp_localFile},[],[],2,i);
+end
+LoadReadSeeItsTheSame(data,{fp_localFolder,fp_localFile},3,[]); %Data is not required but useful for comparing output
 
 %% Test Partial Save in cloud
 fprintf('%s Saving in partial mode in cloud\n',datestr(now))
@@ -152,7 +156,7 @@ for i=1:length(filePaths)
         disp('Not cleaning up!');
     end
     %% Compare
-    if max(abs(data(:)-data_(:)))>1/2^14
+    if max(abs(data(:)-data_(:)))>1/2^12
         fprintf('Testing: %s\n',filePath);
         fprintf('Max difference between original and loaded data: %.1f%%. File Size: %.2f Bytes/Data Point\n',...
             max(abs(data(:)-data_(:)))*100,sum([d(:).bytes])/numel(data))

@@ -29,7 +29,7 @@ function yOCTProcessTiledScan(varargin)
 %   v                   true        verbose mode      
 %
 %OUTPUT:
-%   No output is returned. Will save scan Abs to outputPath, and
+%   No output is returned. Will save mag2db(scan Abs) to outputPath, and
 %   debugFolder
 
 %% Processing of input
