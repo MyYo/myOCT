@@ -1,6 +1,10 @@
 function awsRmDir(myDir)
 %This function will remove dir if it exists (either in AWS or locally)
 
+if isempty(myDir)
+    error('Cannot delete an empty dir');
+end
+
 if ~awsIsAWSPath(myDir)
     myDir = awsModifyPathForCompetability(myDir);
     if exist(myDir,'dir')

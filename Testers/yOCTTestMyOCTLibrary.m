@@ -46,6 +46,9 @@ yOCTTestLoadSaveTif;
 %% Test tiled scan reconstruction
 yOCTTestReconstruction([mainTestVectorFolder2 'TiledScans/TiledXYZ/']);
 
+%% Test reslicing
+yOCTTestReslice;
+
 
 %% Done!
 disp('All Tests Completed');

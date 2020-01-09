@@ -3,7 +3,8 @@ function [data, metaData, c] = yOCTFromTif (filepath, yI)
 %Dimensions are (z,x,y)
 %INPUTS
 %   filpath - filepath of output tif file (stack is z,x and each frame is y)
-%   yI - Optional, which y frames to load
+%   yI - Optional, which y frames to load, if yI = [], will return metaData
+%       only.
 %OUTPUTS:
 %   data - data saved from tif
 %   metaData - dimention structure, if present as meta data
@@ -73,6 +74,9 @@ if isempty(c) || length(c)~=2
 end
 
 %% Get the data
+if isempty(yI)
+    data = [];
+end
 
 for i=1:length(yI)
 
@@ -109,6 +113,7 @@ function [c, metaData, maxbit] = intrpertDescription(description,filepath)
 if isempty(description)
     c = [];
     metaData = [];
+    maxbit = 2^8-1;
     return;
 end
 
