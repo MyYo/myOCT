@@ -208,7 +208,7 @@ if(v)
     fprintf('%s Stitching ...\n',datestr(datetime)); tt=tic();
 end
 yOCT2Tif([], outputPath, 'partialFileMode', 1); %Init
-parfor yI=1:length(yAll) 
+for yI=1:length(yAll) 
     try
         %Create a container for all data
         stack = zeros(imOutSize(1:2)); %#ok<PFBNS> %z,x,zStach
@@ -258,15 +258,18 @@ parfor yI=1:length(yAll)
                 correction = @(x,y)(x*OP_p(1)+y*OP_p(2)+x.^2*OP_p(3)+y.^2*OP_p(4)+x.*y*OP_p(5)); %x,y are in microns
                 [xx,zz] = meshgrid(dim1.x.values,dim1.z.values); %um                
                 scan1_min = min(scan1(:));
-                scan1 = interp2(xx,zz,scan1,xx,zz+correction(xx,dim1.y.values),'nearest',0);
+                scan1 = interp2(xx,zz,scan1,xx,zz+correction(xx,dim1.y.values),'nearest');
+                scan1_nan = isnan(scan1);
                 scan1(scan1<scan1_min) = scan1_min; %Dont let interpolation value go too low
+                scan1(scan1_nan) = 0; %interpolated nan values should not contribute to image
 
                 %Filter around the focus
                 zI = 1:length(zOneTile); zI = zI(:);
                 if ~isnan(focusPositionInImageZpix)
                     factorZ = exp(-(zI-focusPositionInImageZpix).^2/(2*focusSigma)^2) + ...
                         (zI>focusPositionInImageZpix)*exp(-3^2/2);%Under the focus, its possible to not reduce factor as much 
-                    factor = repmat(factorZ, [1 size(scan1,2)]); 
+                    factor = repmat(factorZ, [1 size(scan1,2)]);
+                    factor(scan1_nan) = 0; %interpolated nan values should not contribute to image
                 else
                     factor = ones(length(zOneTile),length(xOneTile)); %No focus gating
                 end
