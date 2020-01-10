@@ -1,5 +1,5 @@
 # myOCT
-myOCT GitHub library contains multiple Matlab scripts for processing of Optical Coherence Tomography samples, scanned by Thorlab's Ganymede & Telesto’s OCT Systems.
+myOCT GitHub library contains multiple Matlab scripts for processing of Optical Coherence Tomography samples, scanned by Thorlab's Ganymede & Telesto’s OCT Systems or Wastach OCT System.
 
 The library contains 5 layers of scripts:
 
