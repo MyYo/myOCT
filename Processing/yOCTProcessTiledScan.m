@@ -258,7 +258,7 @@ parfor yI=1:length(yAll)
                 correction = @(x,y)(x*OP_p(1)+y*OP_p(2)+x.^2*OP_p(3)+y.^2*OP_p(4)+x.*y*OP_p(5)); %x,y are in microns
                 [xx,zz] = meshgrid(dim1.x.values,dim1.z.values); %um                
                 scan1_min = min(scan1(:));
-                scan1 = interp2(xx,zz,scan1,xx,zz+correction(xx,dim1.y.values),'nearest');
+                scan1 = interp2(xx,zz,scan1,xx,zz+correction(xx,dim1.y.values),'nearest',0);
                 scan1(scan1<scan1_min) = scan1_min; %Dont let interpolation value go too low
 
                 %Filter around the focus
