@@ -92,3 +92,14 @@ m = min([max(x) max(y)]);
 slice = yOCTReslice(volume,n,-m:m,[0 2],z,'dimensions',dimensions);
 assert(all(all((slice(:,:,1) > 0.5))),'Midway should have values');
 assert(all(all((slice(:,:,2) < 0.01))),'Outside midway shouldn''t have any values');
+
+%% End to end test with input and output folders
+yOCT2Tif(volume,'TMP_Reslice\Input\', 'metadata', dimensions);
+yOCTReslice('TMP_Reslice\Input\',n,-m:m,[0 2],z,'outputFileOrFolder','TMP_Reslice\Output.tif');
+yOCTReslice('TMP_Reslice\Input\',n,-m:m,[0 2],z,'outputFileOrFolder',{'TMP_Reslice\Output\','TMP_Reslice\Output.tif'});
+
+slice =  yOCTFromTif('TMP_Reslice\Output\');
+assert(all(all((slice(:,:,1) > 0.5))),'Midway should have values 2');
+assert(all(all((slice(:,:,2) < 0.01))),'Outside midway shouldn''t have any values 2');
+
+awsRmDir('TMP_Reslice');

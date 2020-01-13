@@ -75,9 +75,19 @@ if isempty(outputFileOrFolder)
     outputFileOrFolder = awsModifyPathForCompetability([tempname '\']);
 else
     % Save output to folder, don't return it
-    if awsExist(outputFileOrFolder,'dir')
-        error('Output folder must not exist for this function to run properly: %s',outputFileOrFolder);
+        
+    % Make sure output folder is a cell
+    if ~iscell(outputFileOrFolder)
+        outputFileOrFolder = {outputFileOrFolder};
     end
+    
+    % Check that folder doesn't exist
+    for i=1:length(outputFileOrFolder)
+        if awsExist(outputFileOrFolder{i},'dir')
+            error('Output folder must not exist for this function to run properly: %s',outputFileOrFolder{i});
+        end
+    end
+    
     returnReslicedVolume = false; 
 end
 
