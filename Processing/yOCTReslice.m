@@ -16,6 +16,7 @@ function [reslicedVolume,xyzNew2Original,dimensions_n] = yOCTReslice(varargin)
 %       + 3*1 vector defining the normal to x'-z' plane, than xyzNew2Original
 %           is a rotation matrix, x' will be parallel to x-y plane
 %       + function handle - see xyzNew2Original at the output section.
+%   - x1_n, y1_n, z1_n - positions in new coordinate system in mm
 % OPTIONAL PARAMETERS:
 %   - dimensions - can be:
 %       + dimensions structure as output by yOCTInterfToScanCpx.
@@ -65,7 +66,7 @@ end
 if isempty(dimensions)
    [~,dimensions] = yOCTFromTif(volume,[]);
 end
-dimensions = yOCTChangeDimensionsStructureUnits(dimensions,'microns');
+dimensions = yOCTChangeDimensionsStructureUnits(dimensions,'mm');
 
 % outputFolder
 outputFileOrFolder = in.outputFileOrFolder;
@@ -119,7 +120,7 @@ elseif isnumeric(in.xyzNew2Original) && numel(in.xyzNew2Original) == 3
     mz = rectifyVect(mz);
     
     % Rotation matrix
-    M_n2o = [mx  my mz];
+    M_n2o = [mx my mz];
     
     xyzNew2Original = @(x,y,z)(M_n2o*[x(:)' ; y(:)' ; z(:)']);
 else 
@@ -130,15 +131,15 @@ end
 dimensions_n.z.order = 1;
 dimensions_n.z.values = z1_n;
 dimensions_n.z.index = 1:length(z1_n);
-dimensions_n.z.units = 'um';
+dimensions_n.z.units = 'mm';
 dimensions_n.x.order = 2;
 dimensions_n.x.values = x1_n;
 dimensions_n.x.index = 1:length(x1_n);
-dimensions_n.x.units = 'um';
+dimensions_n.x.units = 'mm';
 dimensions_n.y.order = 3;
 dimensions_n.y.values = y1_n;
 dimensions_n.y.index = 1:length(y1_n);
-dimensions_n.y.units = 'um';
+dimensions_n.y.units = 'mm';
 
 %% Compute output volume
 yOCT2Tif([],outputFileOrFolder,'partialFileMode',1);
