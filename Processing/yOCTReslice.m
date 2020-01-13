@@ -181,7 +181,7 @@ parfor yi1_n=1:length(y1_n) % Each for acts on one output y plane
         % Save plane to folder 
         yOCT2Tif(slice, outputFileOrFolder,...
             'partialFileMode',2,'partialFileModeIndex',yi1_n);
-    catch (ME)
+    catch ME
         fprintf('Error happened in parfor, iteration %d',yi1_n); 
         for j=1:length(ME.stack) 
             ME.stack(j) 
