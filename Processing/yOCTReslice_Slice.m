@@ -29,9 +29,9 @@ y0_o  = dimensions.y.values(:)';
 z0_o  = dimensions.z.values(:)';
 
 % Position (index).
-xi0_o = dimensions.x.index(:)';
-yi0_o = dimensions.y.index(:)';
-zi0_o = dimensions.z.index(:)';
+xi0_o = 1:length(dimensions.x.values);
+yi0_o = 1:length(dimensions.y.values);
+zi0_o = 1:length(dimensions.z.values);
 
 % Actual position of slice  in volum's coordinate system.
 matSz = size(x1_o);
