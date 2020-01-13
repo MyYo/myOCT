@@ -28,6 +28,8 @@ function [reslicedVolume,xyzNew2Original,dimensions_n] = yOCTReslice(varargin)
 %       if running on the cloud as it will save the data transfer back and
 %       forth, and would output data directly to the cloud. outputFileOrFolder
 %       can be a path to a Tif file, or TifStack folder (see yOCT2Tif)
+%   - clearOutputFileOrFolderIfExists - default is true, if output file
+%       already exists, delete it before running.
 %
 % OUTPUTS:
 %   - reslicedVolume - 3D volume of the resliced volume.
@@ -50,6 +52,7 @@ addRequired(p,'z1_n',@(w)(all(w==sort(w))));
 
 addParameter(p,'dimensions',[])
 addParameter(p,'outputFileOrFolder','');
+addParameter(p,'clearOutputFileOrFolderIfExists',true);
 
 parse(p,varargin{:});
 in = p.Results;
@@ -84,8 +87,22 @@ else
     
     % Check that folder doesn't exist
     for i=1:length(outputFileOrFolder)
-        if awsExist(outputFileOrFolder{i},'dir')
-            error('Output folder must not exist for this function to run properly: %s',outputFileOrFolder{i});
+        fp = outputFileOrFolder{i};
+        [~,~,ext] = fileparts('C:\a');
+        isFile = ~isempty(ext);
+        
+        if isFile && awsExist(fp,'file')
+            if ~in.clearOutputFileOrFolderIfExists
+                error('Output folder must not exist for this function to run properly: %s',outputFileOrFolder{i});
+            else
+                awsRmFile(fp);
+            end
+        elseif ~isFile && awsExist(fp,'dir')
+            if ~in.clearOutputFileOrFolderIfExists
+                error('Output folder must not exist for this function to run properly: %s',outputFileOrFolder{i});
+            else
+                awsRmDir(fp);
+            end
         end
     end
     
@@ -144,25 +161,33 @@ dimensions_n.y.units = 'mm';
 %% Compute output volume
 yOCT2Tif([],outputFileOrFolder,'partialFileMode',1);
 parfor yi1_n=1:length(y1_n) % Each for acts on one output y plane
-    
-    % Create grid of the new coordinates (x-z)
-    [xx1_n,zz1_n] = meshgrid(x1_n,z1_n);
-    
-    % Convert new volume's coordinate to original coordinates
-    xyz1_o = xyzNew2Original(...
-        xx1_n, ...
-        y1_n(yi1_n)*ones(size(xx1_n)), ...
-        zz1_n);
-    x1_o = reshape(xyz1_o(1,:),size(xx1_n));
-    y1_o = reshape(xyz1_o(2,:),size(xx1_n));
-    z1_o = reshape(xyz1_o(3,:),size(xx1_n));
-    
-    % Load & compute slice
-    slice = yOCTReslice_Slice(volume, dimensions, x1_o, y1_o, z1_o);
-    
-    % Save plane to folder 
-    yOCT2Tif(slice, outputFileOrFolder,...
-        'partialFileMode',2,'partialFileModeIndex',yi1_n);
+    try    
+        % Create grid of the new coordinates (x-z)
+        [xx1_n,zz1_n] = meshgrid(x1_n,z1_n);
+
+        % Convert new volume's coordinate to original coordinates
+        xyz1_o = xyzNew2Original(...
+            xx1_n, ...
+            y1_n(yi1_n)*ones(size(xx1_n)), ...
+            zz1_n);
+        x1_o = reshape(xyz1_o(1,:),size(xx1_n));
+        y1_o = reshape(xyz1_o(2,:),size(xx1_n));
+        z1_o = reshape(xyz1_o(3,:),size(xx1_n));
+
+        % Load & compute slice
+        slice = yOCTReslice_Slice(volume, dimensions, x1_o, y1_o, z1_o);
+
+        % Save plane to folder 
+        yOCT2Tif(slice, outputFileOrFolder,...
+            'partialFileMode',2,'partialFileModeIndex',yi1_n);
+    catch (ME)
+        fprintf('Error happened in parfor, iteration %d',yi1_n); 
+        for j=1:length(ME.stack) 
+            ME.stack(j) 
+        end 
+        disp(ME.message); 
+        error('Error in parfor');
+    end
 end
 yOCT2Tif([],outputFileOrFolder,'partialFileMode',3,'metadata',dimensions_n);
 
