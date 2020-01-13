@@ -208,7 +208,7 @@ if(v)
     fprintf('%s Stitching ...\n',datestr(datetime)); tt=tic();
 end
 yOCT2Tif([], outputPath, 'partialFileMode', 1); %Init
-parfor yI=1:length(yAll) 
+for yI=1:length(yAll) 
     try
         %Create a container for all data
         stack = zeros(imOutSize(1:2)); %#ok<PFBNS> %z,x,zStach
@@ -269,10 +269,11 @@ parfor yI=1:length(yAll)
                     factorZ = exp(-(zI-focusPositionInImageZpix).^2/(2*focusSigma)^2) + ...
                         (zI>focusPositionInImageZpix)*exp(-3^2/2);%Under the focus, its possible to not reduce factor as much 
                     factor = repmat(factorZ, [1 size(scan1,2)]);
-                    factor(scan1_nan) = 0; %interpolated nan values should not contribute to image
-                else
+                   else
                     factor = ones(length(zOneTile),length(xOneTile)); %No focus gating
                 end
+                factor(scan1_nan) = 0; %interpolated nan values should not contribute to image
+            
                 
                 %Figure out what is the x,z position of each pixel in this file
                 x = xOneTile+xCenters(xxI);
