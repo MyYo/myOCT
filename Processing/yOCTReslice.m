@@ -88,7 +88,7 @@ else
     % Check that folder doesn't exist
     for i=1:length(outputFileOrFolder)
         fp = outputFileOrFolder{i};
-        [~,~,ext] = fileparts('C:\a');
+        [~,~,ext] = fileparts(fp);
         isFile = ~isempty(ext);
         
         if isFile && awsExist(fp,'file')
