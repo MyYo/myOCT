@@ -97,7 +97,8 @@ else
             else
                 awsRmFile(fp);
             end
-        elseif ~isFile && awsExist(fp,'dir')
+        end
+        if ~isFile && awsExist(fp,'dir')
             if ~in.clearOutputFileOrFolderIfExists
                 error('Output folder must not exist for this function to run properly: %s',outputFileOrFolder{i});
             else
