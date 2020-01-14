@@ -53,7 +53,7 @@ zi1_o = reshape(ijk(1,:), matSz);
 
 % Batch defenition
 yiJump = 5; %How many y indexes to load at a time (memory management constraint)
-yiPad = 2; % How many extra planes to load for interpolation
+yiPad = 1; % How many extra planes to load for interpolation
 
 yi0_oBatchPositions = unique([ ...
 floor(min(yi1_o(:))), ...
