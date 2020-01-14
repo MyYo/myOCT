@@ -53,7 +53,7 @@ zi1_o = single(reshape(ijk(1,:), matSz));
 
 % Batch defenition
 yiJump = 5; %How many y indexes to load at a time (memory management constraint)
-yiPad = 1; % How many extra planes to load for interpolation
+pad = 1; % How many extra planes to load for interpolation
 
 yi0_oBatchPositions = unique([ ...
 floor(min(yi1_o(:))), ...
@@ -69,17 +69,25 @@ end
 %% Loop over batch, get data
 frameDataOut = NaN*zeros(matSz);
 for batchI = 1:(length(yi0_oBatchPositions)-1)
-    betchYi0_o = (yi0_oBatchPositions(batchI)-yiPad):(yi0_oBatchPositions(batchI+1)+yiPad);
+    betchYi0_o = (yi0_oBatchPositions(batchI)-pad):(yi0_oBatchPositions(batchI+1)+pad);
     %Remove data outside of bounds
     betchYi0_o(betchYi0_o<1) = []; 
     betchYi0_o(betchYi0_o>max(yi0_o)) = [];
     
-    % Mask
-    isUsed = ...
+    % Mask output frame - don't ask to compute values you know are NaN 
+    willPointInOutFrameBeComputed = ...
         yi1_o>=yi0_oBatchPositions(batchI) & yi1_o<=yi0_oBatchPositions(batchI+1) & ...
         ~isnan(xi1_o) & ~isnan(zi1_o);
     
-    if ~any(isUsed(:))
+    % Mask input, dont load values that known to not be needed
+    isXi0Needed = ...
+        xi0_o >= (floor(min(xi1_o(willPointInOutFrameBeComputed)))-pad) & ...
+        xi0_o <= (ceil(max(xi1_o(willPointInOutFrameBeComputed)))+pad);
+    isZi0Needed = ...
+        zi0_o >= (floor(min(zi1_o(willPointInOutFrameBeComputed)))-pad) & ...
+        zi0_o <= (ceil(max(zi1_o(willPointInOutFrameBeComputed)))+pad);
+        
+    if ~any(willPointInOutFrameBeComputed(:))
         % No need to use this yi, no data needed here
         continue;
     end
@@ -90,16 +98,21 @@ for batchI = 1:(length(yi0_oBatchPositions)-1)
     else
         frameDataIn = volume(:,:,betchYi0_o);
     end
-    frameDataIn = permute(frameDataIn,[3 2 1]); % Dimensions (x,y,z)
-
-    % Create a meshgrid
-    [xxi0_o,yyi0_o,zzi0_o] = meshgrid(xi0_o,betchYi0_o,zi0_o);
-
+    
+    % Prepeare for interpolation, change dimensions and create a meshgrid
+    frameDataIn = permute(frameDataIn,[3 2 1]); % Dimensions (y,x,z)
+    [xxi0_o,yyi0_o,zzi0_o] = meshgrid(xi0_o(isXi0Needed), ...
+                                      betchYi0_o, ...
+                                      zi0_o(isZi0Needed));
+                                  
     % Interpolate 
-    d = interp3(xxi0_o,yyi0_o,zzi0_o,frameDataIn, ...
-        xi1_o(isUsed),yi1_o(isUsed),zi1_o(isUsed),'linear',NaN);
+    d = interp3(xxi0_o,yyi0_o,zzi0_o,...
+        frameDataIn(:,isXi0Needed,isZi0Needed), ...
+        xi1_o(willPointInOutFrameBeComputed), ...
+        yi1_o(willPointInOutFrameBeComputed), ...
+        zi1_o(willPointInOutFrameBeComputed),'linear',NaN);
 
-    frameDataOut(isUsed) = d;
+    frameDataOut(willPointInOutFrameBeComputed) = d;
 end
 
 %% Reformat

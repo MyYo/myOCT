@@ -165,9 +165,9 @@ dimensions_n.y.units = 'mm';
 
 %% Compute output volume
 yOCT2Tif([],outputFileOrFolder,'partialFileMode',1);
+printStatsEveryyI = max(floor(length(y1_n)/20),1);
 if(v)
     fprintf('%s Reslicing ...\n',datestr(datetime));
-    printStatsEveryyI = max(floor(length(y1_n)/20),1);
 end
 parfor yi1_n=1:length(y1_n) % Each for acts on one output y plane, limit number of workers for memory issues
 %for yi1_n=1:length(y1_n) % Each for acts on one output y plane, limit number of workers for memory issues

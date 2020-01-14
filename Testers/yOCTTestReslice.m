@@ -9,25 +9,11 @@ volume = repmat(topView,[1 1 5]);
 volume = single(shiftdim(volume,2)); % Dimensions are (z,x,y)
 volumeRand = single(rand(size(volume)));
 
-% Generate dimensions
-x = 1:size(volume,2); x = x-mean(x);
-y = 1:size(volume,3); y = y-mean(y);
-z = 0:size(volume,1)-1; 
+dimensions = genDimensionsStruct(size(volume));
 
-% Generate dimensions structure
-dimensions.z.order = 1;
-dimensions.z.values = z;
-dimensions.z.index = 1:length(z);
-dimensions.z.units = 'mm';
-dimensions.x.order = 2;
-dimensions.x.values = x;
-dimensions.x.index = 1:length(x);
-dimensions.x.units = 'mm';
-dimensions.y.order = 3;
-dimensions.y.values = y;
-dimensions.y.index = 1:length(y);
-dimensions.y.units = 'mm';
-
+x = dimensions.x.values;
+y = dimensions.y.values;
+z = dimensions.z.values;
 %% Test extraction of data
 slice = yOCTReslice_Slice(volumeRand, dimensions, x(1), y(1), z(1));
 assert(abs(slice-volumeRand(1,1,1))<1e-3, ...
@@ -101,5 +87,40 @@ yOCTReslice('TMP_Reslice\Input\',n,-m:m,[0 2],z,'outputFileOrFolder',{'TMP_Resli
 slice =  yOCTFromTif('TMP_Reslice\Output\');
 assert(all(all((slice(:,:,1) > 0.5))),'Midway should have values 2');
 assert(all(all((slice(:,:,2) < 0.01))),'Outside midway shouldn''t have any values 2');
-
 awsRmDir('TMP_Reslice');
+
+%% Big volume reslice
+volume = single(rand([1000 1100 100]));
+
+dimensions = genDimensionsStruct(size(volume));
+
+x = dimensions.x.values;
+y = dimensions.y.values;
+z = dimensions.z.values;
+
+slice = yOCTReslice(volume,[0;1;0],x(1:10),y(1:20),z(1:30),'dimensions',dimensions,'verbose',true);
+diff = abs(slice-volume(1:30,1:10,1:20));
+assert(all(diff(:)<1e-3),'Big volume test');
+
+%% Generate dimension structure
+function dimensions = genDimensionsStruct (volumeSize)
+
+    % Generate dimensions
+    x = 1:volumeSize(2); x = x-mean(x);
+    y = 1:volumeSize(3); y = y-mean(y);
+    z = 0:volumeSize(1)-1; 
+
+    % Generate dimensions structure
+    dimensions.z.order = 1;
+    dimensions.z.values = z;
+    dimensions.z.index = 1:length(z);
+    dimensions.z.units = 'mm';
+    dimensions.x.order = 2;
+    dimensions.x.values = x;
+    dimensions.x.index = 1:length(x);
+    dimensions.x.units = 'mm';
+    dimensions.y.order = 3;
+    dimensions.y.values = y;
+    dimensions.y.index = 1:length(y);
+    dimensions.y.units = 'mm';
+end
