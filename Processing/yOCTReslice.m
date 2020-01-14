@@ -169,7 +169,7 @@ printStatsEveryyI = max(floor(length(y1_n)/20),1);
 if(v)
     fprintf('%s Reslicing ...\n',datestr(datetime));
 end
-parfor yi1_n=1:length(y1_n) % Each for acts on one output y plane, limit number of workers for memory issues
+parfor (yi1_n=1:length(y1_n),4) % Each for acts on one output y plane, limit number of workers for memory issues
 %for yi1_n=1:length(y1_n) % Each for acts on one output y plane, limit number of workers for memory issues
     try    
         % Create grid of the new coordinates (x-z)
