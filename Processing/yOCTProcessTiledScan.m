@@ -208,7 +208,7 @@ if(v)
     fprintf('%s Stitching ...\n',datestr(datetime)); tt=tic();
 end
 yOCT2Tif([], outputPath, 'partialFileMode', 1); %Init
-for yI=1:length(yAll) 
+parfor yI=1:length(yAll) 
     try
         %Create a container for all data
         stack = zeros(imOutSize(1:2)); %#ok<PFBNS> %z,x,zStach
