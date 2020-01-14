@@ -24,14 +24,14 @@ function slice = yOCTReslice_Slice(volume, dimensions, x1_o, y1_o, z1_o)
 %       volume coordinate system
 
 % Actual position of volume coordinate system.
-x0_o  = dimensions.x.values(:)';
-y0_o  = dimensions.y.values(:)';
-z0_o  = dimensions.z.values(:)';
+x0_o  = single(dimensions.x.values(:)');
+y0_o  = single(dimensions.y.values(:)');
+z0_o  = single(dimensions.z.values(:)');
 
 % Position (index).
-xi0_o = 1:length(dimensions.x.values);
-yi0_o = 1:length(dimensions.y.values);
-zi0_o = 1:length(dimensions.z.values);
+xi0_o = single(1:length(dimensions.x.values));
+yi0_o = single(1:length(dimensions.y.values));
+zi0_o = single(1:length(dimensions.z.values));
 
 % Actual position of slice  in volum's coordinate system.
 matSz = size(x1_o);
@@ -43,9 +43,9 @@ xyz2ijk = @(x,y,z)([ ...
     interp1(y0_o', yi0_o(:)', y(:)', 'linear', NaN) ; ...
     ]);
 ijk = xyz2ijk(x1_o, y1_o, z1_o);
-xi1_o = reshape(ijk(2,:), matSz);
-yi1_o = reshape(ijk(3,:), matSz);
-zi1_o = reshape(ijk(1,:), matSz);
+xi1_o = single(reshape(ijk(2,:), matSz));
+yi1_o = single(reshape(ijk(3,:), matSz));
+zi1_o = single(reshape(ijk(1,:), matSz));
 
 %% Define Batch
 % We can't process the entire volume in memory, so load a few y planes at a
@@ -82,7 +82,7 @@ for batchI = 1:(length(yi0_oBatchPositions)-1)
     end
     frameDataIn = permute(frameDataIn,[3 2 1]); % Dimensions (x,y,z)
 
-    % Create a meshgrid 
+    % Create a meshgrid
     [xxi0_o,yyi0_o,zzi0_o] = meshgrid(xi0_o,betchYi0_o,zi0_o);
 
     % Interpolate 
