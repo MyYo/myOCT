@@ -79,7 +79,7 @@ for batchI = 1:(length(yi0_oBatchPositions)-1)
         yi1_o>=yi0_oBatchPositions(batchI) & yi1_o<=yi0_oBatchPositions(batchI+1) & ...
         ~isnan(xi1_o) & ~isnan(zi1_o);
     
-    if ~any(isUsed)
+    if ~any(isUsed(:))
         % No need to use this yi, no data needed here
         continue;
     end
