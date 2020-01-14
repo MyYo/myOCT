@@ -18,15 +18,15 @@ z = 0:size(volume,1)-1;
 dimensions.z.order = 1;
 dimensions.z.values = z;
 dimensions.z.index = 1:length(z);
-dimensions.z.units = 'um';
+dimensions.z.units = 'mm';
 dimensions.x.order = 2;
 dimensions.x.values = x;
 dimensions.x.index = 1:length(x);
-dimensions.x.units = 'um';
+dimensions.x.units = 'mm';
 dimensions.y.order = 3;
 dimensions.y.values = y;
 dimensions.y.index = 1:length(y);
-dimensions.y.units = 'um';
+dimensions.y.units = 'mm';
 
 %% Test extraction of data
 slice = yOCTReslice_Slice(volumeRand, dimensions, x(1), y(1), z(1));

@@ -162,6 +162,7 @@ dimensions_n.y.units = 'mm';
 %% Compute output volume
 yOCT2Tif([],outputFileOrFolder,'partialFileMode',1);
 parfor (yi1_n=1:length(y1_n),2) % Each for acts on one output y plane, limit number of workers for memory issues
+%for (yi1_n=1:length(y1_n)) % Each for acts on one output y plane, limit number of workers for memory issues
     try    
         % Create grid of the new coordinates (x-z)
         [xx1_n,zz1_n] = meshgrid(x1_n,z1_n);
