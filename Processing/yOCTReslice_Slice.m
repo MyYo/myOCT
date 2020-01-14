@@ -73,6 +73,16 @@ for batchI = 1:(length(yi0_oBatchPositions)-1)
     %Remove data outside of bounds
     betchYi0_o(betchYi0_o<1) = []; 
     betchYi0_o(betchYi0_o>max(yi0_o)) = [];
+    
+    % Mask
+    isUsed = ...
+        yi1_o>=yi0_oBatchPositions(batchI) & yi1_o<=yi0_oBatchPositions(batchI+1) & ...
+        ~isnan(xi1_o) & ~isnan(zi1_o);
+    
+    if ~any(isUsed)
+        % No need to use this yi, no data needed here
+        continue;
+    end
 
     % Get data in
     if (ischar(volume))
@@ -87,12 +97,9 @@ for batchI = 1:(length(yi0_oBatchPositions)-1)
 
     % Interpolate 
     d = interp3(xxi0_o,yyi0_o,zzi0_o,frameDataIn, ...
-        xi1_o,yi1_o,zi1_o,'linear',NaN);
+        xi1_o(isUsed),yi1_o(isUsed),zi1_o(isUsed),'linear',NaN);
 
-    % Mask
-    isUseD = yi1_o>=yi0_oBatchPositions(batchI) & yi1_o<=yi0_oBatchPositions(batchI+1);
-    frameDataOut(isUseD) = d(isUseD);
-
+    frameDataOut(isUsed) = d;
 end
 
 %% Reformat

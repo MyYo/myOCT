@@ -6,8 +6,8 @@
 topView = diag(ones(1,20));
 topView(:,[1:2 (end+(-1:0))]) = []; % We would like the image to be a-symetric
 volume = repmat(topView,[1 1 5]);
-volume = shiftdim(volume,2); % Dimensions are (z,x,y)
-volumeRand = rand(size(volume));
+volume = single(shiftdim(volume,2)); % Dimensions are (z,x,y)
+volumeRand = single(rand(size(volume)));
 
 % Generate dimensions
 x = 1:size(volume,2); x = x-mean(x);

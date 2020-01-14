@@ -30,6 +30,7 @@ function [reslicedVolume,xyzNew2Original,dimensions_n] = yOCTReslice(varargin)
 %       can be a path to a Tif file, or TifStack folder (see yOCT2Tif)
 %   - clearOutputFileOrFolderIfExists - default is true, if output file
 %       already exists, delete it before running.
+%   - verboose, set to true if more prints are required
 %
 % OUTPUTS:
 %   - reslicedVolume - 3D volume of the resliced volume.
@@ -53,9 +54,12 @@ addRequired(p,'z1_n',@(w)(all(w==sort(w))));
 addParameter(p,'dimensions',[])
 addParameter(p,'outputFileOrFolder','');
 addParameter(p,'clearOutputFileOrFolderIfExists',true);
+addParameter(p,'verbose',false);
 
 parse(p,varargin{:});
 in = p.Results;
+
+v = in.verbose;
 
 % Figure out input & dimensions
 volume = in.volume;
@@ -161,8 +165,12 @@ dimensions_n.y.units = 'mm';
 
 %% Compute output volume
 yOCT2Tif([],outputFileOrFolder,'partialFileMode',1);
+if(v)
+    fprintf('%s Reslicing ...\n',datestr(datetime));
+    printStatsEveryyI = max(floor(length(y1_n)/20),1);
+end
 parfor (yi1_n=1:length(y1_n),2) % Each for acts on one output y plane, limit number of workers for memory issues
-%for (yi1_n=1:length(y1_n)) % Each for acts on one output y plane, limit number of workers for memory issues
+%for yi1_n=1:length(y1_n) % Each for acts on one output y plane, limit number of workers for memory issues
     try    
         % Create grid of the new coordinates (x-z)
         [xx1_n,zz1_n] = meshgrid(x1_n,z1_n);
@@ -180,8 +188,18 @@ parfor (yi1_n=1:length(y1_n),2) % Each for acts on one output y plane, limit num
         slice = yOCTReslice_Slice(volume, dimensions, x1_o, y1_o, z1_o);
 
         % Save plane to folder 
-        yOCT2Tif(slice, outputFileOrFolder,...
+        whereAreMyFiles = yOCT2Tif(slice, outputFileOrFolder,...
             'partialFileMode',2,'partialFileModeIndex',yi1_n);
+        
+        % Is it time to print statistics?
+        if mod(yi1_n,printStatsEveryyI)==0 && v
+            % Stats time!
+            ds = fileDatastore(whereAreMyFiles,'ReadFcn',@(x)(x),'FileExtensions','.getmeout','IncludeSubfolders',true); %Count all artifacts
+            isFile = cellfun(@(x)(contains(lower(x),'.json')),ds.Files);
+            done = sum(isFile);
+            fprintf('%s Completed yIs so far: %d/%d (%.1f%%)\n',datestr(datetime),done,length(y1_n),100*done/length(y1_n));
+        end
+        
     catch ME
         fprintf('Error happened in parfor, iteration %d',yi1_n); 
         for j=1:length(ME.stack) 
