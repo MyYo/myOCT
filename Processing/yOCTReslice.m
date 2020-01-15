@@ -190,6 +190,7 @@ parfor (yi1_n=1:length(y1_n)) % Each for acts on one output y plane, limit numbe
         % Save plane to folder 
         whereAreMyFiles = yOCT2Tif(slice, outputFileOrFolder,...
             'partialFileMode',2,'partialFileModeIndex',yi1_n);
+        slice = []; % Clear memory
         
         % Is it time to print statistics?
         if mod(yi1_n,printStatsEveryyI)==0 && v

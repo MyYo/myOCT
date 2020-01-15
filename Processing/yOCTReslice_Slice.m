@@ -67,7 +67,7 @@ if (length(yi0_oBatchPositions) == 1)
 end
    
 %% Loop over batch, get data
-frameDataOut = NaN*zeros(matSz);
+slice = NaN*zeros(matSz);
 for batchI = 1:(length(yi0_oBatchPositions)-1)
     betchYi0_o = (yi0_oBatchPositions(batchI)-pad):(yi0_oBatchPositions(batchI+1)+pad);
     %Remove data outside of bounds
@@ -112,9 +112,6 @@ for batchI = 1:(length(yi0_oBatchPositions)-1)
         yi1_o(willPointInOutFrameBeComputed), ...
         zi1_o(willPointInOutFrameBeComputed),'linear',NaN);
 
-    frameDataOut(willPointInOutFrameBeComputed) = d;
+    slice(willPointInOutFrameBeComputed) = d;
 end
-
-%% Reformat
-slice = frameDataOut;
 
