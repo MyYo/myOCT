@@ -48,6 +48,15 @@ if isnan(yOCT2Tif_ConvertBitsData(NaN,c, false)) || ...
     error('NaN Conversion Error');
 end
 
+%% Test Tif write read (simple)
+fprintf('%s From Tif tests Started\n',datestr(now))
+yOCT2Tif(data,fp_localFile);
+
+data_ = yOCTFromTif(fp_localFile,'yI',1:2,'xI',1:3,'zI',1:4);
+assert(max(max(max(abs(data(1:4,1:3,1:2)-data_))))<1e-3,'From Tif test failed #1');
+
+data_ = yOCTFromTif(fp_localFile,'yI',1:2,'xI',3,'zI',1:4);
+assert(max(max(max(abs(data(1:4,3,1:2)-data_))))<1e-3,'From Tif test failed #2');
 
 %% Save to Tif File
 fprintf('%s Tif File Tests Started\n',datestr(now))
@@ -158,7 +167,7 @@ for i=1:length(filePaths)
         [data_, meta_] = yOCTFromTif(filePath);
     else
         %Load only part of the data
-        [data_, meta_] = yOCTFromTif(filePath,loadYIndex);
+        [data_, meta_] = yOCTFromTif(filePath,'yI',loadYIndex);
         data = data(:,:,loadYIndex);
     end
     d=dir(filePath);

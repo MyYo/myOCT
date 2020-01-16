@@ -99,8 +99,8 @@ y = dimensions.y.values;
 z = dimensions.z.values;
 
 slice = yOCTReslice(volume,[0;1;0],x(1:10),y(1:20),z(1:30),'dimensions',dimensions,'verbose',true);
-diff = abs(slice-volume(1:30,1:10,1:20));
-assert(all(diff(:)<1e-3),'Big volume test');
+d = abs(slice-volume(1:30,1:10,1:20));
+assert(all(d(:)<1e-3),'Big volume test');
 
 %% Generate dimension structure
 function dimensions = genDimensionsStruct (volumeSize)

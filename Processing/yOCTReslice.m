@@ -1,5 +1,8 @@
 function [reslicedVolume,xyzNew2Original,dimensions_n] = yOCTReslice(varargin)
-% This function reslices a 3D volume along n direction
+% This function reslices a 3D volume along n direction.
+% Pro's tip: if input volume is at the cloud, and you are running locally.
+% It is much faster to copy files locally before reslicing rather than
+% reslicing directly from the cloud.
 % USAGE
 %   [reslicedVolume,xyzNew2Original] = yOCTReslice(volume, xyzNew2Original, 
 %           x1_n, y1_n, z1_n, [ ,'parameterName', value, ...])
@@ -61,20 +64,6 @@ in = p.Results;
 
 v = in.verbose;
 
-% Figure out input & dimensions
-volume = in.volume;
-dimensions = in.dimensions;
-if isnumeric(volume)
-    if isempty(dimensions)
-        error('If inputing volume as 3D matrix, make sure to provide dimensions, we can''t tel what they are');
-    end
-end
-
-if isempty(dimensions)
-   [~,dimensions] = yOCTFromTif(volume,[]);
-end
-dimensions = yOCTChangeDimensionsStructureUnits(dimensions,'mm');
-
 % outputFolder
 outputFileOrFolder = in.outputFileOrFolder;
 if isempty(outputFileOrFolder)
@@ -119,8 +108,23 @@ x1_n = in.x1_n;
 y1_n = in.y1_n;
 z1_n = in.z1_n;
 
-%% Coordinate system conversion parameters
+%% Input data
+volume = in.volume;
+    
+%% Dimensions
+dimensions = in.dimensions;
+if isnumeric(volume)
+    if isempty(dimensions)
+        error('If inputing volume as 3D matrix, make sure to provide dimensions, we can''t tel what they are');
+    end
+end
 
+if isempty(dimensions)
+   [~,dimensions] = yOCTFromTif(volume,'isLoadMetadataOnly',true);
+end
+dimensions = yOCTChangeDimensionsStructureUnits(dimensions,'mm');
+
+%% Coordinate system conversion parameters
 if (isa(in.xyzNew2Original,'function_handle'))
     % We got an explicit function handle.
     xyzNew2Original = in.xyzNew2Original;
@@ -165,7 +169,8 @@ dimensions_n.y.units = 'mm';
 
 %% Compute output volume
 yOCT2Tif([],outputFileOrFolder,'partialFileMode',1);
-printStatsEveryyI = max(floor(length(y1_n)/20),1);
+
+ly1_n = length(y1_n);
 if(v)
     fprintf('%s Reslicing ...\n',datestr(datetime));
 end
@@ -193,12 +198,13 @@ parfor (yi1_n=1:length(y1_n)) % Each for acts on one output y plane, limit numbe
         slice = []; % Clear memory
         
         % Is it time to print statistics?
+        printStatsEveryyI = max(floor(ly1_n/20),1);
         if mod(yi1_n,printStatsEveryyI)==0 && v
             % Stats time!
             ds = fileDatastore(whereAreMyFiles,'ReadFcn',@(x)(x),'FileExtensions','.getmeout','IncludeSubfolders',true); %Count all artifacts
             isFile = cellfun(@(x)(contains(lower(x),'.json')),ds.Files);
             done = sum(isFile);
-            fprintf('%s Completed yIs so far: %d/%d (%.1f%%)\n',datestr(datetime),done,length(y1_n),100*done/length(y1_n));
+            fprintf('%s Completed yIs so far: %d/%d (%.1f%%)\n',datestr(datetime),done,ly1_n,100*done/ly1_n);
         end
         
     catch ME

@@ -328,7 +328,7 @@ else
         %for parforI=1:1
         parfor(parforI=1:1,1) %Run once but on a worker
             % Load data
-            dat = yOCTFromTif(outputFilePaths{2},1:numberOfYPlanes);
+            dat = yOCTFromTif(outputFilePaths{2},'yI',1:numberOfYPlanes);
             
             % Save it as a single file
             tn = [tempname '.tif'];
