@@ -32,6 +32,11 @@ function yOCTProcessTiledScan(varargin)
 %   No output is returned. Will save mag2db(scan Abs) to outputPath, and
 %   debugFolder
 
+%% Parameters
+% In case of using focusSigma, how far from focus to go before cutting off
+% the signal, avoiding very low values (on log scale)
+cuttoffSigma = 3; 
+
 %% Processing of input
 p = inputParser;
 addRequired(p,'tiledScanInputFolder',@isstr);
@@ -150,9 +155,9 @@ end
 % Remove Z positions that are way out of focus (if we are doing focus processing)
 if(~isnan(focusPositionInImageZpix))
     zAll( ...
-        ( zAll < min(zDepths) + zOneTile(round(max(focusPositionInImageZpix - 5*in.focusSigma,0))) ) ...
+        ( zAll < min(zDepths) + zOneTile(round(max(focusPositionInImageZpix - cuttoffSigma*in.focusSigma,0))) ) ...
         | ...
-        ( zAll > max(zDepths) + zOneTile(round(min(focusPositionInImageZpix + 5*in.focusSigma,length(zOneTile)))) ) ...
+        ( zAll > max(zDepths) + zOneTile(round(min(focusPositionInImageZpix + cuttoffSigma*in.focusSigma,length(zOneTile)))) ) ...
         ) = []; 
 end
 
@@ -314,7 +319,7 @@ parfor yI=1:length(yAll)
         end
                       
         %Dont allow factor to get too small, it creates an unstable solution
-        minFactor1 = exp(-3^2/2);
+        minFactor1 = exp(-cuttoffSigma^2/2);
         totalWeights(totalWeights<minFactor1) = NaN; 
             
         %Normalization
