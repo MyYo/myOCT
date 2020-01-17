@@ -216,6 +216,10 @@ parfor (yi1_n=1:length(y1_n)) % Each for acts on one output y plane, limit numbe
         error('Error in parfor');
     end
 end
+
+if(v)
+    fprintf('%s Reorganizing Output Files ...\n',datestr(datetime));
+end
 yOCT2Tif([],outputFileOrFolder,'partialFileMode',3,'metadata',dimensions_n);
 
 %% Cleanup & Finish
@@ -224,4 +228,8 @@ if returnReslicedVolume
     awsRmDir(outputFileOrFolder);
 else
     reslicedVolume = [];
+end
+
+if(v)
+    fprintf('%s Reslicing Done.\n',datestr(datetime));
 end
