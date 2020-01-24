@@ -153,7 +153,7 @@ elseif isnumeric(in.xyzNew2Original) && numel(in.xyzNew2Original) == 3
     M_n2o = [mx my mz];
     
     % Save transform to file
-    appendToDimensions.new2OriginalAffineTransform = [M_n2o [0 ; 0; 0]; [0 0 0 1]]; %No translation
+    in.appendToDimensions.new2OriginalAffineTransform = [M_n2o [0 ; 0; 0]; [0 0 0 1]]; %No translation
     
     xyzNew2Original = @(x,y,z)(M_n2o*[x(:)' ; y(:)' ; z(:)']);
 else 
@@ -177,7 +177,7 @@ dimensions_n.y.units = 'mm';
 %Add append structured data (if needed)
 if ~isempty(in.appendToDimensions)
     for fn = fieldnames(in.appendToDimensions)'
-        dimensions_n.(fn{1}) = appendToDimensions.(fn{1});
+        dimensions_n.(fn{1}) = in.appendToDimensions.(fn{1});
     end
 end
 
