@@ -142,7 +142,7 @@ elseif isnumeric(in.xyzNew2Original) && numel(in.xyzNew2Original) == 3
     my = n;
    
     % X direction parallel to x-y plane
-    mx = cross([0;0;-1],n); 
+    mx = cross(n,[0;0;1]); 
     mx = rectifyVect(mx);
     
     % Z is right hand complement
