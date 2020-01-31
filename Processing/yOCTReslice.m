@@ -154,6 +154,7 @@ elseif isnumeric(in.xyzNew2Original) && numel(in.xyzNew2Original) == 3
     
     % Save transform to file
     in.appendToDimensions.new2OriginalAffineTransform = [M_n2o [0 ; 0; 0]; [0 0 0 1]]; %No translation
+	in.appendToDimensions.new2OriginalAffineTransform_note = 'For coordinate system conversion multiply general vector (x,y,z) as following: new2OriginalAffineTransform*[x;y;z;1] to get original position.';
     
     xyzNew2Original = @(x,y,z)(M_n2o*[x(:)' ; y(:)' ; z(:)']);
 else 
