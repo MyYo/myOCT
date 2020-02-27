@@ -5,7 +5,7 @@
 %Wasatch
 filePath = ['\\171.65.17.174\MATLAB_Share\Jenkins\myOCT Build\TestVectors\' ...
     'Wasatch_3D\'];
-dispersionParameterA = 100; %Use Demo_DispersionCorrection to find the term
+dispersionQuadraticTerm = 100; %Use Demo_DispersionCorrection to find the term
 
 yFramesPerBatch = 1; %How many Y frames to load in a single batch, optimzie this parameter to save computational time
 
@@ -13,7 +13,7 @@ yFramesPerBatch = 1; %How many Y frames to load in a single batch, optimzie this
 tic;
 [meanAbs,speckleVariance,dimensions] = yOCTProcessScan(filePath, ...
     {'meanAbs','speckleVariance'}, ... Which functions would you like to process. Option exist for function hendel
-    'dispersionParameterA', dispersionParameterA, ...
+    'dispersionQuadraticTerm', dispersionQuadraticTerm, ...
     'nYPerIteration', yFramesPerBatch, ...
     'showStats',true);
 toc;

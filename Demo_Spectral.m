@@ -7,8 +7,8 @@ function Demo_Spectral
 filePath = ['\\171.65.17.174\MATLAB_Share\Jenkins\myOCT Build\TestVectors\' ...
     'Ganymede_2D_BScanAvg\'];
 
-global dispersionParameterA
-dispersionParameterA = 100; %Use Demo_DispersionCorrection to find the term
+global dispersionQuadraticTerm
+dispersionQuadraticTerm = 100; %Use Demo_DispersionCorrection to find the term
 
 global interfe
 global dimensionse
@@ -54,11 +54,11 @@ global dimensionse
 global apodization
 global bandCenter
 global bandWidth
-global dispersionParameterA
+global dispersionQuadraticTerm
 
 %% Compute and present interferogram
 scanCpx = yOCTInterfToScanCpx(interfe,dimensionse ...
-    ,'dispersionParameterA', dispersionParameterA ...
+    ,'dispersionQuadraticTerm', dispersionQuadraticTerm ...
     ,'band',bandCenter+bandWidth/2*[-1 1]);
 
 subplot(4,1,2:4);

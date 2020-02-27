@@ -20,7 +20,7 @@ filePath = ['\\171.65.17.174\MATLAB_Share\Jenkins\myOCT Build\TestVectors\' ...
 
 txt = uicontrol('Style','text',...
         'Position',[100 45 400 20],...
-        'String','log10(dispersionParameterA)');
+        'String','log10(dispersionQuadraticTerm)');
 initialGuess = log10(100);
 sld = uicontrol('Style', 'slider',...
         'Min',-10,'Max',10,'Value',initialGuess,...
@@ -39,12 +39,12 @@ else
     val = source;
 end
 
-dispersionParameterA = sign(val)*10^(abs(val));
+dispersionQuadraticTerm = sign(val)*10^(abs(val));
 scanCpxe = yOCTInterfToScanCpx( interfe ,dimensionse ...
-    ,'dispersionParameterA', dispersionParameterA );
+    ,'dispersionQuadraticTerm', dispersionQuadraticTerm );
 lg = log(abs(scanCpxe));
 imagesc(lg);
 caxis([-5 6]);
 colormap gray;
-title(sprintf('dispersionParameterA=%.3e [nm^2/rad]',dispersionParameterA));
+title(sprintf('dispersionQuadraticTerm=%.3e [nm^2/rad]',dispersionQuadraticTerm));
 end

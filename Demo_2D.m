@@ -3,7 +3,7 @@
 %Wasatch
 filePath = ['\\171.65.17.174\MATLAB_Share\Jenkins\myOCT Build\TestVectors\' ...
     'Ganymede_2D_BScanAvg\'];
-dispersionParameterA = 100; %Use Demo_DispersionCorrection to find the term
+dispersionQuadraticTerm = 100; %Use Demo_DispersionCorrection to find the term
 
 %% Process
 tic;
@@ -13,7 +13,7 @@ tic;
 
 %Generate BScans
 [scanCpx,dimensions] = yOCTInterfToScanCpx(interf,dimensions ...
-    ,'dispersionParameterA', dispersionParameterA ...
+    ,'dispersionQuadraticTerm', dispersionQuadraticTerm ...
     );
 
 toc;

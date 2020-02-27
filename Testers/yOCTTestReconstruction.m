@@ -15,7 +15,7 @@ function yOCTTestReconstruction(baseFolder, isLookForTestVectorsInBaseFolder)
 
 %% Setup & Input checks
 % To generate a parameters file
-%parameters = {'OCTSystem','Wasatch','dispersionParameterA',100,'BScanAvgFramesToProcess',1:2};
+%parameters = {'OCTSystem','Wasatch','dispersionQuadraticTerm',100,'BScanAvgFramesToProcess',1:2};
 
 %clear;
 close all;

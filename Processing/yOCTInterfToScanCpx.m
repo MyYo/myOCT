@@ -9,8 +9,12 @@ function [scanCpx,dimensionsOut] = yOCTInterfToScanCpx (varargin)
 %       should be (lambda,x,...)
 %   - dimensions - Dimensions structure as loaded by yOCTLoadInterfFromFile.
 %   - Optional Parameters
-%       - 'dispersionParameterA', quadradic phase correction units of
-%          [nm^2/rad]. Default value is 100
+%       - 'dispersionQuadraticTerm', quadradic phase correction units of
+%          [nm^2/rad]. Default value is 100[nm^2/rad], try increasing to
+%          40*10^6 if the lens or system is not dispersion corrected.
+%          try running Demo_DispersionCorrection, if unsure of the number
+%          you need.
+%          This number is sometimes reffered to as beta.
 %       - 'band',[start end] - Use a Hann filter to filter out part of the
 %          spectrum. Units are [nm]. Default is all spectrum
 %       - 'interpMethod', see help yOCTEquispaceInterf for interpetation
@@ -35,7 +39,7 @@ interferogram = varargin{1};
 dimensionsIn = varargin{2};
 
 %Optional Parameters
-dispersionParameterA = 100; %Default Value
+dispersionQuadraticTerm = 100; %Default Value
 band = [];
 interpMethod = []; %Default
 n = 1.33;
@@ -87,24 +91,26 @@ filter = filter * (length(filter)/sum(filter)); %Normalization
 interf = reshape(interferogram,s(1),[]);
 
 %% Dispersion & Overall filter
-if ~exist('dispersionParameterA','var') || isempty(dispersionParameterA)
-    disp('Please Enter dispersionParameterA (quadratic correction), recomendations [nm^2/rad]:')
-    disp('100 is a good value to start from');
-    disp('You can also try running Demo_DispersionCorrection, to figure out the best Value for you');
-    error('Read above');
+
+if exist('dispersionParameterA','var')
+    warning(['dispersionParameterA will be depriciated in favor of dispersionQuadraticTerm\n.' ...
+        'To switch, apply dispersionQuadraticTerm = dispersionParameterA and see that image looks good it will shift up/down by ~30um']);
+    
+    %Technically dispersionPhase = -A*k^2. We added the term -A*(k-k0)^2
+    %because when doing the ifft, ifft assumes that the first term is DC. which
+    %in our case is not true. Thus by applying phase=-A*k^2 we introduce a
+    %multiplicative phase term: A*k0^2 which does not effect the final result
+    %however, if we run over A the phase term changes and in the fft world it
+    %translates to translation that move our image up & down. To Avoid it we
+    %subtract -A*(k-k0)^2
+    dispersionPhase = -dispersionParameterA .* (k(:)-k(1)).^2; %[rad]
+else
+    
+%Quadratic term only
+dispersionPhase = -dispersionQuadraticTerm .* (k(:)-mean(k)).^2; %[rad]
 end
 
-%Quadratic term only omega
-dispersionPhase = -dispersionParameterA .* (k(:)-k(1)).^2; %[rad]
-%Technically dispersionPhase = -A*k^2. We added the term -A*(k-k0)^2
-%because when doing the ifft, ifft assumes that the first term is DC. which
-%in our case is not true. Thus by applying phase=-A*k^2 we introduce a
-%multiplicative phase term: A*k0^2 which does not effect the final result
-%however, if we run over A the phase term changes and in the fft world it
-%translates to translation that move our image up & down. To Avoid it we
-%subtract -A*(k-k0)^2
 dispersionComp = exp(1i*dispersionPhase);
-
 filterAll = repmat(dispersionComp.*filter,[1 size(interf,2)]);
 
 %% Generate Cpx 

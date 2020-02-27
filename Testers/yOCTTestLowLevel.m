@@ -14,8 +14,8 @@ if (max(abs(dim2.lambda.values*1000-dim.lambda.values)) > 1e-5 || ...
 end
 
 %% See that conversion doesn't change processing
-scan1 = yOCTInterfToScanCpx(interf,dim,'dispersionParameterA',100);
-scan2 = yOCTInterfToScanCpx(interf,dim2,'dispersionParameterA',100);
+scan1 = yOCTInterfToScanCpx(interf,dim,'dispersionQuadraticTerm',100);
+scan2 = yOCTInterfToScanCpx(interf,dim2,'dispersionQuadraticTerm',100);
 
 if (max(abs(scan1(:)-scan2(:))) > 1e-5)
     error('Unit conversion breaks reconstruction');
