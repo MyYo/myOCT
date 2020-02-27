@@ -102,7 +102,7 @@ if ~isfield(in,'dispersionParameterA') || isempty(in.dispersionParameterA)
         in.dispersionParameterA = json.octProbe.DefaultDispersionParameterA;
         reconstructConfig = [reconstructConfig {'dispersionParameterA', in.dispersionParameterA}];
     else
-        in.dispersionQuadraticTerm = json.octProbe.dispersionQuadraticTerm;
+        in.dispersionQuadraticTerm = json.octProbe.DefaultDispersionQuadraticTerm;
         reconstructConfig = [reconstructConfig {'dispersionQuadraticTerm', in.dispersionQuadraticTerm}];
     end
 end
