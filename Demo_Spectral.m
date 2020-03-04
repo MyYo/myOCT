@@ -20,7 +20,8 @@ tic;
 
 %Load Intef From file
 [interf,dimensions,apodization] = yOCTLoadInterfFromFile(filePath ...
-    ,'BScanAvgFramesToProcess', 1 ... To save time, load first few BScans. Comment out this line to load all BScans
+    ,'BScanAvgFramesToProcess', 1, ... To save time, load first few BScans. Comment out this line to load all BScans
+    'YFramesToProcess',1 ... To save time, load only one plane.
     );
 
 %Equispace interferogram to save computation time while re-processing
