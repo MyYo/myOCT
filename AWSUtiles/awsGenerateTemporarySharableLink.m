@@ -2,7 +2,9 @@ function url = awsGenerateTemporarySharableLink(s3Path)
 % This function generates a temprary sharable link to an object in s3
 
 if ~awsExist(s3Path,'file')
-    error('Need a valid s3 path to generate a link to, got %s',s3Path);
+    warning('Need a valid s3 path to generate a link to, got %s',s3Path);
+    url = '';
+    return;
 end
 s3Path = awsModifyPathForCompetability(s3Path,true);
 
