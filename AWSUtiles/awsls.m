@@ -41,9 +41,16 @@ for i=1:length(lsContent)
         %File
         cs = strtrim(cs(20:end)); %Remove date
         m = textscan(cs,'%d %[^\n]');
-        lsContent{i} = m{end}{1};
+        if ~isempty(m{end})
+            lsContent{i} = m{end}{1};
+        else
+            lsContent{i} = '';
+        end
     end
 end
+
+% Remove all empty content
+lsContent(cellfun(@isempty,lsContent)) = [];
 
 lsContentFullName = cellfun(@(x)(...
     awsModifyPathForCompetability([rootLSFolder,x],false)), ...
