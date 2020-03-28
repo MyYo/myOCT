@@ -34,6 +34,7 @@ end
 %% Generate code
 expiresInSec = 7*24*60*60; % one week
 [errCode, txt] = awsCmd(sprintf('aws s3 presign "%s" --expires-in %d',s3Path,expiresInSec));
+txt = strrep(txt, newline, '');
 url = txt;
 
 if isUseCash
