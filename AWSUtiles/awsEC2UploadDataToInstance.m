@@ -16,7 +16,7 @@ end
 DNS = ec2Instance.dns;
 pem = ec2Instance.pemFilePath;
 [stat,txt] = scp(sprintf('-i "%s" -r "%s" %s@%s:%s',...
-    pem,source,ec2RunStructure.userName,DNS,destination));
+    pem,source,ec2Instance.userName,DNS,destination));
 
 if (stat~=0)
     error('Faild to copy files: %s',txt);
