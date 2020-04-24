@@ -1,5 +1,5 @@
 function ec2RunStructure = awsEC2BuildRunStructure ...
-    (ami,pemFilePath,IAMRole,securityGroup,region)
+    (ami,pemFilePath,IAMRole,securityGroup,region,userName)
 %This function builds a structure used to initialize EC2 instance
 %To initialize EC2 instance we will need to define:
 %INPUTS:
@@ -27,6 +27,8 @@ function ec2RunStructure = awsEC2BuildRunStructure ...
 %   - region - what AWS region to use, default: default region init right
 %       now
 %       EXAMPLE: securityGroup = 'us-west-1'
+%   - userName - user name to connect to machine using ssh. Usually
+%       'ec2-user'. (default)
 
 ec2RunStructure.ami = ami;
 
@@ -44,3 +46,8 @@ if ~exist('region','var') || isempty(region)
     region = awsGetRegion();
 end
 ec2RunStructure.region = region;
+
+if ~exist('userName','var') || isempty(userName)
+    userName = 'ec2-user';
+end
+ec2RunStructure.userName = userName;

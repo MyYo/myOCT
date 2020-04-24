@@ -104,12 +104,15 @@ if ssh()
     %SSH Installed
     %Add DNS to ssh to prevent promt
     for i=1:length(DNSs)
-        [err,txt] = ssh(sprintf('-tt -o "StrictHostKeyChecking=no" ec2-user@%s',DNSs{i}));
+        [err,txt] = ssh(sprintf('-tt -o "StrictHostKeyChecking=no" %s@%s',...
+            ec2RunStructure.userName,DNSs{i}));
         
         if (err ~= 0)
             %Process the error
             stxt = split(txt,newline);
-            permDeniedError = sprintf('ec2-user@%s: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).',DNSs{i});
+            permDeniedError = sprintf(...
+                '%s@%s: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).',...
+                ec2RunStructure.userName,DNSs{i});
             txtNew = [];
             for j=1:length(stxt)
                 if isempty(stxt{j})
@@ -176,6 +179,7 @@ for i=1:length(instanceIds)
     ec2Instance(i).dns = DNSs{i};
     ec2Instance(i).region = ec2RunStructure.region;
     ec2Instance(i).pemFilePath = pemFPs{i};
+    ec2Instance(i).userName = ec2RunStructure.userName;
 end
 
 %% Cleanup

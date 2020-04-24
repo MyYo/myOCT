@@ -20,5 +20,6 @@ end
     
 DNS = ec2Instance.dns;
 pem = ec2Instance.pemFilePath;
-[status,txt] = ssh(sprintf('-i "%s" ec2-user@%s "%s"',pem,DNS,cmd1));
+userName = ec2Instance.userName;
+[status,txt] = ssh(sprintf('-i "%s" %s@%s "%s"',pem,userName,DNS,cmd1));
     
