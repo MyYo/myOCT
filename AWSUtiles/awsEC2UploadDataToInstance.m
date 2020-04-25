@@ -9,7 +9,7 @@ function awsEC2UploadDataToInstance (ec2Instance,source,destination)
 %   An example of directory (compared to root: ~/OCT
 
 if ~exist('destination','var') || isempty(destination)
-    destination = '';
+    destination = '~/'; %Upload to root
 end
 
 %% Make the copy
