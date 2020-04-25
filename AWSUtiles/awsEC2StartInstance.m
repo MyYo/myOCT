@@ -123,7 +123,7 @@ if ssh()
                     continue;
                 elseif (strncmpi(stxt{j},'warning',7))
                     %This is a warning, skip
-                    continue;
+                    break;
                 end
                 txtNew = [txtNew stxt{j} newline];
             end
