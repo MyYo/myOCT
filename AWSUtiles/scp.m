@@ -1,9 +1,17 @@
-function [status,txt] = scp(cmd)
-%USAGE:
-%   [status,txt] = scp(cmd)
-%   [isInstalled] = scp()
-%This function runs ssh command. If no command is provided will return if
-%ssh is installed, false otherwise
+function [status,txt] = scp(cmd, isRunAsync)
+% USAGE:
+%   [status,txt] = scp([cmd, isRunAsync])
+% INPUTS:
+%   - If no inputs provided will return true or false indicating, is scp
+%     installed on this computer.
+%   - cmd - scp command to run.
+%   - isRunAsync - when set to true will execute scp command and return to
+%     Matlab without waiting for the copy command to complete. Default:
+%     false.
+
+if exist('isRunAsync','var') && isRunAsync
+    cmd = [cmd '&'];
+end
 
 %% Figure out where ssh is installed
 isSSHInstalled = ssh();

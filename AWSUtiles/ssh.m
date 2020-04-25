@@ -1,9 +1,17 @@
-function [status,txt] = ssh(cmd)
-%USAGE:
-%   [status,txt] = ssh(cmd)
-%   [isInstalled] = ssh()
-%This function runs ssh command. If no command is provided will return if
-%ssh is installed, false otherwise
+function [status,txt] = ssh(cmd, isRunAsync)
+% USAGE:
+%   [status,txt] = ssh([cmd, isRunAsync])
+% INPUTS:
+%   - If no inputs provided will return true or false indicating, is ssh
+%     installed on this computer.
+%   - cmd - ssh command to run.
+%   - isRunAsync - when set to true will execute ssh command and return to
+%     Matlab without waiting for the ssh command to complete. Default:
+%     false.
+
+if exist('isRunAsync','var') && isRunAsync
+    cmd = [cmd '&'];
+end
 
 %% Figure out where ssh is installed
 global sshInstalledPrefix
