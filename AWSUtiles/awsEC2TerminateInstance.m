@@ -13,10 +13,9 @@ origRegion = awsGetRegion();
 
 %% Terminate the instance
 for i=1:length(ec2Instance)
-    %Delete the pem file
-    if exist(ec2Instance(i).pemFilePath,'file')
-        rmdir(fileparts(ec2Instance(i).pemFilePath),'s');
-    end
+    
+    % Remove pem.
+    awsEC2TemporarilyDisconnectFromInstance(ec2Instance(i));
     
     %Set region
     if (~strcmp(awsGetRegion(),ec2Instance(i).region))

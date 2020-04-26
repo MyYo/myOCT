@@ -8,12 +8,7 @@ function [ec2Instance] = awsEC2StartInstance(ec2RunStructure,instanceType,number
 %   v - verbose mode, default true
 %OUTPUTS:
 %   ec2Instance - structure (or structure array if multiple instances)
-%   with the fields:
-%       id - id of the instances loaded
-%       dns - DNS to access each id using ssh
-%       region - which region the instance is running on
-%       pemFilePath - filepath of the PEM, temporary, delete after
-%       running
+%       see awsEC2RunstructureToInstance for more information.
 
 if ~exist('numberOfInstances','var') || isempty(numberOfInstances)
     numberOfInstances = 1;
@@ -136,50 +131,11 @@ if ssh()
     end
 end
 
-%% Make sure PEM file has the right restrictions
-
-%Create a local pem file path that we can modify restrictions to
-pemFPs = cell(size(instanceIds));
-for i=1:length(pemFPs)
-    tempDir = tempname();
-    mkdir(tempDir); %Create directory
-    [~,tmp] = fileparts(ec2RunStructure.pemFilePath);
-    TempPEMFilePath = [tempDir '\' tmp '.pem'];
-	
-	if ~exist(ec2RunStructure.pemFilePath,'file')
-		error('Cannot find PEM file path at: %s. Or file not accesible',ec2RunStructure.pemFilePath);
-	end
-	
-    copyfile(ec2RunStructure.pemFilePath,TempPEMFilePath);
-    
-    pemFPs{i} = TempPEMFilePath;
-end
-
-%Get user to modify restrictions
-loggedInUser = getenv('USERNAME');
-%loggedInUser = strrep(loggedInUser,'MATLAB-SERVER$','SYSTEM'); %Matlab Server is actually system.
-if (contains(loggedInUser,'$')) %Change $ to system
-    warning('getenv(''USERNAME'') returned a wired user name: "%s". Changing to "SYSTEM"',loggedInUser);
-    loggedInUser = 'SYSTEM';
-end
-
-%Modify restrictions
-for i=1:length(pemFPs)
-    s=['ICACLS "' pemFPs{i} '" /inheritance:r /grant "' loggedInUser '":(r)'];
-    [err,txt] = system(s); %grant read permission to user, remove all other permissions
-    if (err~=0)
-        error('Error in moidifing pem restrictions %s\n%s',txt,howToShutDownInstance);
-    end
-end
-
 %% Generate output structure
-clear ec2Instance 
+clear ec2Instance
 for i=1:length(instanceIds)
-    ec2Instance(i).id = instanceIds{i};
-    ec2Instance(i).dns = DNSs{i};
-    ec2Instance(i).region = ec2RunStructure.region;
-    ec2Instance(i).pemFilePath = pemFPs{i};
-    ec2Instance(i).userName = ec2RunStructure.userName;
+    ec2Instance(i) = awsEC2RunstructureToInstance(...
+        ec2RunStructure,instanceIds{i},DNSs{i});
 end
 
 %% Cleanup
