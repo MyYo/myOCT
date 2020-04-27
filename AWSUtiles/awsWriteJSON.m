@@ -3,6 +3,7 @@ function awsWriteJSON(json,fp)
 %json - configuration file
 %fp - file path, can be local or in AWS
 
+%% Checks
 if (awsIsAWSPath(fp))
     %Load Data from AWS
     isAWS = true;
@@ -17,8 +18,15 @@ fldr = fileparts(fpToSave);
 if ~isempty(fldr) && ~exist(fldr,'dir')
     mkdir(fldr);
 end
+%% Replace function handles with appropriate annotations
+fn = fieldnames(json);
+for i=1:length(fn)
+    if (isa(json.(fn{i}),'function_handle'))
+        json.(fn{i}) = 'function_handle';
+    end
+end 
 
-%Encode and save
+%% Encode and save
 txt = jsonencode(json);
 txt = strrep(txt,'"',[newline '"']);
 txt = strrep(txt,[newline '":'],'":');
