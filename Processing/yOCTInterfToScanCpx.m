@@ -92,8 +92,15 @@ interf = reshape(interferogram,s(1),[]);
 
 %% Dispersion & Overall filter
 
-if exist('dispersionParameterA','var')
-    warning(['dispersionParameterA will be depriciated in favor of dispersionQuadraticTerm\n.' ...
+if exist('dispersionQuadraticTerm','var')
+    % Apply quadratic term.
+    dispersionPhase = -dispersionQuadraticTerm .* (k(:)-mean(k)).^2; %[rad]
+    
+    if exist('dispersionParameterA','var')
+        warning('Both dispersionParameterA and dispersionQuadraticTerm are defined. Please notice that dispersionParameterA is depricated and will be ignored.');
+    end
+elseif exist('dispersionParameterA','var') 
+    warning(['dispersionParameterA will be depriciated in favor of dispersionQuadraticTerm.' newline ...
         'To switch, apply dispersionQuadraticTerm = dispersionParameterA and see that image looks good it will shift up/down by ~30um']);
     
     %Technically dispersionPhase = -A*k^2. We added the term -A*(k-k0)^2
@@ -105,9 +112,7 @@ if exist('dispersionParameterA','var')
     %subtract -A*(k-k0)^2
     dispersionPhase = -dispersionParameterA .* (k(:)-k(1)).^2; %[rad]
 else
-    
-%Quadratic term only
-dispersionPhase = -dispersionQuadraticTerm .* (k(:)-mean(k)).^2; %[rad]
+    error('Please define dispersionQuadraticTerm');
 end
 
 dispersionComp = exp(1i*dispersionPhase);
