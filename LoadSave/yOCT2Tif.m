@@ -172,7 +172,7 @@ if mode == 0
     
     % clim
     if isempty(c)
-        c = [min(data(:)) max(data(:))];
+        c = [min(data(~isinf(data))) max(data(~isinf(data)))];
     end
     
     % encode meta data
