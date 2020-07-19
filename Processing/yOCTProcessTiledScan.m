@@ -19,11 +19,14 @@ function yOCTProcessTiledScan(varargin)
 %NAME VALUE INPUTS:
 %   Parameter           Default Value   Notes
 %Z position stitching:
-%   focusSigma          20          If stitching along Z axis (multiple focus points), what is the size of each focus in z [pixel]
-%   focusPositionInImageZpix NaN    Z position [pix] of focus in each scan (one number)
+%   focusSigma                  20      If stitching along Z axis (multiple focus points), what is the size of each focus in z [pixel]
+%   focusPositionInImageZpix    NaN     Z position [pix] of focus in each scan (one number)
+%   zSetOriginAsFocusOfZDepth0  true    When saving volume how to set z coordinate system. 
+%                                       When set to true, will consider the focus position of the volume that was scanned at zDepths=0.
+%                                       When set to false, will take the top of the OCT scan for zDepths=0.
 %Save some Y planes in a debug folder:
-%   yPlanesOutputFolder ''          If set will save some y planes for debug purpose in that folder
-%   howManyYPlanes      3           How many y planes to save (if yPlanesOutput folder is set)
+%   yPlanesOutputFolder         ''      If set will save some y planes for debug purpose in that folder
+%   howManyYPlanes              3       How many y planes to save (if yPlanesOutput folder is set)
 %Other parameters:
 %   applyPathLengthCorrection true  Apply path link correction, if probe ini has the information.
 %   v                   true        verbose mode      
@@ -47,6 +50,7 @@ addRequired(p,'outputPath');
 % Z position stitching
 addParameter(p,'focusSigma',20,@isnumeric);
 addParameter(p,'focusPositionInImageZpix',NaN,@isnumeric);
+addParameter(p,'zSetOriginAsFocusOfZDepth0',true);
 
 % Save some Y planes in a debug folder
 addParameter(p,'yPlanesOutputFolder','',@isstr);
@@ -90,6 +94,12 @@ if any(cellfun(@(x)(awsIsAWSPath(x)),outputPath))
 elseif awsIsAWSPath(in.tiledScanInputFolder)
     % Input folder is on the cloud
     awsSetCredentials();
+end
+
+zSetOriginAsFocusOfZDepth0 = in.zSetOriginAsFocusOfZDepth0;
+if (zSetOriginAsFocusOfZDepth0 && isnan(in.focusPositionInImageZpix))
+    warming('Because no focus position was set, zSetOriginAsFocusOfZDepth0 cannot be "true", changed to "false". See help of yOCTProcessTiledScan function.');
+    zSetOriginAsFocusOfZDepth0 = false;
 end
 
 %% Load configuration file & set parameters
@@ -170,11 +180,19 @@ end
 % Dimensions of everything
 dimOutput.lambda = dimOneTile.lambda;
 dimOutput.z = dimOneTile.z;
-dimOutput.z.values = zAll(:)';
+dimOutput.z.values = zAll(:)' - ...
+    dz*(focusPositionInImageZpix-1)*zSetOriginAsFocusOfZDepth0;
+if zSetOriginAsFocusOfZDepth0
+    dimOutput.z.origin = 'z=0 is the focus positoin of OCT image when zDepths=0 scan was taken';
+else
+    dimOutput.z.origin = 'z=0 is the top of OCT image when zDepths=0 scan was taken';
+end
 dimOutput.x = dimOneTile.x;
+dimOutput.x.origin = 'x=0 is OCT scanner origin when xCenters=0 scan was taken';
 dimOutput.x.values = xAll(:)';
 dimOutput.y = dimOneTile.x;
 dimOutput.y.values = yAll(:)';
+dimOutput.y.origin = 'y=0 is OCT scanner origin when yCenters=0 scan was taken';
 dimOutput.aux = dimOneTile.aux;
 
 %% Save some Y planes in a debug folder if needed
@@ -280,7 +298,7 @@ parfor yI=1:length(yAll)
                     factorZ = exp(-(zI-focusPositionInImageZpix).^2/(2*focusSigma)^2) + ...
                         (zI>focusPositionInImageZpix)*exp(-3^2/2);%Under the focus, its possible to not reduce factor as much 
                     factor = repmat(factorZ, [1 size(scan1,2)]);
-                   else
+                else
                     factor = ones(length(zOneTile),length(xOneTile)); %No focus gating
                 end
                 factor(scan1_nan) = 0; %interpolated nan values should not contribute to image
@@ -305,7 +323,11 @@ parfor yI=1:length(yAll)
                 if (isSaveSomeYPlanes && sum(yI == yToSaveI)>0)
                     
                     tn = [tempname '.tif'];
-                    yOCT2Tif(mag2db(scan1),tn);
+                    im = mag2db(scan1);
+                    if ~isnan(focusPositionInImageZpix)
+                        im(focusPositionInImageZpix,1:20:end) = min(im(:)); % Mark focus position on sample
+                    end
+                    yOCT2Tif(im,tn);
                     awsCopyFile_MW1(tn, ...
                         awsModifyPathForCompetability(sprintf('%s/y%04d_xtile%04d_ztile%04d.tif',yPlanesOutputFolder,yI,xxI,zzI)) ...
                         );
