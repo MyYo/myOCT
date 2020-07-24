@@ -1,6 +1,4 @@
-Current version of ThorImage is unknown
+This code is designed to work with ThorImage 4.3.4
 
-OBSOLETE!!
-This code is designed to work with ThorImage 5.3.0
 See link here:
-https://www.dropbox.com/sh/t6nwmd7xaajf7h1/AABjldWPQU8az-JbCFWdKSasa?dl=0
+https://www.dropbox.com/sh/13dn4ud1lus9i4e/AADJAS8AdknRIQsLFfXul-36a?dl=0
