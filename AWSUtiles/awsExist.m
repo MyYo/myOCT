@@ -24,7 +24,7 @@ else
     elseif (status == 1)
         tf = false; %Doen't exist
     else
-        error('Error happend while listing %s, Error: %s',rootLSFolder,text);
+        error('Error happend while searching for %s, Error: %s',filePath,text);
     end
 end
 
