@@ -98,7 +98,7 @@ end
 
 zSetOriginAsFocusOfZDepth0 = in.zSetOriginAsFocusOfZDepth0;
 if (zSetOriginAsFocusOfZDepth0 && isnan(in.focusPositionInImageZpix))
-    warming('Because no focus position was set, zSetOriginAsFocusOfZDepth0 cannot be "true", changed to "false". See help of yOCTProcessTiledScan function.');
+    warning('Because no focus position was set, zSetOriginAsFocusOfZDepth0 cannot be "true", changed to "false". See help of yOCTProcessTiledScan function.');
     zSetOriginAsFocusOfZDepth0 = false;
 end
 
