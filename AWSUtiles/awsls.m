@@ -55,3 +55,7 @@ lsContent(cellfun(@isempty,lsContent)) = [];
 lsContentFullName = cellfun(@(x)(...
     awsModifyPathForCompetability([rootLSFolder,x],false)), ...
     lsContent,'UniformOutput',false);
+
+% Make sure these are column cell array
+lsContentFullName = lsContentFullName(:);
+lsContent = lsContent(:);
