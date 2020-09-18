@@ -98,6 +98,13 @@ elseif (~isSourceAWS && ~isDestAWS)
         copyfile(source,dest);
     else
         %Folder copy
+        if isfolder(source)
+            if source(end) ~= '\'
+                source = [source '\'];
+            end
+            source = [source '*.*'];
+        end
+        
         system(['xcopy "' source '" "' dest '" /S /C /Q /Y']);
     end
 elseif (isSourceAWS && ~isDestAWS)
