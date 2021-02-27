@@ -2,9 +2,27 @@ function p = awsModifyPathForCompetability (p,isAWS_CLI)
 %This function excepts path and output AWS compatible path.
 %If p is not AWS path will modify it to be compatible with windows
 %INPUTS: 
-%   p - path
+%   p - path, can be a string or a cell with multiple paths 
 %   isAWS_CLI - will this path be used with AWS CLI? if so, spaces are
-%   defined slightly differently. If used path for datastore, set to false
+%       defined slightly differently. If used path for datastore, set to false
+%       (default is false)
+
+%% Input check
+if ~exist('isAWS_CLI','var')
+    isAWS_CLI = false;
+end
+
+if iscell(p)
+    for i=1:length(p)
+        p{i} = awsModifyPathForCompetability1(p{i},isAWS_CLI);
+    end
+else
+    p = awsModifyPathForCompetability1(p,isAWS_CLI);
+end
+
+%% This does the work (assuming p is a string)
+function p = awsModifyPathForCompetability1(p,isAWS_CLI)
+
 if (length(p)<2)
     return; %No modifications needed
 end
@@ -40,9 +58,6 @@ p = strrep(p,newline,'');
 
 %% Platform specific paths
 if (isAWS)
-    if ~exist('isAWS_CLI','var')
-		isAWS_CLI = false;
-    end
 
 	if isAWS_CLI
 		p = strrep(p,'%20',' '); %Replace Spaces

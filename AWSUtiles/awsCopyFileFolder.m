@@ -1,8 +1,15 @@
 function awsCopyFileFolder(source,dest,v)
-%This function copys files and folders to from/aws
+% This function copys files and folders to from/aws
+% USAGE:
+%   awsCopyFileFolder(source,dest,v)
+% INPUTS:
+%   source - path to start copy from. Can be a string or a cell if you
+%       would like to copy a list of files.
+%   dest - path to copy to
+%   v - verbose mode (true/false)
 
 if ~exist('v','var')
-    v = false; %Verboose mode
+    v = false; %Verbose mode
 end
 
 if isempty(source) || isempty(dest)
@@ -12,12 +19,19 @@ end
 %% Set Credentials
 awsSetCredentials (1); %Write cridentials are required  
 
-if (awsIsAWSPath(source))
+% Check source
+isSourceAWS = awsIsAWSPath(source);
+if any(isSourceAWS ~= isSourceAWS(1))
+    error('Some of the source files are on s3, and some are not, cannot copy a collection of files each with different source');
+end
+if (isSourceAWS(1))
     source = awsModifyPathForCompetability(source,true);
     isSourceAWS = true;
 else
     isSourceAWS = false;
 end
+
+% Check dest
 if (awsIsAWSPath(dest))
     dest = awsModifyPathForCompetability(dest,true);
     isDestAWS = true;
@@ -27,9 +41,9 @@ end
 
 %% Upload Mode
 if ~isSourceAWS && isDestAWS
-    %Figure out what is been done
+    %Figure out what is requested
     mode = '';
-    if exist(source,'dir')
+    if ~iscell(source) && exist(source,'dir')
         mode = 'UploadDir';
         
         %Remove last '\'
@@ -46,8 +60,10 @@ if ~isSourceAWS && isDestAWS
             mode = 'UploadDirManySmallFiles';
             source = d(1).folder; %Switch to a full path, its better
         end
-    elseif exist(source,'file')
+    elseif ~iscell(source) && exist(source,'file')
         mode = 'UploadFile';
+    elseif iscell(source)
+        mode = 'UploadListOfFiles';
     else
         error('Cannot find: %s',source);
     end
@@ -56,6 +72,10 @@ if ~isSourceAWS && isDestAWS
     switch(mode)
         case 'UploadFile'
             awsCmd(['aws s3 cp "' source '" "' dest '"'], [], v);
+        case 'UploadListOfFiles'
+            for i=1:length(source)
+                awsCmd(['aws s3 cp "' source{i} '" "' dest '"'], [], v);
+            end
         case {'UploadDir','UploadDirManySmallFiles'}
             if (v)
                 fprintf('Uploading %.1f GBytes, %d files...\n',totalDataTransferVolume,numberOfFiles);
@@ -82,7 +102,12 @@ if ~isSourceAWS && isDestAWS
 
 %% Copy withing aws mode
 elseif (isSourceAWS && isDestAWS)
-    if (source(end) == '/')
+    if iscell(source)
+        % Copy list of files
+        for i=1:length(source)
+            awsCmd(['aws s3 cp "' source{i} '" "' dest '"'], [], v);
+        end
+    elseif (source(end) == '/')
         %This is a directory copy
         awsCmd(['aws s3 cp "' source '" "' dest '" --recursive'], [], v);
     else
@@ -93,7 +118,12 @@ elseif (isSourceAWS && isDestAWS)
 %% Copy local file mode
 elseif (~isSourceAWS && ~isDestAWS)
     
-    if (isfile(source))
+    if iscell(source)
+        % Copy list of files
+        for i=1:length(source)
+            copyfile(source{i},dest);
+        end
+    elseif (isfile(source))
         %File copy
         copyfile(source,dest);
     else
@@ -107,8 +137,14 @@ elseif (~isSourceAWS && ~isDestAWS)
         
         system(['xcopy "' source '" "' dest '" /S /C /Q /Y']);
     end
+%% Download from aws
 elseif (isSourceAWS && ~isDestAWS)
-    if (source(end) == '/')
+    if iscell(source)
+        % List of files
+        for i=1:length(source)
+            awsCmd(['aws s3 cp "' source{i} '" "' dest '"'], [], v);
+        end
+    elseif (source(end) == '/')
         %This is a directory copy, remove last '\' from dest if exist
         dest = awsModifyPathForCompetability([dest '/']);
         awsCmd(['aws s3 cp "' source '" "' dest(1:(end-1)) '" --recursive'], [], v);
