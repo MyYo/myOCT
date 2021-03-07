@@ -96,16 +96,23 @@ for fi=1:length(fileIndex)
 end
 
 function temp = DSRead(fileName, headerTotalBytes) 
-fid = fopen(fileName);
 
-%Skip header
-fseek(fid, headerTotalBytes, 'cof'); 
+try
+    fid = fopen(fileName);
 
-%Read
-data = fread(fid,'uint16');
+    %Skip header
+    fseek(fid, headerTotalBytes, 'cof'); 
 
-% data is 2 bytes (2^16) but really only ranges from 0-4096 (2^12)
-temp = uint16(rem(data, 4096));
+    %Read
+    data = fread(fid,'uint16');
 
-%Cleanup
-fclose(fid);
+    % data is 2 bytes (2^16) but really only ranges from 0-4096 (2^12)
+    temp = uint16(rem(data, 4096));
+
+    %Cleanup
+    fclose(fid);
+catch ME
+    disp(['Error in DSRead sub-function while trying to read: ' fileName]);
+    ME
+    rethrow(ME)
+end
