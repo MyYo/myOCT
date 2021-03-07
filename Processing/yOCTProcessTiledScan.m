@@ -375,7 +375,7 @@ parfor yI=1:length(yAll)
         end
 
     catch ME
-        fprintf('Error happened in parfor, iteration %d:\n',yI); 
+        fprintf('Error happened in parfor, yI=%d:\n',yI); 
         disp(ME.message);
         for j=1:length(ME.stack) 
             ME.stack(j) 

@@ -71,7 +71,12 @@ for fi=1:length(fileIndex)
  
     %Load Data
     ds=fileDatastore(filePath,'ReadFcn',@(a)(DSRead(a,dimensions.aux.headerTotalBytes)));
-    temp=ds.read;
+    try
+        temp=ds.read;
+    catch ME
+        disp(['Error reading ' filePath]);
+        rethrow(ME);
+    end
 
     if (isempty(temp))
         error(['Missing file / file size wrong' filePath]);
