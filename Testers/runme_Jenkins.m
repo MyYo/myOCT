@@ -107,30 +107,30 @@ catch ME
 end 
 
 try
-%% If Cluster is on shut it down
-fprintf('Winding down ...');
+	%% If Cluster is on shut it down
+	fprintf('Winding down ...');
 
-%If parallel pool exists, close it
-myPool = gcp('nocreate');
-if ~isempty(myPool)
-	%My pool is running, shut it down
-	delete(myPool);
-end
-
-if isConnectToCluster && false %Leave cluster open, it will shut itself down after a while
-	switch myCluster.State %All the scenarios the cluster can be in
-		case 'starting'
-			wait(myCluster); %Wait for cluster to turn on
-			shutdown(myCluster);
-		case 'stopping'
-			%Do nothing, let the cluster close
-		case 'online'
-			shutdown(myCluster);
-		case 'offline' 
-			%do nothing
+	%If parallel pool exists, close it
+	myPool = gcp('nocreate');
+	if ~isempty(myPool)
+		%My pool is running, shut it down
+		delete(myPool);
 	end
-end
-fprintf('Done! Goodbye\n');
+
+	if isConnectToCluster && false %Leave cluster open, it will shut itself down after a while
+		switch myCluster.State %All the scenarios the cluster can be in
+			case 'starting'
+				wait(myCluster); %Wait for cluster to turn on
+				shutdown(myCluster);
+			case 'stopping'
+				%Do nothing, let the cluster close
+			case 'online'
+				shutdown(myCluster);
+			case 'offline' 
+				%do nothing
+		end
+	end
+	fprintf('Done! Goodbye\n');
 
 catch ME 
     %% Error Hendle
