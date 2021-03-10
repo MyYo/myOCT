@@ -150,9 +150,10 @@ end
 isExitUsingForce = true;
 if isExitUsingForce
 	disp('Exit - force mode.');
+	fprintf('Exit Code: %f\n',outCode);
 	id  = feature('getpid');
 	if ispc
-	  cmd = sprintf('Taskkill /PID %d',id);
+	  cmd = sprintf('Taskkill /PID %d /F',id);
 	elseif (ismac || isunix)
 	  cmd = sprintf('kill -9 %d',id);
 	else
@@ -160,6 +161,6 @@ if isExitUsingForce
 	end
 	system(cmd);
 else
-	disp('Exit - Goodbye.');
+	fprintf('Exit Code: %f\n',outCode);
 	exit(outCode,'force'); 
 end
