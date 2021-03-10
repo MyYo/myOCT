@@ -147,13 +147,12 @@ end
 %% Exit
 % In R2019b it was possible to exist using exit().
 % But in R2020b we need to exit using force.
-
-isExitUsingForce = true
+isExitUsingForce = true;
 if isExitUsingForce
 	disp('Exit - force mode.');
 	id  = feature('getpid');
 	if ispc
-	  cmd = sprintf('Taskkill /PID %d /F',id);
+	  cmd = sprintf('Taskkill /PID %d',id);
 	elseif (ismac || isunix)
 	  cmd = sprintf('kill -9 %d',id);
 	else
