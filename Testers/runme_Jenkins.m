@@ -150,7 +150,7 @@ end
 isExitUsingForce = true;
 if isExitUsingForce
 	disp('Exit - force mode.');
-	fprintf('Exit Code: %f\n',outCode);
+	fprintf('Exit Code: %.0f\n',outCode);
 	id  = feature('getpid');
 	if ispc
 	  cmd = sprintf('Taskkill /PID %d /F',id);
@@ -161,6 +161,6 @@ if isExitUsingForce
 	end
 	system(cmd);
 else
-	fprintf('Exit Code: %f\n',outCode);
+	fprintf('Exit Code: %.0f\n',outCode);
 	exit(outCode,'force'); 
 end
