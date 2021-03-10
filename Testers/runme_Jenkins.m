@@ -68,7 +68,7 @@ try
 			myCluster.JobStorageLocation);
 		
 		%Set default cluster, but don't start it yet
-		parallel.defaultClusterProfile('delaZerdaParallel');
+		parallel.defaultClusterProfile('delaZerdaParallel2020');
 	else
 		%Run locally if no cluster
 		parallel.defaultClusterProfile('local'); 
