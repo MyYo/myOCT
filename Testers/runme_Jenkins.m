@@ -145,4 +145,4 @@ catch ME
 end
 
 disp('Goodbye.');
-exit(outCode); 
+exit(outCode,'force'); 
