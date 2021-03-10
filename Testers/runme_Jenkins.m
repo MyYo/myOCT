@@ -130,12 +130,12 @@ try
 				%do nothing
 		end
 	end
-	fprintf('Done! Goodbye\n');
+	fprintf('Done!\n');
 
 catch ME 
     %% Error Hendle
 	disp(' '); 
-	disp('Error Happened while winding down'); 
+	disp('Error Happened while winding down.'); 
 	disp(ME.message); 
 	for i=1:length(ME.stack) 
 		ME.stack(i) 
@@ -144,4 +144,5 @@ catch ME
 	outCode = 1;
 end
 
+disp('Goodbye.');
 exit(outCode); 
