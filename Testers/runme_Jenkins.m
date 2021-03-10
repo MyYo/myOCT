@@ -144,5 +144,23 @@ catch ME
 	outCode = 1;
 end
 
-disp('Goodbye.');
-exit(outCode,'force'); 
+%% Exit
+% In R2019b it was possible to exist using exit().
+% But in R2020b we need to exit using force.
+
+isExitUsingForce = true
+if isExitUsingForce
+	disp('Exit - force mode.');
+	id  = feature('getpid');
+	if ispc
+	  cmd = sprintf('Taskkill /PID %d /F',id);
+	elseif (ismac || isunix)
+	  cmd = sprintf('kill -9 %d',id);
+	else
+	  disp('unknown operating system');
+	end
+	system(cmd);
+else
+	disp('Exit - Goodbye.');
+	exit(outCode,'force'); 
+end
