@@ -20,13 +20,17 @@ namespace DemoNet
             Console.WriteLine("yOCTScannerInit");
             ThorlabsImager.yOCTScannerInit(@"C:\Program Files\Thorlabs\SpectralRadar\Config\Probe - Olympus 10x.ini");
 
+            // Make sure output directory is not there
+            System.IO.Directory.CreateDirectory(@"scan");
+            System.IO.Directory.Delete(@"scan", true);
+
             Console.WriteLine("yOCTScan3DVolume");
             ThorlabsImager.yOCTScan3DVolume(
                 0, 0, 1, 1, //startX, startY, rangeX, rangeY[mm]
                 0,          //rotationAngle[deg]
                 100, 3,     //SizeX, sizeY[# of pixels]
                 2,          //B Scan Average
-                @"scan"      //Output directory, make sure it exists before running this function
+                @"scan"      //Output directory, make sure it doesnt exist before running this function
             );
             Console.WriteLine();
             Console.WriteLine("yOCTScan3DVolume - Done");
