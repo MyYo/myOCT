@@ -180,7 +180,7 @@ for scanI=1:length(scanOrder)
     s = awsModifyPathForCompetability(s);
     
     ThorlabsImagerNET.ThorlabsImager.yOCTScan3DVolume(...
-        in.xOffset+in.octProbe.DynamicOffsetX,in.yOffset, ... centerX, centerY [mm]
+        in.xOffset+in.octProbe.DynamicOffsetX, in.yOffset, ... centerX, centerY [mm]
         in.xRange.*in.octProbe.DynamicFactorX, in.yRange,  ... rangeX,rangeY [mm]
         0,       ... rotationAngle [deg]
         in.nXPixels,in.nYPixels, ... SizeX,sizeY [# of pixels]

@@ -133,17 +133,35 @@ end
 
 %% Get the data
 for i=1:length(yI)
-    if (isInputFile)
-        % Single file mode
-        bits = imreadWrapper1(filepath,yI(i));
-    else
-        % Folder mode
-        ds = fileDatastore(...
-            awsModifyPathForCompetability(sprintf('%s/y%04d.tif',filepath,yI(i))), ...
-            'ReadFcn',@(fp)(imreadWrapper1(fp,[])));
-        bits = ds.read();
+    
+    %% Load data
+    try
+        if (isInputFile)
+            % Single file mode
+            bits = imreadWrapper1(filepath,yI(i));
+        else
+            % Folder mode
+            ds = fileDatastore(...
+                awsModifyPathForCompetability(sprintf('%s/y%04d.tif',filepath,yI(i))), ...
+                'ReadFcn',@(fp)(imreadWrapper1(fp,[])));
+            bits = ds.read();
+        end
+    catch ME
+        if isInputFile
+            s = 'from a tif file';
+        else
+            s = 'from a tif folder';
+        end
+        fprintf('yOCTFromTif failed to load an image %s.\nPath: "%s".\nslice %d.\n',...
+            s,filepath,yI(i)); 
+        for j=1:length(ME.stack) 
+            ME.stack(j) 
+        end 
+        disp(ME.message); 
+        error('Error in yOCTFrimTif, see information below');
     end
 
+    %% Basic processing
     if (i==1)
         data = zeros(size(bits,1),size(bits,2),length(yI),'single');
     end
