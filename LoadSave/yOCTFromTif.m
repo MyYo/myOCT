@@ -72,7 +72,7 @@ catch ME
         delete(filepath);
     end
     
-    fprintf('Error while yOCTFromTif reading "%s".\n',filepathIn);
+    fprintf('\nError while yOCTFromTif reading "%s".\n',filepathIn);
     rethrow(ME);
 end
 
@@ -150,6 +150,16 @@ else
 end
 
 %% Check if data is corupted
+if (length(metadata.y.index) ~= length(metadata.y.values))
+    error('File header is corupted. length(metadata.y.index)=%d while length(metadata.y.values) = %d',...
+        length(metadata.y.index),length(metadata.y.values));
+end
+
+if (length(metadata.x.index) ~= length(metadata.x.values))
+    error('File header is corupted. length(metadata.x.index)=%d while length(metadata.x.values) = %d',...
+        length(metadata.x.index),length(metadata.x.values));
+end
+
 if (length(metadata.y.index) ~= length(yIAll))
     error('File is corupted. Header claims: length(metadata.y.index)=%d. Actual y plains in the file: %d',...
         length(metadata.y.index),length(yIAll));

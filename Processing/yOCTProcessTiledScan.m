@@ -196,8 +196,10 @@ end
 dimOutput.x = dimOneTile.x;
 dimOutput.x.origin = 'x=0 is OCT scanner origin when xCenters=0 scan was taken';
 dimOutput.x.values = xAll(:)';
+dimOutput.x.index = 1:length(dimOutput.x.values);
 dimOutput.y = dimOneTile.x;
 dimOutput.y.values = yAll(:)';
+dimOutput.y.index = 1:length(dimOutput.y.values);
 dimOutput.y.origin = 'y=0 is OCT scanner origin when yCenters=0 scan was taken';
 dimOutput.aux = dimOneTile.aux;
 
