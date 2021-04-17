@@ -31,6 +31,7 @@ parse(p,varargin{:});
 in = p.Results;
 
 filepath = in.filepath;
+filepathIn = in.filepath; %Record the oroginal file path
 yI = in.yI;
 xI = in.xI;
 zI = in.zI;
@@ -61,6 +62,28 @@ if (isAWS && isInputFile)
     filepath=ds.read(); % Update file path
 end
 
+%% Run the job
+try
+    [data, metadata, c] = yOCTFromTif_MainFunction(filepath,isInputFile,xI,yI,zI);
+catch ME
+    % Clean up before exiting
+    if isAWS && isInputFile
+        %Remove temporary file
+        delete(filepath);
+    end
+    
+    fprintf('Error while yOCTFromTif reading "%s".\n',filepathIn);
+    rethrow(ME);
+    ends
+
+% Clean up before exiting
+if isAWS && isInputFile
+    %Remove temporary file
+    delete(filepath);
+end
+
+%% This is the main function that does the job
+function [data, metadata, c] = yOCTFromTif_MainFunction(filepath,isInputFile,xI,yI,zI)
 %% Read Metadata
 if (isInputFile)
     % Read meta from file
@@ -74,9 +97,12 @@ if (isInputFile)
     end
     [c, metadata, maxbit] = intrpertDescription(description,filepath);
     
-    % Get yI dimensions
+    % Get avilable Ys
+    yIAll=1:length(info);
+    
+    % If yI is not specified assume all
     if isempty(yI)
-        yI=1:length(info);
+        yI = yIAll;
     end
 else
     % Read meta from JSON
@@ -84,11 +110,14 @@ else
     
     [c, metadata, maxbit] = intrpertDescription(description,filepath);
     
-    % Get dimensions
+    % Get avilable Ys
+    l = awsls(filepath);
+    isTifFile = cellfun(@(x)(contains(x,'.tif')),l);
+    yIAll=1:sum(isTifFile);
+    
+    % If yI is not specified assume all
     if isempty(yI)
-        l = awsls(filepath);
-        isTifFile = cellfun(@(x)(contains(x,'.tif')),l);
-        yI=1:sum(isTifFile);
+        yI = yIAll;
     end
 end 
 
@@ -120,14 +149,15 @@ else
     imreadWrapper1 = @(filePath, frameIndex)(imreadWrapper(filePath, frameIndex, [], []));
 end
 
+%% Check if data is corupted
+if (length(metadata.y.index) ~= length(yIAll))
+    error('File is corupted. Header claims: length(metadata.y.index)=%d. Actual y plains in the file: %d',...
+        length(metadata.y.index),length(yIAll));
+end
+
 %% If metadata only mode, we are done
 if in.isLoadMetadataOnly
     data = [];
-    
-    if isAWS && isInputFile
-        %Remove temporary file
-        delete(filepath);
-    end
     return;
 end
 
@@ -152,8 +182,8 @@ for i=1:length(yI)
         else
             s = 'from a tif folder';
         end
-        fprintf('yOCTFromTif failed to load an image %s.\nPath: "%s".\nslice %d.\n',...
-            s,filepath,yI(i)); 
+        fprintf('yOCTFromTif failed to load an image %s.\nslice %d.\n',...
+            s,yI(i)); 
         for j=1:length(ME.stack) 
             ME.stack(j) 
         end 
@@ -168,11 +198,6 @@ for i=1:length(yI)
     
     data(:,:,i) = yOCT2Tif_ConvertBitsData(bits,c,true,maxbit); %Rescale to the original values
 end
-
-if isAWS && isInputFile
-    %Remove temporary file
-    delete(filepath);
-end   
     
 function out = copyFileLocally(filepath)
 %Copy filename to other temp name
