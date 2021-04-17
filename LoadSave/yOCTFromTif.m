@@ -35,6 +35,7 @@ filepathIn = in.filepath; %Record the oroginal file path
 yI = in.yI;
 xI = in.xI;
 zI = in.zI;
+isLoadMetadataOnly = in.isLoadMetadataOnly;
 
 %% Is AWS?
 if (awsIsAWSPath(filepath))
@@ -64,7 +65,7 @@ end
 
 %% Run the job
 try
-    [data, metadata, c] = yOCTFromTif_MainFunction(filepath,isInputFile,xI,yI,zI);
+    [data, metadata, c] = yOCTFromTif_MainFunction(filepath,isInputFile,xI,yI,zI,isLoadMetadataOnly);
 catch ME
     % Clean up before exiting
     if isAWS && isInputFile
@@ -83,7 +84,7 @@ if isAWS && isInputFile
 end
 
 %% This is the main function that does the job
-function [data, metadata, c] = yOCTFromTif_MainFunction(filepath,isInputFile,xI,yI,zI)
+function [data, metadata, c] = yOCTFromTif_MainFunction(filepath,isInputFile,xI,yI,zI,isLoadMetadataOnly)
 %% Read Metadata
 if (isInputFile)
     % Read meta from file
@@ -166,7 +167,7 @@ if (length(metadata.y.index) ~= length(yIAll))
 end
 
 %% If metadata only mode, we are done
-if in.isLoadMetadataOnly
+if isLoadMetadataOnly
     data = [];
     return;
 end
