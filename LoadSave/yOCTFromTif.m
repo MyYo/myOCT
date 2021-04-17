@@ -74,7 +74,7 @@ catch ME
     
     fprintf('Error while yOCTFromTif reading "%s".\n',filepathIn);
     rethrow(ME);
-    ends
+end
 
 % Clean up before exiting
 if isAWS && isInputFile
