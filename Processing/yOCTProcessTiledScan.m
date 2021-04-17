@@ -398,8 +398,19 @@ end
 ds = fileDatastore(whereAreMyFiles,'ReadFcn',@(x)(x),'FileExtensions','.getmeout','IncludeSubfolders',true); %Count all artifacts
 isFile = cellfun(@(x)(contains(lower(x),'.json')),ds.Files);
 done = sum(isFile);
-if (done ~= length(yAll))
-    error('Please review "%s". We expect to have %d y planes but see only %d.\nI didn''t delete folder to allow you to debug.\nPlease remove by running awsRmDir(''%s''); when done.',...
+    
+if done ~= length(yAll)
+    % Some files are missing, print debug to help trubleshoot 
+    fprintf('\nDebug Data:\n');
+    fprintf('Number of ds files: %d\n',done)
+    
+    % Use AWS ls
+    l = awsls(whereAreMyFiles);
+    isFileL = cellfun(@(x)(contains(lower(x),'.json')),l);
+    fprintf('Number of awsls files: %d\n',isFileL)
+    
+    % Throw an error
+    error('Please review "%s". We expect to have %d y planes but see only %d in the folder.\nI didn''t delete folder to allow you to debug.\nPlease remove by running awsRmDir(''%s''); when done.',...
         whereAreMyFiles,length(yAll),done,whereAreMyFiles);
 end
 
