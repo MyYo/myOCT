@@ -49,8 +49,8 @@ function whereAreMyFiles = yOCT2Tif (varargin)
 %   yOCT2Tif('C:\myOCTVolume\',[],'partialFileMode',3); % Finalize saving
 %
 % OUPTUTS:
-%   whereAreMyFiles - where files are saved, very useful in partial file mode, to
-%       indicate to user where are the files.
+%   whereAreMyFiles - path to file/folder where files are saved, very 
+%       useful in partial file mode, to indicate to user where are the files.
 
 %% Input Processing
 p = inputParser;
@@ -229,6 +229,9 @@ elseif mode == 1
     if awsExist(outputFilePaths{3},'dir')
         awsRmDir(outputFilePaths{3});
     end
+    
+    % Files should be in the folder
+    whereAreMyFiles = outputFilePaths{3};
 
 %% Actual writing of data, partial file mode (loop part)
 elseif mode == 2    

@@ -244,7 +244,7 @@ ticBytes(gcp);
 if(v)
     fprintf('%s Stitching ...\n',datestr(datetime)); tt=tic();
 end
-yOCT2Tif([], outputPath, 'partialFileMode', 1); %Init
+whereAreMyFiles1 = yOCT2Tif([], outputPath, 'partialFileMode', 1); %Init
 parfor yI=1:length(yAll) 
     try
         %Create a container for all data
@@ -364,7 +364,7 @@ parfor yI=1:length(yAll)
         % Save
         whereAreMyFiles = yOCT2Tif(mag2db(stackmean), outputPath, ...
             'partialFileMode', 2, 'partialFileModeIndex', yI); 
-            % Since we are in partialFileMode 1, whereAreMyFiles will
+            % Since we are in partialFileMode 2, whereAreMyFiles will
             % contain the folder that code is working on right now.
         
         % Is it time to print statistics?
@@ -389,6 +389,23 @@ end %parfor
 if (v)
     fprintf('Done stitching, toatl time: %.0f[min]\n',toc(tt)/60);
     tocBytes(gcp)
+end
+
+%% Verify that all files are there
+if (v)
+    fprintf('%s Verifying all files are there ... ',datestr(datetime));
+end
+
+ds = fileDatastore(whereAreMyFiles1,'ReadFcn',@(x)(x),'FileExtensions','.getmeout','IncludeSubfolders',true); %Count all artifacts
+isFile = cellfun(@(x)(contains(lower(x),'.json')),ds.Files);
+done = sum(isFile);
+if (done ~= length(yAll))
+    error('Please review "%s". We expect to have %d y planes but see only %d.\nI didn''t delete folder to allow you to debug.\nPlease remove by running awsRmDir(''%s''); when done.',...
+        whereAreMyFiles1,length(yAll),done,whereAreMyFiles1);
+end
+
+if (v)
+    fprintf('Done!\n');
 end
 
 %% Reorganizing files
