@@ -267,7 +267,7 @@ elseif mode == 2
 else
     % Finish WM work
     awsCopyFile_MW2(outputFilePaths{3});
-    
+
     numberOfYPlanes=NaN;
     %for parforI=1:1
     parfor(parforI=1:1,1) %Run once but on a worker, to save trafic
@@ -342,9 +342,6 @@ else
         end
         awsCopyFile_MW2(outputFilePaths{3});
         awsCopyFileFolder(outputFileTmpPath,outputFilePaths{1});
-        
-        % Double check that file was created correctly
-        yOCTFromTif(outputFilePaths{1},'isLoadMetadataOnly',true);
         
         % Remove leftovers
         awsRmDir(outputFilePaths{3});

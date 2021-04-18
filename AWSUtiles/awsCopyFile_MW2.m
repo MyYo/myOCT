@@ -22,6 +22,8 @@ for tryI = 1:10
             rethrow(ME)
         else
             % No more files
+            fprintf('"%s" dest seems to have no more files.\n',dest);
+            rethrow(ME)
             return;
         end
     end
