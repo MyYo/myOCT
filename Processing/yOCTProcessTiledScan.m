@@ -405,15 +405,18 @@ if cnt ~= length(yAll)
     % Use AWS ls
     l = awsls(whereAreMyFiles);
     isFileL = cellfun(@(x)(contains(lower(x),'.json')),l);
-    fprintf('Number of awsls files: %d\n',sum(isFileL))
+    cntL = sum(isFileL);
+    fprintf('Number of awsls files: %d\n',cntL)
     
-    % Count again after awsls
-    cnt2 = yOCTProcessTiledScan_AuxCountHowManyYFiles(whereAreMyFiles);
-    fprintf('Number of ds files (2): %d\n',cnt2)
-    
-    % Throw an error
-    error('Please review "%s". We expect to have %d y planes but see only %d in the folder.\nI didn''t delete folder to allow you to debug.\nPlease remove by running awsRmDir(''%s''); when done.',...
-        whereAreMyFiles,length(yAll),cnt,whereAreMyFiles);
+    if (cntL ~= length(yAll))
+        % Throw an error
+        error('Please review "%s". We expect to have %d y planes but see only %d in the folder.\nI didn''t delete folder to allow you to debug.\nPlease remove by running awsRmDir(''%s''); when done.',...
+            whereAreMyFiles,length(yAll),cnt,whereAreMyFiles);
+    else
+        % This is probably a datastore issue
+        warining('fileDatastore returned different number of files when compared to awsls. You might want to trubleshoot why this happend.\nFor background, see: %s',...
+            'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files');
+    end
 end
 
 if (v)

@@ -8,63 +8,72 @@ if awsIsAWSPath(dest)
 end
 dest = awsModifyPathForCompetability(dest);
 
-%% Get all the files that need loving
-try
-    ds = fileDatastore(...
-        dest,'ReadFcn',@(x)(x),'IncludeSubfolders',true,...
-        'FileExtensions',{'.getmeout'});
-catch ME
-    fprintf('Processing "%s"...\n',dest);
-    rethrow(ME)
-end
-files = ds.Files;
-froms = cell(size(files));
-tos   = cell(size(files));
-for i=1:length(files)
-    from = files{i};
-    froms{i} = awsModifyPathForCompetability(from,true); %Modify for CLI compatablity
+%% If we have too many files fileDatastore might not be able to get all at once, break to a few trys
+for tryI = 1:10
     
-    %To get the real file name, go up a few folders
-    f1 = fileparts(from);
-    to = fileparts([f1 '.']);
-    
-    tos{i} = awsModifyPathForCompetability(to,true); %Modify for CLI compatablity
-end
-
-%% Preform the move
-if (awsIsAWSPath(dest))
-    
-    if length(froms) > 1 %Many files are been copied
-        %Parallel Version
-        awsCopyFile_MW2_AWSParallel(froms,tos);
-    else % Few files are beying copied
-        %Sync version
-        for i=1:length(froms)
-            awsCmd(sprintf('aws s3 mv "%s" "%s"',froms{i},tos{i}));
+    %% Get all the files that need loving
+    try
+        ds = fileDatastore(...
+            dest,'ReadFcn',@(x)(x),'IncludeSubfolders',true,...
+            'FileExtensions',{'.getmeout'});
+    catch ME
+        if tryI==1
+            fprintf('Processing "%s"...\n',dest);
+            rethrow(ME)
+        else
+            % No more files
+            return;
         end
     end
-else
-    for i=1:length(froms)
-        tmpfn = tempname;
-        movefile(froms{i},tmpfn,'f');
-        rmdir(tos{i},'s');
-        movefile(tmpfn,tos{i},'f');
-    end
-end
+    files = ds.Files;
+    froms = cell(size(files));
+    tos   = cell(size(files));
+    for i=1:length(files)
+        from = files{i};
+        froms{i} = awsModifyPathForCompetability(from,true); %Modify for CLI compatablity
 
-%% Make sure move is completed
-for iterationI = 2:-1:0
-    if (awsExist(tos{end},'file'))
-        % File exist, we can break
-        break;
+        %To get the real file name, go up a few folders
+        f1 = fileparts(from);
+        to = fileparts([f1 '.']);
+
+        tos{i} = awsModifyPathForCompetability(to,true); %Modify for CLI compatablity
+    end
+
+    %% Preform the move
+    if (awsIsAWSPath(dest))
+
+        if length(froms) > 1 %Many files are been copied
+            %Parallel Version
+            awsCopyFile_MW2_AWSParallel(froms,tos);
+        else % Few files are beying copied
+            %Sync version
+            for i=1:length(froms)
+                awsCmd(sprintf('aws s3 mv "%s" "%s"',froms{i},tos{i}));
+            end
+        end
     else
-        warning(['All files were not copied yet. For example %s ' ...
-            'doesn''t exist in dest folder.\n' ...
-            'Wait another second to complete'],tos{end});
-        if iterationI == 0
-            error('Tried too many times, doesn''t work...');
+        for i=1:length(froms)
+            tmpfn = tempname;
+            movefile(froms{i},tmpfn,'f');
+            rmdir(tos{i},'s');
+            movefile(tmpfn,tos{i},'f');
         end
-        pause(1);
+    end
+
+    %% Make sure move is completed
+    for iterationI = 2:-1:0
+        if (awsExist(tos{end},'file'))
+            % File exist, we can break
+            break;
+        else
+            warning(['All files were not copied yet. For example %s ' ...
+                'doesn''t exist in dest folder.\n' ...
+                'Wait another second to complete'],tos{end});
+            if iterationI == 0
+                error('Tried too many times, doesn''t work...');
+            end
+            pause(1);
+        end
     end
 end
         
