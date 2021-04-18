@@ -402,12 +402,13 @@ done = sum(isFile);
 if done ~= length(yAll)
     % Some files are missing, print debug to help trubleshoot 
     fprintf('\nDebug Data:\n');
+    fprintf('whereAreMyFiles = ''%s''\n',whereAreMyFiles);
     fprintf('Number of ds files: %d\n',done)
     
     % Use AWS ls
     l = awsls(whereAreMyFiles);
     isFileL = cellfun(@(x)(contains(lower(x),'.json')),l);
-    fprintf('Number of awsls files: %d\n',isFileL)
+    fprintf('Number of awsls files: %d\n',sum(isFileL))
     
     % Throw an error
     error('Please review "%s". We expect to have %d y planes but see only %d in the folder.\nI didn''t delete folder to allow you to debug.\nPlease remove by running awsRmDir(''%s''); when done.',...
