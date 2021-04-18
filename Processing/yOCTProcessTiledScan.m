@@ -369,10 +369,8 @@ parfor yI=1:length(yAll)
         % Is it time to print statistics?
         if mod(yI,printStatsEveryyI)==0 && v
             % Stats time!
-            ds = fileDatastore(whereAreMyFiles,'ReadFcn',@(x)(x),'FileExtensions','.getmeout','IncludeSubfolders',true); %Count all artifacts
-            isFile = cellfun(@(x)(contains(lower(x),'.json')),ds.Files);
-            done = sum(isFile);
-            fprintf('%s Completed yIs so far: %d/%d (%.1f%%)\n',datestr(datetime),done,length(yAll),100*done/length(yAll));
+            cnt = yOCTProcessTiledScan_AuxCountHowManyYFiles(whereAreMyFiles);
+            fprintf('%s Completed yIs so far: %d/%d (%.1f%%)\n',datestr(datetime),cnt,length(yAll),100*cnt/length(yAll));
         end
 
     catch ME
@@ -395,24 +393,27 @@ if (v)
     fprintf('%s Verifying all files are there ... ',datestr(datetime));
 end
 
-ds = fileDatastore(whereAreMyFiles,'ReadFcn',@(x)(x),'FileExtensions','.getmeout','IncludeSubfolders',true); %Count all artifacts
-isFile = cellfun(@(x)(contains(lower(x),'.json')),ds.Files);
-done = sum(isFile);
+% Count how many files are in the library
+cnt = yOCTProcessTiledScan_AuxCountHowManyYFiles(whereAreMyFiles);
     
-if done ~= length(yAll)
+if cnt ~= length(yAll)
     % Some files are missing, print debug to help trubleshoot 
     fprintf('\nDebug Data:\n');
     fprintf('whereAreMyFiles = ''%s''\n',whereAreMyFiles);
-    fprintf('Number of ds files: %d\n',done)
+    fprintf('Number of ds files: %d\n',cnt)
     
     % Use AWS ls
     l = awsls(whereAreMyFiles);
     isFileL = cellfun(@(x)(contains(lower(x),'.json')),l);
     fprintf('Number of awsls files: %d\n',sum(isFileL))
     
+    % Count again after awsls
+    cnt2 = yOCTProcessTiledScan_AuxCountHowManyYFiles(whereAreMyFiles);
+    fprintf('Number of ds files (2): %d\n',cnt2)
+    
     % Throw an error
     error('Please review "%s". We expect to have %d y planes but see only %d in the folder.\nI didn''t delete folder to allow you to debug.\nPlease remove by running awsRmDir(''%s''); when done.',...
-        whereAreMyFiles,length(yAll),done,whereAreMyFiles);
+        whereAreMyFiles,length(yAll),cnt,whereAreMyFiles);
 end
 
 if (v)
@@ -439,3 +440,12 @@ end
 if (v)
     fprintf('Done! took %.1f[min]\n',toc(tt)/60);
 end
+
+
+function cnt = yOCTProcessTiledScan_AuxCountHowManyYFiles(whereAreMyFiles)
+% This is an aux function that counts how many files yOCT2Tif saved 
+
+ds = fileDatastore(whereAreMyFiles,'ReadFcn',@(x)(x),'FileExtensions','.getmeout','IncludeSubfolders',true); %Count all artifacts
+isFile = cellfun(@(x)(contains(lower(x),'.json')),ds.Files);
+cnt = sum(isFile);
+
