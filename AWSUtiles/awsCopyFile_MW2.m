@@ -10,7 +10,7 @@ dest = awsModifyPathForCompetability(dest);
 
 %% If we have too many files fileDatastore might not be able to get all at once, break to a few trys
 for tryI = 1:10
-    
+    tryI
     %% Get all the files that need loving
     try
         ds = fileDatastore(...

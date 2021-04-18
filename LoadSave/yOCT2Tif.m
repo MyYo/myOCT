@@ -342,6 +342,11 @@ else
         end
         awsCopyFile_MW2(outputFilePaths{3});
         awsCopyFileFolder(outputFileTmpPath,outputFilePaths{1});
+        
+        % Double check that file was created correctly
+        yOCTFromTif(outputFilePaths{1},'isLoadMetadataOnly',true);
+        
+        % Remove leftovers
         awsRmDir(outputFilePaths{3});
     end
     
