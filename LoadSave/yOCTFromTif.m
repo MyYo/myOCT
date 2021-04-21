@@ -150,20 +150,22 @@ else
     imreadWrapper1 = @(filePath, frameIndex)(imreadWrapper(filePath, frameIndex, [], []));
 end
 
-%% Check if data is corupted
-if (length(metadata.y.index) ~= length(metadata.y.values))
-    error('File header is corupted. length(metadata.y.index)=%d while length(metadata.y.values) = %d',...
-        length(metadata.y.index),length(metadata.y.values));
-end
+%% Check if metadata is consistent (if metadata exists)
+if isstruct(metadata) && isfield(metadata,'x') && isfield(metadata,'y')
+    if (length(metadata.y.index) ~= length(metadata.y.values))
+        error('File header is corupted. length(metadata.y.index)=%d while length(metadata.y.values) = %d',...
+            length(metadata.y.index),length(metadata.y.values));
+    end
 
-if (length(metadata.x.index) ~= length(metadata.x.values))
-    error('File header is corupted. length(metadata.x.index)=%d while length(metadata.x.values) = %d',...
-        length(metadata.x.index),length(metadata.x.values));
-end
+    if (length(metadata.x.index) ~= length(metadata.x.values))
+        error('File header is corupted. length(metadata.x.index)=%d while length(metadata.x.values) = %d',...
+            length(metadata.x.index),length(metadata.x.values));
+    end
 
-if (length(metadata.y.index) ~= length(yIAll))
-    error('File is corupted. Header claims: length(metadata.y.index)=%d. Actual y plains in the file: %d',...
-        length(metadata.y.index),length(yIAll));
+    if (length(metadata.y.index) ~= length(yIAll))
+        error('File is corupted. Header claims: length(metadata.y.index)=%d. Actual y plains in the file: %d',...
+            length(metadata.y.index),length(yIAll));
+    end
 end
 
 %% If metadata only mode, we are done
