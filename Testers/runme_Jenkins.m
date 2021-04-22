@@ -46,7 +46,7 @@ try
     %Copy files to:
     %   C:\Windows\System32\config\systemprofile\AppData\Roaming\MathWorks\MATLAB\<Which Matlab>\
     
-	clusterName = 'delaZerdaParallel2021';
+	clusterName = 'delaZerdaParallel';
     if isConnectToCluster %Do we need to connect to cluster
 		disp('Starting Cluster ... ');
         myCluster = parcluster(clusterName)
