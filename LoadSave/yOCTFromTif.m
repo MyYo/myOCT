@@ -13,6 +13,9 @@ function [data, metadata, c] = yOCTFromTif (varargin)
 %       Notice that if you would like par
 %   'isLoadMetadataOnly' - when set to true will set data to [] and return
 %       metadata only. Default: false.
+%   'isCheckMetadata' - set to true if you would like to check header is good
+%       (default) or false to skip this part. You might want to skip
+%       checking header when running on aws as it requires using awsls
 % OUTPUTS:
 %   data - data saved from tif, dimensions are (z,x,y)
 %   metaData - dimention structure, if present as meta data
@@ -26,6 +29,7 @@ addParameter(p,'xI',[])
 addParameter(p,'yI',[]);
 addParameter(p,'zI',[]);
 addParameter(p,'isLoadMetadataOnly',false);
+addParameter(p,'isCheckMetadata',true)
 
 parse(p,varargin{:});
 in = p.Results;
@@ -36,6 +40,7 @@ yI = in.yI;
 xI = in.xI;
 zI = in.zI;
 isLoadMetadataOnly = in.isLoadMetadataOnly;
+isCheckMetadata = in.isCheckMetadata;
 
 %% Is AWS?
 if (awsIsAWSPath(filepath))
@@ -65,7 +70,7 @@ end
 
 %% Run the job
 try
-    [data, metadata, c] = yOCTFromTif_MainFunction(filepath,isInputFile,xI,yI,zI,isLoadMetadataOnly);
+    [data, metadata, c] = yOCTFromTif_MainFunction(filepath,isInputFile,xI,yI,zI,isLoadMetadataOnly,isCheckMetadata);
 catch ME
     % Clean up before exiting
     if isAWS && isInputFile
@@ -84,7 +89,7 @@ if isAWS && isInputFile
 end
 
 %% This is the main function that does the job
-function [data, metadata, c] = yOCTFromTif_MainFunction(filepath,isInputFile,xI,yI,zI,isLoadMetadataOnly)
+function [data, metadata, c] = yOCTFromTif_MainFunction(filepath,isInputFile,xI,yI,zI,isLoadMetadataOnly,isCheckMetadata)
 %% Read Metadata
 if (isInputFile)
     % Read meta from file
@@ -98,12 +103,14 @@ if (isInputFile)
     end
     [c, metadata, maxbit] = intrpertDescription(description,filepath);
     
-    % Get avilable Ys
-    yIAll=1:length(info);
-    
-    % If yI is not specified assume all
-    if isempty(yI)
-        yI = yIAll;
+    if isempty(yI) || isCheckMetadata
+        % Get avilable Ys
+        yIAll=1:length(info);
+        
+        % If yI is not specified assume all
+        if isempty(yI)
+            yI = yIAll;
+        end
     end
 else
     % Read meta from JSON
@@ -111,14 +118,16 @@ else
     
     [c, metadata, maxbit] = intrpertDescription(description,filepath);
     
-    % Get avilable Ys
-    l = awsls(filepath);
-    isTifFile = cellfun(@(x)(contains(x,'.tif')),l);
-    yIAll=1:sum(isTifFile);
-    
-    % If yI is not specified assume all
-    if isempty(yI)
-        yI = yIAll;
+    if isempty(yI) || isCheckMetadata
+        % Get avilable Ys
+        l = awsls(filepath);
+        isTifFile = cellfun(@(x)(contains(x,'.tif')),l);
+        yIAll=1:sum(isTifFile);
+
+        % If yI is not specified assume all
+        if isempty(yI)
+            yI = yIAll;
+        end
     end
 end 
 
@@ -151,20 +160,22 @@ else
 end
 
 %% Check if metadata is consistent (if metadata exists)
-if isstruct(metadata) && isfield(metadata,'x') && isfield(metadata,'y')
-    if (length(metadata.y.index) ~= length(metadata.y.values))
-        error('File header is corupted. length(metadata.y.index)=%d while length(metadata.y.values) = %d',...
-            length(metadata.y.index),length(metadata.y.values));
-    end
+if isCheckMetadata
+    if isstruct(metadata) && isfield(metadata,'x') && isfield(metadata,'y')
+        if (length(metadata.y.index) ~= length(metadata.y.values))
+            error('File header is corupted. length(metadata.y.index)=%d while length(metadata.y.values) = %d',...
+                length(metadata.y.index),length(metadata.y.values));
+        end
 
-    if (length(metadata.x.index) ~= length(metadata.x.values))
-        error('File header is corupted. length(metadata.x.index)=%d while length(metadata.x.values) = %d',...
-            length(metadata.x.index),length(metadata.x.values));
-    end
+        if (length(metadata.x.index) ~= length(metadata.x.values))
+            error('File header is corupted. length(metadata.x.index)=%d while length(metadata.x.values) = %d',...
+                length(metadata.x.index),length(metadata.x.values));
+        end
 
-    if (length(metadata.y.index) ~= length(yIAll))
-        error('File is corupted. Header claims: length(metadata.y.index)=%d. Actual y plains in the file: %d',...
-            length(metadata.y.index),length(yIAll));
+        if (length(metadata.y.index) ~= length(yIAll))
+            error('File is corupted. Header claims: length(metadata.y.index)=%d. Actual y plains in the file: %d',...
+                length(metadata.y.index),length(yIAll));
+        end
     end
 end
 
