@@ -46,9 +46,10 @@ try
     %Copy files to:
     %   C:\Windows\System32\config\systemprofile\AppData\Roaming\MathWorks\MATLAB\<Which Matlab>\
     
+	clusterName = 'delaZerdaParallel2021';
     if isConnectToCluster %Do we need to connect to cluster
 		disp('Starting Cluster ... ');
-        myCluster = parcluster('delaZerdaParallel2020')
+        myCluster = parcluster(clusterName)
         switch myCluster.State %All Cluster's scenarios
             case 'offline'
                 start(myCluster);
@@ -68,7 +69,7 @@ try
 			myCluster.JobStorageLocation);
 		
 		%Set default cluster, but don't start it yet
-		parallel.defaultClusterProfile('delaZerdaParallel2020');
+		parallel.defaultClusterProfile(clusterName);
 	else
 		%Run locally if no cluster
 		parallel.defaultClusterProfile('local'); 
