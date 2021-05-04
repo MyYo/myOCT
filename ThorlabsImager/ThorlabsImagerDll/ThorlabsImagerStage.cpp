@@ -11,11 +11,11 @@ int getSNByAxes(char axes) //Run Thorlabs.MotionControl.Kinesis.exe to see which
 {
 	switch (axes)
 	{
-	case 'y':
-	case 'Y':
-		return 27254221;
 	case 'x':
 	case 'X':
+		return 27254221;
+	case 'y':
+	case 'Y':
 		return 27254232;
 	case 'z':
 	case 'Z':
