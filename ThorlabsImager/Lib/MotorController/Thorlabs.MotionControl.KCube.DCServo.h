@@ -210,7 +210,7 @@ extern "C"
 		/// <summary> The device description. </summary>
 		char description[65];
 		/// <summary> The device serial number. </summary>
-		char serialNo[9];
+		char serialNo[16];
 		/// <summary> The USB PID number. </summary>
 		DWORD PID;
 
