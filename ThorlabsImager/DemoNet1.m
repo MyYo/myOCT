@@ -19,13 +19,15 @@ ThorlabsImagerNET.ThorlabsImager.yOCTScan3DVolume(...
     );
 
 disp('yOCTPhotobleachLine')
-ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(true);
+%ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(true); % Version Using .NET
+yOCTTurnLaser(true); % Version using Matlab directly
 ThorlabsImagerNET.ThorlabsImager.yOCTPhotobleachLine( ...
     -1,0,1,0, ...startX,startY,endX,endY [mm]
 	10,        ...duration[sec]
     10         ...repetitions, how many passes to photobleach (choose 1 or 2)
     );
-ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(false);
+%ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(false); % Version Using .NET
+yOCTTurnLaser(false); % Version using Matlab directly
 
 disp('yOCTScannerClose')
 ThorlabsImagerNET.ThorlabsImager.yOCTScannerClose();

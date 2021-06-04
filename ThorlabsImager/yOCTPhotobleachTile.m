@@ -156,10 +156,15 @@ for i=1:length(xcc)
     
     if (v && i==1)
         fprintf('%s Turning Laser Diode On For The First Time... \n\t(if Matlab is taking more than 1 minute to finish this step, restart hardware and try again)\n',datestr(datetime));
-        ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(true); %Switch light on, write to screen only for first line
+        %Switch light on, write to screen only for first line
+		% ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(true);  % Version using .NET
+		yOCTTurnLaser(true); % Version using Matlab directly
         fprintf('%s Laser Diode is On\n',datestr(datetime)); 
     else
-        evalc('ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(true);'); %Switch light on, use evalc to prevent writing to window
+		% Version using .NET
+        %evalc('ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(true);'); %Switch light on, use evalc to prevent writing to window
+		
+		yOCTTurnLaser(true); % Version using Matlab directly
     end
 
     %Find lines to photobleach, center along current position of the stage
@@ -191,10 +196,14 @@ for i=1:length(xcc)
 
     if (v && i==1)
         fprintf('%s Turning Laser Diode Off For The First Time... \n\t(if Matlab is taking more than 1 minute to finish this step, restart hardware and try again)\n',datestr(datetime));
-        ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(false); %Switch light off, write to screen only for first line
+		%Switch light off, write to screen only for first line
+		%ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(false); % Version using .NET
+		yOCTTurnLaser(false); % Version using Matlab directly
         fprintf('%s Laser Diode is Off\n',datestr(datetime)); 
     else
-        evalc('ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(false);'); %Switch light off, use evalc to prevent writing to window
+		% Version using .NET
+        %evalc('ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(false);'); %Switch light off, use evalc to prevent writing to window
+		yOCTTurnLaser(false); % Version using Matlab directly
     end
     
     pause(0.5);
