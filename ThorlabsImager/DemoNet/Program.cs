@@ -37,13 +37,13 @@ namespace DemoNet
             Console.WriteLine();
 
             Console.WriteLine("yOCTPhotobleachLine");
-            ThorlabsImager.yOCTTurnLaser(true);
+            //ThorlabsImager.yOCTTurnLaser(true); // Photobleaching (turn laser diode on/off) is no longer supported in this dll. Use DiodeCtrl
             ThorlabsImager.yOCTPhotobleachLine( 
                 -1, 0, 1, 0, //startX, startY, endX, endY[mm]
                 10,           //duration[sec]
                 10            //repetitions, how many passes to photobleach(choose 1 or 2)
             );
-            ThorlabsImager.yOCTTurnLaser(false);
+            //ThorlabsImager.yOCTTurnLaser(false);
 
             Console.WriteLine("yOCTScannerClose");
             ThorlabsImager.yOCTScannerClose();

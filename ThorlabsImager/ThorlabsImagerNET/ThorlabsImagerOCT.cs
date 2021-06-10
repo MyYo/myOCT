@@ -59,10 +59,8 @@ namespace ThorlabsImagerNET
         #endregion
 
         #region Photobleaching
-        //Control laser diode on / off
-        [DllImport("ThorlabsImager.dll")]
-        public static extern void yOCTTurnLaser(bool onoff); //set to true to turn laser on
-
+        // Photobleaching is no longer supported, use DiodeCtrl software
+        
         // Photobleach a Line, turn laser diode on before photobleaching
         [DllImport("ThorlabsImager.dll")]
         public static extern void yOCTPhotobleachLine(

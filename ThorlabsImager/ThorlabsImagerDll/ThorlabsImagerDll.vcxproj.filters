@@ -24,9 +24,6 @@
     <ClInclude Include="ThorlabsImager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="lasercontrol.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -36,9 +33,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ThorlabsImagerOCT.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="lasercontrol.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ThorlabsImagerStage.cpp">
