@@ -18,4 +18,15 @@ end
 currentFileFolder = fileparts(mfilename('fullpath'));
 lib	 = [currentFileFolder '\Lib\'];
 
-system(['"' lib 'DiodeCtrl.exe" ' newStateText]); 
+[~,txt] = system(['"' lib 'DiodeCtrl.exe" ' newStateText]); 
+
+%% Process output
+if ~isempty(txt)
+	disp(txt);
+end
+
+if ~isempty(strfind(lower(txt),'error'))
+	% Try again
+	pause(0.5);
+	system(['"' lib 'DiodeCtrl.exe" ' newStateText]); 
+end
