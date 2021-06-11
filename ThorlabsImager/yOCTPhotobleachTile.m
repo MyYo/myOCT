@@ -94,12 +94,12 @@ for i=1:length(ptStartcc)
         @(x,y)( ...
             abs(x-xcc(i))<FOV(1)/2-epsilon & ...
             abs(y-ycc(i))<FOV(2)/2-epsilon ) ...
-        , 10e-3);
+        , epsilon);
 
     %Remove lines which are too short to photobleach
     d = sqrt(sum((ptStart - ptEnd).^2,1));
-    ptStart(:,d<10e-3) = [];
-    ptEnd(:,d<10e-3) = [];
+    ptStart(:,d<epsilon) = [];
+    ptEnd(:,d<epsilon) = [];
  
     if any( d>FOV(1) | d>FOV(2) )
         error('One (or more) of the photobleach lines is longer than the allowed size, this might cause photobleaching errors!');
