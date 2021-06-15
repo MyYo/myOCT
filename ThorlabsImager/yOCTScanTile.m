@@ -100,7 +100,7 @@ scanOrder = in.scanOrder;
 
 %% Initialize hardware
 if (v)
-    fprintf('%s Initialzing Hardware... (if Matlab is taking more than 2 minutes to finish this step, restart hardware and try again)\n',datestr(datetime));
+    fprintf('%s Initialzing Hardware...\n\t(if Matlab is taking more than 2 minutes to finish this step, restart hardware and try again)\n',datestr(datetime));
 end
  
 ThorlabsImagerNETLoadLib(); %Init library
@@ -124,7 +124,7 @@ end
 if (in.isVerifyMotionRange && ...
     (length(in.gridZcc)>1 || length(in.gridYcc)>1 || length(in.gridXcc)>1))
     if (v)
-        fprintf('%s Motion Range Test\n',datestr(datetime));
+        fprintf('%s Motion Range Test...\n\t(if Matlab is taking more than 2 minutes to finish this step, stage might be at it''s limit and need to center)\n',datestr(datetime));
     end
     if (length(in.gridZcc)>1)
         ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('z',z0+min(in.zDepths)); %Movement [mm]

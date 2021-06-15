@@ -66,7 +66,7 @@ in.imagesFP = arrayfun(@(x)(sprintf('Data%02d.jpg',x)),scanOrder,'UniformOutput'
 
 %% Initialize hardware
 if (v)
-    fprintf('%s Initialzing Hardware...\n',datestr(datetime));
+    fprintf('%s Initialzing Hardware...\n\t(if Matlab is taking more than 2 minutes to finish this step, restart hardware and try again)\n',datestr(datetime));
 end
  
 ThorlabsImagerNETLoadLib(); %Init library
@@ -90,7 +90,7 @@ end
 %Move 
 if (in.isVerifyMotionRange)
     if (v)
-        fprintf('%s Motion Range Test\n',datestr(datetime));
+        fprintf('%s Motion Range Test...\n\t(if Matlab is taking more than 2 minutes to finish this step, stage might be at it''s limit and need to center)\n',datestr(datetime));
     end
     
     if (length(in.gridYcc)>1)
