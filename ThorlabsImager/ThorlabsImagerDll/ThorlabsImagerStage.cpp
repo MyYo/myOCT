@@ -35,9 +35,9 @@ double mmToDeviceUnits(long sn) //Stage SN
 	switch (sn)
 	{
 	case 27254221:
-		return 34609.935;
+		return 33998;
 	case 27254232:
-		return 34862.567;
+		return 33998;
 	default:
 		return 100000 / 2.9151;
 	}
