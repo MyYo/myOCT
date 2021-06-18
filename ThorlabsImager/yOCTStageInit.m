@@ -55,8 +55,12 @@ else
     goct2stageXYAngleDeg = 0;
 end
 
-global gStageCurrentPosition;
-gStageCurrentPosition = [x0;y0;z0];
+global gStageCurrentStagePosition_OCTCoordinates; % Position in OCT coordinate system (mm)
+gStageCurrentStagePosition_OCTCoordinates = [x0;y0;z0];
+
+global gStageCurrentStagePosition_StageCoordinates; % Position in stage coordinate system (mm)
+gStageCurrentStagePosition_StageCoordinates = [x0;y0;z0]; % The same as OCT
+
 
 %% Motion Range Test
 if ~any(minPosition ~= maxPosition)
@@ -70,14 +74,14 @@ s = 'xyz';
 for i=1:length(s)
     if (minPosition(i) ~= maxPosition(i))
         ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition(s,...
-            gStageCurrentPosition(i)+minPosition(i)); %Movement [mm]
+            gStageCurrentStagePosition_StageCoordinates(i)+minPosition(i)); %Movement [mm]
         pause(0.5);
         ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition(s,...
-            gStageCurrentPosition(i)+maxPosition(i)); %Movement [mm]
+            gStageCurrentStagePosition_StageCoordinates(i)+maxPosition(i)); %Movement [mm]
         pause(0.5);
         
         % Return home
         ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition(s,...
-            gStageCurrentPosition(i)); %Movement [mm]
+            gStageCurrentStagePosition_StageCoordinates(i)); %Movement [mm]
     end
 end
