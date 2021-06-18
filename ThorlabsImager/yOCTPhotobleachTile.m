@@ -167,7 +167,7 @@ for i=1:length(xcc)
         fprintf('%s Moving to positoin (x = %.1fmm, y = %.1fmm) #%d of %d\n',datestr(datetime),xcc(i),ycc(i),i,length(xcc));
     end
     
-    yOCTStageMoveTo(x0+xcc(i),y0+ycc(i),v);
+    yOCTStageMoveTo(x0+xcc(i),y0+ycc(i),NaN,v);
     
     if (v && i==1)
         fprintf('%s Turning Laser Diode On For The First Time... \n\t(if Matlab is taking more than 1 minute to finish this step, restart hardware and try again)\n',datestr(datetime));
