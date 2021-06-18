@@ -151,7 +151,7 @@ end
 
 %Initialize z translation if photobleaching is not in the current plane
 if json.z ~= 0
-    yOCTStageMoveTo(NaN,NaN,z0+json.z);
+    yOCTStageMoveTo(NaN,NaN,z0+json.z,v);
 end
 
 %Initialize scanner
@@ -167,7 +167,7 @@ for i=1:length(xcc)
         fprintf('%s Moving to positoin (x = %.1fmm, y = %.1fmm) #%d of %d\n',datestr(datetime),xcc(i),ycc(i),i,length(xcc));
     end
     
-    yOCTStageMoveTo(x0+xcc(i),y0+ycc(i));
+    yOCTStageMoveTo(x0+xcc(i),y0+ycc(i),v);
     
     if (v && i==1)
         fprintf('%s Turning Laser Diode On For The First Time... \n\t(if Matlab is taking more than 1 minute to finish this step, restart hardware and try again)\n',datestr(datetime));
@@ -230,7 +230,7 @@ if (v)
 end
 
 %Return stage to original position
-yOCTStageMoveTo(x0,y0,z0);
+yOCTStageMoveTo(x0,y0,z0,v);
 
 ThorlabsImagerNET.ThorlabsImager.yOCTScannerClose(); %Close scanner
 
