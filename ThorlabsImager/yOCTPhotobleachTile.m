@@ -15,6 +15,7 @@ function json = yOCTPhotobleachTile(varargin)
 %                                           Meaning for each 1mm, we will expose for exposurePerLine sec  
 %   nPasses                 2               Should we expose to laser light in single or multiple passes over the same spot? 
 %                                           The lower number of passes the better 
+%   oct2stageXYAngleDeg     0               The angle to convert OCT coordniate system to motor coordinate system, see yOCTStageInit
 %Constraints
 %   enableZone              ones evrywhere  a function handle returning 1 if we can photobleach in that coordinate, 0 otherwise.
 %                                           For example, this function will allow photobleaching only in a circle:
@@ -36,6 +37,7 @@ addParameter(p,'z',0,@isnumeric);
 addParameter(p,'exposure',15,@isnumeric);
 addParameter(p,'nPasses',2,@isnumeric);
 addParameter(p,'enableZone',NaN);
+addParameter(p,'oct2stageXYAngleDeg',0,@isnumeric);
 
 addParameter(p,'v',true);
 addParameter(p,'skipHardware',false);
@@ -146,20 +148,12 @@ end
 
 %% Initialize Translation Stage
 
-if (v)
-    fprintf('%s Initialzing Motorized Translation Stage Hardware... \n\t(if Matlab is taking more than 2 minutes to finish this step, restart hardware and try again)\n',datestr(datetime));
-end
 
-%Initialize x,y stage if we need to translate
-if length(xcc) > 1
-    x0=ThorlabsImagerNET.ThorlabsImager.yOCTStageInit('x'); %Init stage
-    y0=ThorlabsImagerNET.ThorlabsImager.yOCTStageInit('y'); %Init stage
-end
+[x0,y0,z0] = yOCTStageInit(json.oct2stageXYAngleDeg, NaN, NaN, v);
 
 %Initialize z translation if photobleaching is not in the current plane
 if json.z ~= 0
-    z0=ThorlabsImagerNET.ThorlabsImager.yOCTStageInit('z'); %Init stage
-    ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('z',z0+json.z); %Movement [mm]
+    yOCTStageMoveTo(NaN,NaN,z0+json.z);
 end
 
 %Initialize scanner
@@ -174,17 +168,8 @@ for i=1:length(xcc)
     if (v && length(xcc) > 1)
         fprintf('%s Moving to positoin (x = %.1fmm, y = %.1fmm) #%d of %d\n',datestr(datetime),xcc(i),ycc(i),i,length(xcc));
     end
-
-    if length(xcc) > 1
-        if (i==1 || xcc(i) ~= xcc(i-1))
-            % Move only if x position changed
-            ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('x',x0+xcc(i)); %Movement [mm]
-        end
-        if (i==1 || ycc(i) ~= ycc(i-1))
-            % Move only if y position changed
-            ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('y',y0+ycc(i)); %Movement [mm]
-        end
-    end
+    
+    yOCTStageMoveTo(x0+xcc(i),y0+ycc(i));
     
     if (v && i==1)
         fprintf('%s Turning Laser Diode On For The First Time... \n\t(if Matlab is taking more than 1 minute to finish this step, restart hardware and try again)\n',datestr(datetime));
@@ -247,13 +232,7 @@ if (v)
 end
 
 %Return stage to original position
-if length(xcc) > 1
-    ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('x',x0);
-    ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('y',y0);
-end
-if json.z ~= 0
-    ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('z',z0);
-end
+yOCTStageMoveTo(x0,y0,z0);
 
 ThorlabsImagerNET.ThorlabsImager.yOCTScannerClose(); %Close scanner
 
