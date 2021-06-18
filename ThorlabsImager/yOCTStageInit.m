@@ -49,7 +49,7 @@ x0=ThorlabsImagerNET.ThorlabsImager.yOCTStageInit('x'); %Init stage
 y0=ThorlabsImagerNET.ThorlabsImager.yOCTStageInit('y'); %Init stage
 
 global goct2stageXYAngleDeg
-if exist('oct2stageAngleDeg','var') && ~isnan(oct2stageXYAngleDeg)
+if exist('oct2stageXYAngleDeg','var') && ~isnan(oct2stageXYAngleDeg)
     goct2stageXYAngleDeg = oct2stageXYAngleDeg;
 else
     goct2stageXYAngleDeg = 0;
@@ -59,6 +59,9 @@ global gStageCurrentPosition;
 gStageCurrentPosition = [x0;y0;z0];
 
 %% Motion Range Test
+if ~any(minPosition ~= maxPosition)
+    return; % No motion range test
+end
 if (v)
     fprintf('%s Motion Range Test...\n\t(if Matlab is taking more than 2 minutes to finish this step, stage might be at it''s limit and need to center)\n',datestr(datetime));
 end

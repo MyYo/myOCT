@@ -147,8 +147,6 @@ if (v)
 end
 
 %% Initialize Translation Stage
-
-
 [x0,y0,z0] = yOCTStageInit(json.oct2stageXYAngleDeg, NaN, NaN, v);
 
 %Initialize z translation if photobleaching is not in the current plane
