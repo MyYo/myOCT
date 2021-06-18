@@ -21,6 +21,7 @@ function json = yOCTPhotobleachTile(varargin)
 %                                           @(x,y)(x^2+y^2 < 2^2). enableZoon accuracy is 10um.
 %Debug parameters:
 %   v                       true            verbose mode  
+%   skipHardware            false           Set to true if you would like to calculate only and not move or photobleach 
 %OUTPUT:
 %   json with the parameters used for photboleach
   
@@ -37,6 +38,7 @@ addParameter(p,'nPasses',2,@isnumeric);
 addParameter(p,'enableZone',NaN);
 
 addParameter(p,'v',true);
+addParameter(p,'skipHardware',false);
 
 parse(p,varargin{:});
 json = p.Results;
@@ -115,6 +117,22 @@ ptStartcc(em) = [];
 ptEndcc(em) = [];
 xcc(em) = [];
 ycc(em) = [];
+
+%% Add photonleach instructions to json
+clear photobleachInstructions;
+
+for i=1:length(xcc)
+    photobleachInstructions(i).stageCenterX = xcc(i);
+    photobleachInstructions(i).stageCenterY = ycc(i);
+    photobleachInstructions(i).linesPhotobleachedStart = ptStartcc{i};
+    photobleachInstructions(i).linesPhotobleachedEnd = ptEndcc{i};
+end
+json.photobleachInstructions = photobleachInstructions;
+
+%% If skip hardware mode, we are done!
+if (json.skipHardware)
+    return;
+end
 
 %% Initialize Hardware Library
 
