@@ -176,8 +176,14 @@ for i=1:length(xcc)
     end
 
     if length(xcc) > 1
-        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('x',x0+xcc(i)); %Movement [mm]
-        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('y',y0+ycc(i)); %Movement [mm]
+        if (i==1 || xcc(i) ~= xcc(i-1))
+            % Move only if x position changed
+            ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('x',x0+xcc(i)); %Movement [mm]
+        end
+        if (i==1 || ycc(i) ~= ycc(i-1))
+            % Move only if y position changed
+            ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition('y',y0+ycc(i)); %Movement [mm]
+        end
     end
     
     if (v && i==1)
