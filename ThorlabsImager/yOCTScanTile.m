@@ -121,8 +121,8 @@ end
 
 % Init stage and verify range if needed
 if in.isVerifyMotionRange
-    rg_min = [min(in.xCenters) min(in.YCenters) min(in.zDepths)];
-    rg_max = [max(in.xCenters) max(in.YCenters) max(in.zDepths)];
+    rg_min = [min(in.xCenters) min(in.yCenters) min(in.zDepths)];
+    rg_max = [max(in.xCenters) max(in.yCenters) max(in.zDepths)];
 else
     rg_min = NaN;
     rg_max = NaN;
