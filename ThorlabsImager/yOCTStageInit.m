@@ -44,6 +44,7 @@ end
 if (v)
     fprintf('%s Initialzing Stage Hardware...\n\t(if Matlab is taking more than 2 minutes to finish this step, restart hardware and try again)\n',datestr(datetime));
 end
+ThorlabsImagerNETLoadLib();
 z0=ThorlabsImagerNET.ThorlabsImager.yOCTStageInit('z'); %Init stage
 x0=ThorlabsImagerNET.ThorlabsImager.yOCTStageInit('x'); %Init stage
 y0=ThorlabsImagerNET.ThorlabsImager.yOCTStageInit('y'); %Init stage
@@ -73,15 +74,15 @@ end
 s = 'xyz';
 for i=1:length(s)
     if (minPosition(i) ~= maxPosition(i))
-        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition(s,...
+        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition(s(i),...
             gStageCurrentStagePosition_StageCoordinates(i)+minPosition(i)); %Movement [mm]
         pause(0.5);
-        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition(s,...
+        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition(s(i),...
             gStageCurrentStagePosition_StageCoordinates(i)+maxPosition(i)); %Movement [mm]
         pause(0.5);
         
         % Return home
-        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition(s,...
+        ThorlabsImagerNET.ThorlabsImager.yOCTStageSetPosition(s(i),...
             gStageCurrentStagePosition_StageCoordinates(i)); %Movement [mm]
     end
 end
