@@ -20,6 +20,16 @@ function [correctedScan] = yOCTOpticalPathCorrection(inputScan, inputScanDimensi
 % OUTPUTS:
 %   - correctedScan - Scan which has the applied optical path correction
 
+%% Check if dimensions have valid units
+if strcmp(inputScanDimensions.x.units, 'NA') || ...
+   strcmp(inputScanDimensions.y.units, 'NA') || ...
+   strcmp(inputScanDimensions.z.units, 'NA') || ...
+   strcmp(inputScanDimensions.x.units, 'na') || ...
+   strcmp(inputScanDimensions.y.units, 'na') || ...
+   strcmp(inputScanDimensions.z.units, 'na')
+    error('The units of the dimensions cannot be NA or na.')
+end
+
 %% Extract optical path polynomial from opticalPathCorrectionOptions
 if isstruct(opticalPathCorrectionOptions)
     OP_p = opticalPathCorrectionOptions.octProbe.OpticalPathCorrectionPolynomial;
