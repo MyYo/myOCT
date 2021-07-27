@@ -1,4 +1,4 @@
-function [correctedScan] = yOCTOpticalPathCorrection(inputScan, inputScanDimensions, octProbePath)
+function [correctedScan] = yOCTOpticalPathCorrection(inputScan, inputScanDimensions, opticalPathCorrectionOptions)
 %%This function performs optical path correction on the inputScan
 %
 % INPUTS:
@@ -8,23 +8,43 @@ function [correctedScan] = yOCTOpticalPathCorrection(inputScan, inputScanDimensi
 %           and B-scan averaging must be performed before calling
 %           yOCTOpticalPathCorrection
 %   - inputScanDimensions - The dimension information of the inputScan 
-%   - octProbePath - Path to the OCT probe JSON information 
+%   - opticalPathCorrectionOptions - This variable must be one of the
+%     following options:
+%       1. Path to the Volumes folder. This is also where the ScanInfo.json
+%          file is stored 
+%       2. Struct containing information extracted from ScanInfo.json.
+%          This is the output of the awsReadJSON function. 
+%       3. The optical path correction polynomial coefficient stores in an
+%          array. The length of this array must be 5 
 %
 % OUTPUTS:
 %   - correctedScan - Scan which has the applied optical path correction
 
-% Extract optical path polynomial from OCT probe JSON
-OP_p = octProbePath.OpticalPathCorrectionPolynomial;
-OP_p = OP_p(:)';
+%% Extract optical path polynomial from opticalPathCorrectionOptions
+if isstruct(opticalPathCorrectionOptions)
+    OP_p = opticalPathCorrectionOptions.octProbe.OpticalPathCorrectionPolynomial;
+    OP_p = OP_p(:)';
+elseif isstring(opticalPathCorrectionOptions)
+    inputVolumeFolder = awsModifyPathForCompetability([opticalPathCorrectionOptions '/']);
+    json = awsReadJSON([inputVolumeFolder 'ScanInfo.json']);
+    OP_p = json.octProbe.OpticalPathCorrectionPolynomial;
+    OP_p = OP_p(:)';
+elseif ismatrix(opticalPathCorrectionOptions)
+    if not(isequal(size(opticalPathCorrectionOptions), [1,5])) || not(isequal(size(opticalPathCorrectionOptions), [5,1]))
+        error('Optical path correction polynomial must have 5 terms')
+    end
+    OP_p = opticalPathCorrectionOptions;
+else
+    error('opticalPathCorrectionOptions must be a file path to the ScanInfo.json file, a struct representing the json, or an array of polynomial terms.');
+end
 
-% Instantiate variable for scan with optical path correction
+%% Instantiate variable for scan with optical path correction
 correctedScan = zeros(size(inputScan));
 
-%Change dimensions to microns units
+%% Change dimensions to microns units
 inputScanDimensions = yOCTChangeDimensionsStructureUnits(inputScanDimensions,'microns');
 
-% Iterate through the inputScan volume and apply optical path correction to
-% each individual scan 
+%% Iterate through the inputScan volume and apply optical path correction to each individual scan 
 for i=1:size(inputScan,3)
     
     % Extract B-scan from volume
