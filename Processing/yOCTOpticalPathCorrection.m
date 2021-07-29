@@ -1,4 +1,4 @@
-function [correctedScan] = yOCTOpticalPathCorrection(inputScan, inputScanDimensions, opticalPathCorrectionOptions)
+function [correctedScan, correctedScanValidDataMap] = yOCTOpticalPathCorrection(inputScan, inputScanDimensions, opticalPathCorrectionOptions)
 %%This function performs optical path correction on the inputScan
 %
 % INPUTS:
@@ -18,7 +18,20 @@ function [correctedScan] = yOCTOpticalPathCorrection(inputScan, inputScanDimensi
 %          array. The length of this array must be 5 
 %
 % OUTPUTS:
-%   - correctedScan - Scan which has the applied optical path correction
+%   - correctedScan - Scan which has the applied optical path correction.
+%                     Any pixel values in the scan which were interpolated 
+%                     as nan values, have been replaced with 0's. This
+%                     replacement has been made to avoid having nan values
+%                     as part of the image
+%
+%   - correctedScanValidDataMap - This map has the same dimensions as the
+%                                 correctedScan output. correctedScanValidDataMap 
+%                                 is a mask of correctedScan. The mask is set 
+%                                 to 1 at coordinates where data exists in the 
+%                                 correctedScan. The mask also assigns 0 to 
+%                                 coordinates where valid data does not exist 
+%                                 in correctedScan (see comment about nan 
+%                                 values under correctedScan)
 
 %% Check if dimensions have valid units
 if strcmp(inputScanDimensions.x.units, 'NA') || ...
@@ -70,4 +83,5 @@ for i=1:size(inputScan,3)
     scan(scan_nan) = 0; %interpolated nan values should not contribute to image
     
     correctedScan(:,:,i) = scan;
+    correctedScanValidDataMap = ~scan_nan;
 end
