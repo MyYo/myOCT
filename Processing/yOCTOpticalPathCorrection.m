@@ -15,7 +15,13 @@ function [correctedScan, correctedScanValidDataMap] = yOCTOpticalPathCorrection(
 %       2. Struct containing information extracted from ScanInfo.json.
 %          This is the output of the awsReadJSON function. 
 %       3. The optical path correction polynomial coefficient stores in an
-%          array. The length of this array must be 5 
+%          array. The length of this array must be 5. The polynomial
+%          elements are used as follows: 
+%          x*OP_p(1)+y*OP_p(2)+x.^2*OP_p(3)+y.^2*OP_p(4)+x.*y*OP_p(5)
+%          where x and y are location coordinates of the scan.
+%          The results of the correction polynomial operation are added to the
+%          z-coordinates and used for interpolation in order to flatten the
+%          parabola shape at the gel-tissue interface in the XZ scans
 %
 % OUTPUTS:
 %   - correctedScan - Scan which has the applied optical path correction.
@@ -34,13 +40,13 @@ function [correctedScan, correctedScanValidDataMap] = yOCTOpticalPathCorrection(
 %                                 values under correctedScan)
 
 %% Check if dimensions have valid units
-if strcmp(inputScanDimensions.x.units, 'NA') || ...
-   strcmp(inputScanDimensions.y.units, 'NA') || ...
-   strcmp(inputScanDimensions.z.units, 'NA') || ...
-   strcmp(inputScanDimensions.x.units, 'na') || ...
-   strcmp(inputScanDimensions.y.units, 'na') || ...
-   strcmp(inputScanDimensions.z.units, 'na')
-    error('The units of the dimensions cannot be NA or na.')
+if strcmpi(inputScanDimensions.x.units, 'na') || ...
+   strcmpi(inputScanDimensions.y.units, 'na') || ...
+   strcmpi(inputScanDimensions.z.units, 'na')
+    error(['The units of the dimensions cannot be NA or na. Please refer to', ...
+          ' yOCTTileScanGetDimOfOneTile in order to get dimensions with', ...
+          ' units for one tile. Pass these dimensions into yOCTLoadInterfFromFile', ...
+          ' in order to obtain dimensions with units for a particular scan.']);
 end
 
 %% Extract optical path polynomial from opticalPathCorrectionOptions
