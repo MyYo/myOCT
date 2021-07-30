@@ -261,7 +261,7 @@ parfor yI=1:length(yAll)
                 end
                 
                 if (in.applyPathLengthCorrection && isfield(json.octProbe,'OpticalPathCorrectionPolynomial'))
-                    scan1 = yOCTOpticalPathCorrection(scan1, dim1, json);
+                    [scan1, scan1ValidDataMap] = yOCTOpticalPathCorrection(scan1, dim1, json);
                 end
                 
                 %Filter around the focus
@@ -273,7 +273,7 @@ parfor yI=1:length(yAll)
                 else
                     factor = ones(length(zOneTile),length(xOneTile)); %No focus gating
                 end
-                factor(scan1_nan) = 0; %interpolated nan values should not contribute to image
+                factor(~scan1ValidDataMap) = 0; %interpolated nan values should not contribute to image
             
                 
                 %Figure out what is the x,z position of each pixel in this file
