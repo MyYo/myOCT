@@ -59,7 +59,7 @@ elseif isstring(opticalPathCorrectionOptions)
     OP_p = json.octProbe.OpticalPathCorrectionPolynomial;
     OP_p = OP_p(:)';
 elseif ismatrix(opticalPathCorrectionOptions)
-    if not(isequal(size(opticalPathCorrectionOptions), [1,5])) || not(isequal(size(opticalPathCorrectionOptions), [5,1]))
+    if not(isequal(size(opticalPathCorrectionOptions), [1,5])) && not(isequal(size(opticalPathCorrectionOptions), [5,1]))
         error('Optical path correction polynomial must have 5 terms')
     end
     OP_p = opticalPathCorrectionOptions;
