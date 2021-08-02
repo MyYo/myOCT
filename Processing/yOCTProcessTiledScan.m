@@ -127,26 +127,8 @@ fp = cellfun(@(x)(awsModifyPathForCompetability([tiledScanInputFolder '\' x '\']
 focusPositionInImageZpix = in.focusPositionInImageZpix;
 focusSigma = in.focusSigma;
 OCTSystem = json.OCTSystem; %Provide OCT system to prevent unesscecary polling of file system
-dimOneTile = ...
-	yOCTLoadInterfFromFile([fp(1), reconstructConfig, {'OCTSystem',OCTSystem,'peakOnly',true}]);
-tmp = zeros(size(dimOneTile.lambda.values(:)));
-dimOneTileProcessed = yOCTInterfToScanCpx ([{tmp}, {dimOneTile},{'n'},{json.tissueRefractiveIndex}, reconstructConfig, {'peakOnly'},{true}]);
-dimOneTile.z = dimOneTileProcessed.z; %Update only z, not lambda [lambda is changed because of equispacing]
-dimOneTile.x.values = linspace(-0.5,0.5,length(dimOneTile.x.values))*json.xRange;
-dimOneTile.y.values = linspace(-0.5,0.5,length(dimOneTile.y.values))*json.yRange;
-dimOneTile.x.units = 'millimeters';
-dimOneTile.y.units = 'millimeters';
-dimOneTile = yOCTChangeDimensionsStructureUnits(dimOneTile,'mm');
 
-%TODO(yonatan) move as well
-%see if parameter exists
-if (in.applyPathLengthCorrection && isfield(json.octProbe,'OpticalPathCorrectionPolynomial'))
-    OP_p = json.octProbe.OpticalPathCorrectionPolynomial;
-    OP_p = OP_p(:)';
-else 
-    %No correction
-    OP_p = [0 0 0 0 0];
-end
+[dimOneTile, dimOneTileProcessed] = yOCTTileScanGetDimOfOneTile(tiledScanInputFolder, 'mm');
 
 %% Create dimensions structure for the entire tiled volume
 zDepths = json.zDepths;
@@ -287,20 +269,10 @@ parfor yI=1:length(yAll)
                     scan1 = squeeze(mean(scan1,i));
                 end
                 
-                %Change dimensions to microns units
-                dim1 = yOCTChangeDimensionsStructureUnits(dim1,'microns');
+                if (in.applyPathLengthCorrection && isfield(json.octProbe,'OpticalPathCorrectionPolynomial'))
+                    [scan1, scan1ValidDataMap] = yOCTOpticalPathCorrection(scan1, dim1, json);
+                end
                 
-                %Lens abberation / optical path correction
-                %TODO(yonatan) Add this to a seperate function as well so
-                %we can call it from any Processing function
-                correction = @(x,y)(x*OP_p(1)+y*OP_p(2)+x.^2*OP_p(3)+y.^2*OP_p(4)+x.*y*OP_p(5)); %x,y are in microns
-                [xx,zz] = meshgrid(dim1.x.values,dim1.z.values); %um                
-                scan1_min = min(scan1(:));
-                scan1 = interp2(xx,zz,scan1,xx,zz+correction(xx,dim1.y.values),'nearest');
-                scan1_nan = isnan(scan1);
-                scan1(scan1<scan1_min) = scan1_min; %Dont let interpolation value go too low
-                scan1(scan1_nan) = 0; %interpolated nan values should not contribute to image
-
                 %Filter around the focus
                 zI = 1:length(zOneTile); zI = zI(:);
                 if ~isnan(focusPositionInImageZpix)
@@ -310,7 +282,7 @@ parfor yI=1:length(yAll)
                 else
                     factor = ones(length(zOneTile),length(xOneTile)); %No focus gating
                 end
-                factor(scan1_nan) = 0; %interpolated nan values should not contribute to image
+                factor(~scan1ValidDataMap) = 0; %interpolated nan values should not contribute to image
             
                 
                 %Figure out what is the x,z position of each pixel in this file
