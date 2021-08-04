@@ -16,7 +16,7 @@ function [dimOneTileFromInterf, dimOneTileProcessed] = yOCTTileScanGetDimOfOneTi
 %             'm'  or 'meters' - for meters
 %             DEFAULT: 'mm'
 %% Input Checks
-if (not(isfolder(inputVolumeFolder)))
+if (not(awsExist(inputVolumeFolder,'dir')))
     error('%s does not exist.', inputVolumeFolder);
 end 
 
