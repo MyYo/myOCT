@@ -31,7 +31,7 @@ json = awsReadJSON([inputVolumeFolder 'ScanInfo.json']);
 %% Get the data folder used to find dimensions of tile
 firstDataFolder = [inputVolumeFolder 'Data01'];
 
-if (not(isfolder(firstDataFolder)))
+if (not(awsExist(firstDataFolder,'dir')))
     error('%s does not exist.', firstDataFolder);
 end
 
