@@ -15,5 +15,7 @@ function zFocusPix = yOCTFindFocus(varargin)
 % 'zDepthStitchingMode'      False      See description above.
 % 'manualRefinment'          False      See description above.
 %OUTPUTS:
-%   - zFocusPix - zDepth (in pixels) of the focus position in the scan
+%   - zFocusPix - zDepth (in pixels) of the focus position in the scan. In
+%                 case of tild scan, one zFocusPix will be given for each
+%                 scan.
 
