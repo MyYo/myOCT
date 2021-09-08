@@ -11,7 +11,11 @@ dest = awsModifyPathForCompetability(dest);
 
 %% Get all the files that need loving
 try
-    ds = fileDatastore(...
+    % Any fileDatastore request to AWS S3 is limited to 1000 files in 
+    % MATLAB 2021a. Due to this bug, we have replaced all calls to 
+    % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
+    % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
+    ds = imageDatastore(...
         dest,'ReadFcn',@(x)(x),'IncludeSubfolders',true,...
         'FileExtensions',{'.getmeout'});
 catch ME
@@ -75,7 +79,7 @@ function awsCopyFile_MW2_AWSParallel(froms,tos)
 %A good way to test the function below is with the following code:
 %sourceDir = 's3://<mybucket>/...';
 %destDir   = 's3://<mybucket2>/..';
-%ds = fileDatastore(sourceDir,'FileExtensions','.mat','ReadFcn',@(x)(x));
+%ds = imageDatastore(sourceDir,'FileExtensions','.mat','ReadFcn',@(x)(x));
 %awsCopyFile_MW2_AWSParallel(ds.Files,destDir);
 
 

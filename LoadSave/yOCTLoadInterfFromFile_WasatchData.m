@@ -68,7 +68,11 @@ prof.numberOfFramesLoaded = length(fileIndex);
 prof.totalFrameLoadTimeSec = 0;
 for fI=1:length(fileIndex)    
     td=tic;
-    ds=fileDatastore(rawFilePath(fileIndex(fI)),'ReadFcn',@(a)(DSRead(a)));
+    % Any fileDatastore request to AWS S3 is limited to 1000 files in 
+    % MATLAB 2021a. Due to this bug, we have replaced all calls to 
+    % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
+    % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
+    ds=imageDatastore(rawFilePath(fileIndex(fI)),'ReadFcn',@(a)(DSRead(a)));
     temp=double(ds.read);   
     if (isempty(temp))
         error(['Missing file / file size wrong' spectralFilePath]);
@@ -80,7 +84,11 @@ end
 
 %% Load apodization
 try
-    ds=fileDatastore([inputDataFolder 'raw_bg_00001.tif'],'ReadFcn',@(a)(DSRead(a)));
+    % Any fileDatastore request to AWS S3 is limited to 1000 files in 
+    % MATLAB 2021a. Due to this bug, we have replaced all calls to 
+    % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
+    % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
+    ds=imageDatastore([inputDataFolder 'raw_bg_00001.tif'],'ReadFcn',@(a)(DSRead(a)));
     apodization = double(ds.read);
     apodization = mean(apodization,2);
 catch

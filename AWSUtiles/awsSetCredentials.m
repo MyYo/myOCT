@@ -1,7 +1,7 @@
 function awsSetCredentials (level)
 %This function sets user name and password for AWS and S3 storage
 %level specify how much access would the software need.
-%level = 0 - Read capability using fileDataStore
+%level = 0 - Read capability using fileDatastore
 %level = 1 - Write, start EC2 instances etc using AWS CLI
 
 if ~exist('type','var')

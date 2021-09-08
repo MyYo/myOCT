@@ -14,7 +14,11 @@ end
 %Determine if this is a 2D or 3D Volume
 try
     %Quarry how many files are there tif (Tif files represent a 2D Mode
-    ds=fileDatastore([inputDataFolder 'raw_0*.tif'],'ReadFcn',@(a)DSInfo_Tif(a));
+    % Any fileDatastore request to AWS S3 is limited to 1000 files in 
+    % MATLAB 2021a. Due to this bug, we have replaced all calls to 
+    % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
+    % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
+    ds=imageDatastore([inputDataFolder 'raw_0*.tif'],'ReadFcn',@(a)DSInfo_Tif(a));
     nFiles = length(ds.Files);
     
     %Read info from first file
@@ -34,7 +38,11 @@ catch
     %No Tif Files exist, this is a 3D Mode
     
     %Get file names
-    ds=fileDatastore([inputDataFolder '*_raw_us_*.bin'],'ReadFcn',@(a)DSInfo_Bin(a));
+    % Any fileDatastore request to AWS S3 is limited to 1000 files in 
+    % MATLAB 2021a. Due to this bug, we have replaced all calls to 
+    % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
+    % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
+    ds=imageDatastore([inputDataFolder '*_raw_us_*.bin'],'ReadFcn',@(a)DSInfo_Bin(a));
     nFiles = length(ds.Files);
     
     %Read info from first file

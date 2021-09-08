@@ -20,7 +20,11 @@ if ~exist('chirp','var')
 end
 
 %% Load XML
-ds=fileDatastore(awsModifyPathForCompetability([inputDataFolder '/Header.xml']),'ReadFcn',@xml2struct);
+% Any fileDatastore request to AWS S3 is limited to 1000 files in 
+% MATLAB 2021a. Due to this bug, we have replaced all calls to 
+% fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
+% 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
+ds=imageDatastore(awsModifyPathForCompetability([inputDataFolder '/Header.xml']),'ReadFcn',@xml2struct);
 xDoc = ds.read;
 xDoc = xDoc.Ocity;
 
@@ -44,7 +48,11 @@ order = order + 1;
 
 try
     %See if Data was aquired in 1D mode
-    ds=fileDatastore(awsModifyPathForCompetability([inputDataFolder '/data/SpectralFloat.data']),'ReadFcn',@fread);
+    % Any fileDatastore request to AWS S3 is limited to 1000 files in 
+    % MATLAB 2021a. Due to this bug, we have replaced all calls to 
+    % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
+    % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
+    ds=imageDatastore(awsModifyPathForCompetability([inputDataFolder '/data/SpectralFloat.data']),'ReadFcn',@fread);
     oneDMode = true;
 catch
     oneDMode = false;

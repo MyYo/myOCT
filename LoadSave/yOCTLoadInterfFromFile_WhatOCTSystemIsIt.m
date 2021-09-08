@@ -12,7 +12,11 @@ end
     
 %% Select manufacturer by looking at file types
 try
-ds=fileDatastore(inputDataFolder,'ReadFcn',@(x)(x),'IncludeSubfolders',true,'FileExtensions',...
+% Any fileDatastore request to AWS S3 is limited to 1000 files in 
+% MATLAB 2021a. Due to this bug, we have replaced all calls to 
+% fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
+% 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
+ds=imageDatastore(inputDataFolder,'ReadFcn',@(x)(x),'IncludeSubfolders',true,'FileExtensions',...
             {...
             '.xml' ... Thorlabs, search for header.xml
             '.dat' ... Thorlabs SRR, searches for chirp.dat
@@ -68,7 +72,11 @@ switch(OCTSystemManufacturer)
     case 'Thorlabs'
         
         %Read the content of the html file as a text
-        ds=fileDatastore(awsModifyPathForCompetability([inputDataFolder '/Header.xml']),'ReadFcn',@fileread);
+        % Any fileDatastore request to AWS S3 is limited to 1000 files in 
+        % MATLAB 2021a. Due to this bug, we have replaced all calls to 
+        % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
+        % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
+        ds=imageDatastore(awsModifyPathForCompetability([inputDataFolder '/Header.xml']),'ReadFcn',@fileread);
         txt = ds.read;
         
         isGanymede = contains(txt,'Ganymed');
@@ -88,7 +96,11 @@ switch(OCTSystemManufacturer)
     case 'Thorlabs_SRR'
         
         %Read the name of the first file
-        ds=fileDatastore(awsModifyPathForCompetability([inputDataFolder '/Data_Y0001_*B0001*']),'ReadFcn',@(x)(x),'fileExtensions','.srr');
+        % Any fileDatastore request to AWS S3 is limited to 1000 files in 
+        % MATLAB 2021a. Due to this bug, we have replaced all calls to 
+        % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
+        % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
+        ds=imageDatastore(awsModifyPathForCompetability([inputDataFolder '/Data_Y0001_*B0001*']),'ReadFcn',@(x)(x),'fileExtensions','.srr');
         
         if (length(ds.Files) > 1)
             error('Expected only one first file in dataset, does this folder contain more than one OCT scan?');

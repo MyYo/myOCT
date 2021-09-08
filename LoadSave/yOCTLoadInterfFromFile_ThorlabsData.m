@@ -40,7 +40,11 @@ if (sizeX == 1)
     
     prof.numberOfFramesLoaded = 1;
     tic;
-    ds=fileDatastore([inputDataFolder '/data/SpectralFloat.data'],'ReadFcn',@(a)(DSRead(a,'float32')));
+    % Any fileDatastore request to AWS S3 is limited to 1000 files in 
+    % MATLAB 2021a. Due to this bug, we have replaced all calls to 
+    % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
+    % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
+    ds=imageDatastore([inputDataFolder '/data/SpectralFloat.data'],'ReadFcn',@(a)(DSRead(a,'float32')));
     temp = double(ds.read);
     prof.totalFrameLoadTimeSec = toc;
     temp = reshape(temp,[sizeLambda,AScanAvgN]);
@@ -80,7 +84,11 @@ for fi=1:length(fileIndex)
     spectralFilePath = [inputDataFolder '/data/Spectral' num2str(fileIndex(fi)) '.data'];
  
     %Load Data
-    ds=fileDatastore(spectralFilePath,'ReadFcn',@(a)(DSRead(a,'short')));
+    % Any fileDatastore request to AWS S3 is limited to 1000 files in 
+    % MATLAB 2021a. Due to this bug, we have replaced all calls to 
+    % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
+    % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
+    ds=imageDatastore(spectralFilePath,'ReadFcn',@(a)(DSRead(a,'short')));
     temp=double(ds.read);
 
     if (isempty(temp))

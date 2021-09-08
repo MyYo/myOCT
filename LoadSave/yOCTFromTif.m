@@ -64,7 +64,11 @@ end
 %% Copy file locally, if its at the cloud
 if (isAWS && isInputFile)
     % Download file locally for easy access
-    ds=fileDatastore(filepath,'ReadFcn',@copyFileLocally);
+    % Any fileDatastore request to AWS S3 is limited to 1000 files in 
+    % MATLAB 2021a. Due to this bug, we have replaced all calls to 
+    % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
+    % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
+    ds=imageDatastore(filepath,'ReadFcn',@copyFileLocally);
     filepath=ds.read(); % Update file path
 end
 
@@ -195,7 +199,11 @@ for i=1:length(yI)
             bits = imreadWrapper1(filepath,yI(i));
         else
             % Folder mode
-            ds = fileDatastore(...
+            % Any fileDatastore request to AWS S3 is limited to 1000 files in 
+            % MATLAB 2021a. Due to this bug, we have replaced all calls to 
+            % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
+            % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
+            ds = imageDatastore(...
                 awsModifyPathForCompetability(sprintf('%s/y%04d.tif',filepath,yI(i))), ...
                 'ReadFcn',@(fp)(imreadWrapper1(fp,[])));
             bits = ds.read();
