@@ -20,7 +20,7 @@ end
 % MATLAB 2021a. Due to this bug, we have replaced all calls to 
 % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
 % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
-ds=imageDatastore(filepath,'ReadFcn',@load);
+ds=fileDatastore(filepath,'ReadFcn',@load);
 out = ds.read();
 
 data = out.data;

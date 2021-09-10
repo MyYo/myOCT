@@ -16,7 +16,7 @@ try
 % MATLAB 2021a. Due to this bug, we have replaced all calls to 
 % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
 % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
-ds=imageDatastore(inputDataFolder,'ReadFcn',@(x)(x),'IncludeSubfolders',true,'FileExtensions',...
+ds=fileDatastore(fileDatastore,'ReadFcn',@(x)(x),'IncludeSubfolders',true,'FileExtensions',...
             {...
             '.xml' ... Thorlabs, search for header.xml
             '.dat' ... Thorlabs SRR, searches for chirp.dat
@@ -76,7 +76,7 @@ switch(OCTSystemManufacturer)
         % MATLAB 2021a. Due to this bug, we have replaced all calls to 
         % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
         % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
-        ds=imageDatastore(awsModifyPathForCompetability([inputDataFolder '/Header.xml']),'ReadFcn',@fileread);
+        ds=fileDatastore(awsModifyPathForCompetability([inputDataFolder '/Header.xml']),'ReadFcn',@fileread,'FileExtensions','.xml');
         txt = ds.read;
         
         isGanymede = contains(txt,'Ganymed');
@@ -100,7 +100,7 @@ switch(OCTSystemManufacturer)
         % MATLAB 2021a. Due to this bug, we have replaced all calls to 
         % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
         % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
-        ds=imageDatastore(awsModifyPathForCompetability([inputDataFolder '/Data_Y0001_*B0001*']),'ReadFcn',@(x)(x),'fileExtensions','.srr');
+        ds=fileDatastore(awsModifyPathForCompetability([inputDataFolder '/Data_Y0001_*B0001*']),'ReadFcn',@(x)(x),'fileExtensions','.srr');
         
         if (length(ds.Files) > 1)
             error('Expected only one first file in dataset, does this folder contain more than one OCT scan?');
