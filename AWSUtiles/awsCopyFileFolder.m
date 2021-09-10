@@ -160,6 +160,9 @@ end
 %% Fast copy of many small files
 function awsCopyFileFolder_ManySmallFiles(localSource,s3Dest,v)
 
+%% Parameters
+maxTarFileSize = 100*1024^3; % Bytes
+
 %% Init
 if (v)
     disp('Initializing');
@@ -170,8 +173,34 @@ if ~exist('My_ec2RunStructure.m','file')
 end
 ec2RunStructure = My_ec2RunStructure(); 
 
-[~,folderName] = fileparts([localSource '.txt']); %Get the file path of the folder
+[parentFolderWherFilesToUploadAre,folderName] = fileparts([localSource '.txt']); %Get the file path of the folder
 s3Dest = awsModifyPathForCompetability (s3Dest,true);
+
+%% Figure out how to split archiving (in case its too big to pass)
+d = dir([localSource '\**\*.*']);
+d([d.isdir]) = [];
+
+volumeFileList = {}; % volumeFileList contains list of files to include in each volume
+for i=1:length(d)
+    
+    if i==1 || totalFilesVolumeInFileList > maxTarFileSize % Maximum volume archive file size
+        if (i>1)
+            volumeFileList{end+1,1} = fileList;
+        end
+        
+        fileList = {}; % List of files for each volume
+        totalFilesVolumeInFileList = 0;
+    end
+    
+    % Generate path relative to the localSource folder
+    p = sprintf('%s\\%s',d(i).folder,d(i).name);
+    p = strrep(p,[parentFolderWherFilesToUploadAre '\'],'');
+    
+    % Store values
+    fileList{end+1,1} = p;
+    totalFilesVolumeInFileList = totalFilesVolumeInFileList + d(i).bytes;
+end
+volumeFileList{end+1,1} = fileList;
 
 %% Tar
 if exist('C:\Program Files\7-Zip\','dir')
@@ -186,78 +215,103 @@ if (v)
     fprintf('%s Tarring... ',datestr(datetime));
     tic;
 end
-[status,txt] = system(sprintf('"%s7z.exe" a -ttar "%s" "%s"',sevenZipFolder,'tmp.tar',localSource));
-if (status ~= 0)
-    error('Tar error: %s',txt);
+
+tarFileList = cell(size(volumeFileList));
+currentPath = pwd;
+cd(parentFolderWherFilesToUploadAre);
+for i=1:length(volumeFileList) % Loop over each volume and tar it
+    tarFileList{i} = sprintf('%s\\tmp%02d.tar',currentPath,i); % Set tar name
+    
+    % Create a text file with all the files to include
+    fileList = volumeFileList{i};
+    fid = fopen('tmpFileList.txt','wt');
+    for j=1:length(fileList)
+        fprintf(fid,'%s\n',fileList{j});
+    end
+    fclose(fid);
+       
+    % Run tar
+    [status,txt] = system(sprintf('"%s7z.exe" a -ttar "%s" @tmpFileList.txt',sevenZipFolder,tarFileList{i}));
+    delete('tmpFileList.txt');
+    if (status ~= 0)
+        error('%d, Tar error: %s',i,txt);
+    end
 end
+cd(currentPath);
 if (v)
     fprintf('%s Total Tar: %.1f[min]\n',datestr(datetime),toc()/60);
 end
 
-%% Start EC2 Instance
+%% Loop for every file in tarFileList, copy it, untar and move to s3
+for tarI=1:length(tarFileList)
+    if (v)
+        fprintf('%s ** Processing Tar %d/%d...\n',datestr(datetime),tarI,length(tarFileList));
+    end
 
-if (v)
-    fprintf('%s Starting EC2... ',datestr(datetime));
-    tic;
-end
-[ec2Instance] = awsEC2StartInstance(ec2RunStructure,'m4.2xlarge',1,v); %Start EC2 
-if (v)
-    fprintf('%s Total EC2 Bootup time: %.1f[min]\n',datestr(datetime),toc()/60);
-end
+    %% Start EC2 Instance
+    if (v)
+        fprintf('%s Starting EC2... ',datestr(datetime));
+        tic;
+    end
+    [ec2Instance] = awsEC2StartInstance(ec2RunStructure,'m4.2xlarge',1,v); %Start EC2 
+    if (v)
+        fprintf('%s Total EC2 Bootup time: %.1f[min]\n',datestr(datetime),toc()/60);
+    end
 
-%% Copy Files to EC2
-if (v)
-    fprintf('%s Copying files to EC2... ',datestr(datetime));
-    tic;
-end
-[status,txt] = awsEC2RunCommandOnInstance (ec2Instance,...
-    'mkdir -p ~/Input'             ... Make a directory
-    );
-awsEC2UploadDataToInstance(ec2Instance,'tmp.tar','~/Input'); %Copy
-delete('tmp.tar'); %Cleanup
-if (v)
-    fprintf('%s Total Copy: %.1f[min]\n',datestr(datetime),toc()/60);
-end
+    %% Copy Tar to EC2
+    if (v)
+        fprintf('%s Copying files to EC2... ',datestr(datetime));
+        tic;
+    end
+    [status,txt] = awsEC2RunCommandOnInstance (ec2Instance,...
+        'mkdir -p ~/Input'             ... Make a directory
+        );
+    awsEC2UploadDataToInstance(ec2Instance,tarFileList{tarI},'~/Input/tmp.tar'); %Copy
+    delete(tarFileList{tarI}); %Cleanup
+    if (v)
+        fprintf('%s Total Copy: %.1f[min]\n',datestr(datetime),toc()/60);
+    end
 
-%% Untar
-if (v)
-    fprintf('%s Untarring... ',datestr(datetime));
-    tic;
-end
-[status,txt] = awsEC2RunCommandOnInstance (ec2Instance,{...
-    'mkdir -p ~/Output'             ... Make a directory
-    'cd Input'                      ... Move to input directory
-    'tar -xvf tmp.tar -C ~/Output'  ... Untar
-    });
-if (status ~= 0)
-    awsEC2TerminateInstance(ec2Instance);%Terminate
-    error('Untar error: %s',txt);
-end
-if (v)
-    fprintf('%s Total Untar: %.1f[min]\n',datestr(datetime),toc()/60);
-end
+    %% Untar
+    if (v)
+        fprintf('%s Untarring... ',datestr(datetime));
+        tic;
+    end
+    [status,txt] = awsEC2RunCommandOnInstance (ec2Instance,{...
+        'mkdir -p ~/Output'             ... Make a directory
+        'cd Input'                      ... Move to input directory
+        'tar -xvf tmp.tar -C ~/Output'  ... Untar
+        });
+    if (status ~= 0)
+        awsEC2TerminateInstance(ec2Instance);%Terminate
+        error('Untar error: %s',txt);
+    end
+    if (v)
+        fprintf('%s Total Untar: %.1f[min]\n',datestr(datetime),toc()/60);
+    end
 
-%% Sync with S3
-if (v)
-    fprintf('%s Uploading EC2 data to S3... ',datestr(datetime));
-    tic;
-end
-folderNameUnix = strrep(folderName,' ','\ ');
-synccmd = ...
-    {
-        ['aws s3 sync ~/Output/' folderNameUnix ' ''' s3Dest ''''], ... Go Inside the folder that was created by tar such that the sync will not change the name
-    }; 
-[status,txt] = awsEC2RunCommandOnInstance (ec2Instance,synccmd);
-if (status ~= 0)
-    awsEC2TerminateInstance(ec2Instance);%Terminate
-    error('Sync with S3 error: %s.\n Sync command was: %s',txt,synccmd{1});
-end
-if (v)
-    fprintf('%s Total upload time: %.1f[min]\n',datestr(datetime),toc()/60);
-end
+    %% Sync with S3
+    if (v)
+        fprintf('%s Uploading EC2 data to S3... ',datestr(datetime));
+        tic;
+    end
+    folderNameUnix = strrep(folderName,' ','\ ');
+    synccmd = ...
+        {
+            ['aws s3 sync ~/Output/' folderNameUnix ' ''' s3Dest ''''], ... Go Inside the folder that was created by tar such that the sync will not change the name
+        }; 
+    [status,txt] = awsEC2RunCommandOnInstance (ec2Instance,synccmd);
+    if (status ~= 0)
+        awsEC2TerminateInstance(ec2Instance);%Terminate
+        error('Sync with S3 error: %s.\n Sync command was: %s',txt,synccmd{1});
+    end
+    if (v)
+        fprintf('%s Total upload time: %.1f[min]\n',datestr(datetime),toc()/60);
+    end
 
-%% Done
-awsEC2TerminateInstance(ec2Instance);%Terminate
+    %% Done
+    awsEC2TerminateInstance(ec2Instance,v);%Terminate
+end
 
 if (v)
     disp('Done');
