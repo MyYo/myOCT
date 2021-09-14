@@ -218,12 +218,16 @@ end
 
 tarFileList = cell(size(volumeFileList));
 currentPath = pwd;
-cd(parentFolderWherFilesToUploadAre);
-for i=1:length(volumeFileList) % Loop over each volume and tar it
-    tarFileList{i} = sprintf('%s\\tmp%02d.tar',currentPath,i); % Set tar name
+for tarI=1:length(volumeFileList) % Loop over each volume and tar it
+	if (v)
+		fprintf('%s Uploading part %d\n',datestr(datetime),tarI);
+	end
+    tarFileList{i} = sprintf('%s\\tmp%02d.tar',currentPath,tarI); % Set tar name
     
+	cd(parentFolderWherFilesToUploadAre);
+	
     % Create a text file with all the files to include
-    fileList = volumeFileList{i};
+    fileList = volumeFileList{tarI};
     fid = fopen('tmpFileList.txt','wt');
     for j=1:length(fileList)
         fprintf(fid,'%s\n',fileList{j});
@@ -231,19 +235,18 @@ for i=1:length(volumeFileList) % Loop over each volume and tar it
     fclose(fid);
        
     % Run tar
-    [status,txt] = system(sprintf('"%s7z.exe" a -ttar "%s" @tmpFileList.txt',sevenZipFolder,tarFileList{i}));
+    [status,txt] = system(sprintf('"%s7z.exe" a -ttar "%s" @tmpFileList.txt',sevenZipFolder,tarFileList{tarI}));
     delete('tmpFileList.txt');
     if (status ~= 0)
         error('%d, Tar error: %s',i,txt);
     end
-end
-cd(currentPath);
-if (v)
-    fprintf('%s Total Tar: %.1f[min]\n',datestr(datetime),toc()/60);
-end
 
-%% Loop for every file in tarFileList, copy it, untar and move to s3
-for tarI=1:length(tarFileList)
+	cd(currentPath);
+	
+	if (v)
+		fprintf('%s Total Tar: %.1f[min]\n',datestr(datetime),toc()/60);
+	end
+
     if (v)
         fprintf('%s ** Processing Tar %d/%d...\n',datestr(datetime),tarI,length(tarFileList));
     end
