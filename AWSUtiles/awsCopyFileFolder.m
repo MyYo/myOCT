@@ -222,7 +222,7 @@ for tarI=1:length(volumeFileList) % Loop over each volume and tar it
 	if (v)
 		fprintf('%s Uploading part %d\n',datestr(datetime),tarI);
 	end
-    tarFileList{i} = sprintf('%s\\tmp%02d.tar',currentPath,tarI); % Set tar name
+    tarFileList{tarI} = sprintf('%s\\tmp%02d.tar',currentPath,tarI); % Set tar name
     
 	cd(parentFolderWherFilesToUploadAre);
 	
@@ -238,7 +238,7 @@ for tarI=1:length(volumeFileList) % Loop over each volume and tar it
     [status,txt] = system(sprintf('"%s7z.exe" a -ttar "%s" @tmpFileList.txt',sevenZipFolder,tarFileList{tarI}));
     delete('tmpFileList.txt');
     if (status ~= 0)
-        error('%d, Tar error: %s',i,txt);
+        error('%d, Tar error: %s',tarI,txt);
     end
 
 	cd(currentPath);
