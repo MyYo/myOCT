@@ -218,6 +218,7 @@ end
 
 tarFileList = cell(size(volumeFileList));
 currentPath = pwd;
+clear('i','j'); % We used i,j before, just make sure there is no confusion
 for tarI=1:length(volumeFileList) % Loop over each volume and tar it
 	if (v)
 		fprintf('%s Uploading part %d\n',datestr(datetime),tarI);
