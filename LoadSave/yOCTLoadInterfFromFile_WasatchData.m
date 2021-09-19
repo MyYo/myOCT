@@ -69,10 +69,11 @@ prof.totalFrameLoadTimeSec = 0;
 for fI=1:length(fileIndex)    
     td=tic;
     % Any fileDatastore request to AWS S3 is limited to 1000 files in 
-    % MATLAB 2021a. Due to this bug, we have replaced all calls to 
-    % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
+    % MATLAB 2021a. Due to this bug, we have modified certain calls to 
+    % fileDatastore by encompassing the file path or folder name using matlab.io.datastore.DsFileSet
+    % Note: This change results it a much longer runtime 
     % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
-    ds=fileDatastore(rawFilePath(fileIndex(fI)),'ReadFcn',@(a)(DSRead(a)));
+    ds=fileDatastore(matlab.io.datastore.DsFileSet(rawFilePath(fileIndex(fI))),'ReadFcn',@(a)(DSRead(a)));
     temp=double(ds.read);   
     if (isempty(temp))
         error(['Missing file / file size wrong' spectralFilePath]);
@@ -88,7 +89,7 @@ try
     % MATLAB 2021a. Due to this bug, we have replaced all calls to 
     % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
     % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
-    ds=fileDatastore([inputDataFolder 'raw_bg_00001.tif'],'ReadFcn',@(a)(DSRead(a)));
+    ds=imageDatastore([inputDataFolder 'raw_bg_00001.tif'],'ReadFcn',@(a)(DSRead(a)));
     apodization = double(ds.read);
     apodization = mean(apodization,2);
 catch

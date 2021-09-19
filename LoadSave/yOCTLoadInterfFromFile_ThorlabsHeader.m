@@ -24,7 +24,7 @@ end
 % MATLAB 2021a. Due to this bug, we have replaced all calls to 
 % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
 % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
-ds=fileDatastore(awsModifyPathForCompetability([inputDataFolder '/Header.xml']),'ReadFcn',@xml2struct);
+ds=imageDatastore(awsModifyPathForCompetability([inputDataFolder '/Header.xml']),'ReadFcn',@xml2struct,'FileExtensions','.xml');
 xDoc = ds.read;
 xDoc = xDoc.Ocity;
 
@@ -52,7 +52,7 @@ try
     % MATLAB 2021a. Due to this bug, we have replaced all calls to 
     % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
     % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
-    ds=fileDatastore(awsModifyPathForCompetability([inputDataFolder '/data/SpectralFloat.data']),'ReadFcn',@fread);
+    ds=imageDatastore(awsModifyPathForCompetability([inputDataFolder '/data/SpectralFloat.data']),'ReadFcn',@fread,'FileExtensions','.data');
     oneDMode = true;
 catch
     oneDMode = false;

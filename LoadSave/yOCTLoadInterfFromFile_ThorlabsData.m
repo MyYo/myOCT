@@ -44,7 +44,7 @@ if (sizeX == 1)
     % MATLAB 2021a. Due to this bug, we have replaced all calls to 
     % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
     % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
-    ds=fileDatastore([inputDataFolder '/data/SpectralFloat.data'],'ReadFcn',@(a)(DSRead(a,'float32')));
+    ds=imageDatastore([inputDataFolder '/data/SpectralFloat.data'],'ReadFcn',@(a)(DSRead(a,'float32')),'FileExtensions','.data');
     temp = double(ds.read);
     prof.totalFrameLoadTimeSec = toc;
     temp = reshape(temp,[sizeLambda,AScanAvgN]);
@@ -88,7 +88,7 @@ for fi=1:length(fileIndex)
     % MATLAB 2021a. Due to this bug, we have replaced all calls to 
     % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
     % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
-    ds=fileDatastore(spectralFilePath,'ReadFcn',@(a)(DSRead(a,'short')));
+    ds=imageDatastore(spectralFilePath,'ReadFcn',@(a)(DSRead(a,'short')),'FileExtensions','.data');
     temp=double(ds.read);
 
     if (isempty(temp))

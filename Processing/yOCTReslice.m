@@ -220,7 +220,7 @@ parfor (yi1_n=1:length(y1_n)) % Each for acts on one output y plane, limit numbe
             % MATLAB 2021a. Due to this bug, we have replaced all calls to 
             % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
             % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
-            ds = fileDatastore(whereAreMyFiles,'ReadFcn',@(x)(x),'FileExtensions','.getmeout','IncludeSubfolders',true); %Count all artifacts
+            ds = imageDatastore(whereAreMyFiles,'ReadFcn',@(x)(x),'FileExtensions','.getmeout','IncludeSubfolders',true); %Count all artifacts
             isFile = cellfun(@(x)(contains(lower(x),'.json')),ds.Files);
             done = sum(isFile);
             fprintf('%s Completed yIs so far: %d/%d (%.1f%%)\n',datestr(datetime),done,ly1_n,100*done/ly1_n);

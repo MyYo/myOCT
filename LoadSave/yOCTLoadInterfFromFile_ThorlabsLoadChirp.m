@@ -13,7 +13,7 @@ if isempty(fname)
     % MATLAB 2021a. Due to this bug, we have replaced all calls to 
     % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
     % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
-    ds=fileDatastore(inputFolder,'ReadFcn',@(x)(x),'IncludeSubfolders',true,'FileExtensions',...
+    ds=imageDatastore(inputFolder,'ReadFcn',@(x)(x),'IncludeSubfolders',true,'FileExtensions',...
             {...
             '.data' ... Binary version of chirp, usually saved in non SRR version
             '.dat'  ... Text version of chirp, saved in SRR version
@@ -42,7 +42,11 @@ else
     % MATLAB 2021a. Due to this bug, we have replaced all calls to 
     % fileDatastore with imageDatastore since the bug does not affect imageDatastore. 
     % 'https://www.mathworks.com/matlabcentral/answers/502559-filedatastore-request-to-aws-s3-limited-to-1000-files'
-    ds=fileDatastore(fp,'ReadFcn',@(x)(x));
+    ds=imageDatastore(fp,'ReadFcn',@(x)(x),'FileExtensions',...
+            {...
+            '.data' ... Binary version of chirp, usually saved in non SRR version
+            '.dat'  ... Text version of chirp, saved in SRR version
+            });
 end
 
 %% Read the chirp
