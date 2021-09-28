@@ -10,9 +10,11 @@ function json = yOCTPhotobleachTile(varargin)
 %Probe defenitions:
 %   octProbePath            'probe.ini'     Where is the probe.ini is saved to be used
 %Photobleaching Parameters:
-%   z                       0               Photobleaching depth (compared to corrent position in mm)
+%   z                       0               Photobleaching depth (compared to corrent position in mm). 
+%                                           Can be array for multiple depths. Use array for high NA lens that require photobleach in serveral depths
 %   exposure                15              How much time to expose each spot to laser light. Units sec/mm 
-%                                           Meaning for each 1mm, we will expose for exposurePerLine sec  
+%                                           Meaning for each 1mm, we will expose for exposurePerLine sec 
+%                                           If scanning at multiple depths, exposure will be devided by length(z) for each line 
 %   nPasses                 2               Should we expose to laser light in single or multiple passes over the same spot? 
 %                                           The lower number of passes the better 
 %   oct2stageXYAngleDeg     0               The angle to convert OCT coordniate system to motor coordinate system, see yOCTStageInit
@@ -156,11 +158,6 @@ end
 %% Initialize Translation Stage
 [x0,y0,z0] = yOCTStageInit(json.oct2stageXYAngleDeg, NaN, NaN, v);
 
-%Initialize z translation if photobleaching is not in the current plane
-if json.z ~= 0
-    yOCTStageMoveTo(NaN,NaN,z0+json.z,v);
-end
-
 %Initialize scanner
 ThorlabsImagerNET.ThorlabsImager.yOCTScannerInit(json.octProbePath); %Init OCT
 
@@ -169,66 +166,73 @@ if (v)
 end
 
 %% Photobleach
+
+% Loop over FOVs
 for i=1:length(xcc)
-    if (v && length(xcc) > 1)
-        fprintf('%s Moving to positoin (x = %.1fmm, y = %.1fmm) #%d of %d\n',datestr(datetime),xcc(i),ycc(i),i,length(xcc));
-    end
     
-    yOCTStageMoveTo(x0+xcc(i),y0+ycc(i),NaN,v);
+    % Loop over depths in the same FOV
+    for iZ=1:length(json.z)
+        if (v && (length(xcc) > 1 || length(json.z) > 1) )
+            fprintf('%s Moving to positoin (x = %.1fmm, y = %.1fmm, z= %.1fmm) #%d of %d\n',...
+                datestr(datetime),xcc(i),ycc(i),json.z(iZ),i,length(xcc));
+        end
     
-    if (v && i==1)
-        fprintf('%s Turning Laser Diode On For The First Time... \n\t(if Matlab is taking more than 1 minute to finish this step, restart hardware and try again)\n',datestr(datetime));
-        %Switch light on, write to screen only for first line
-		% ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(true);  % Version using .NET
-		yOCTTurnLaser(true); % Version using Matlab directly
-        fprintf('%s Laser Diode is On\n',datestr(datetime)); 
-    else
-		% Version using .NET
-        %evalc('ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(true);'); %Switch light on, use evalc to prevent writing to window
-		
-		yOCTTurnLaser(true); % Version using Matlab directly
-    end
+        yOCTStageMoveTo(x0+xcc(i),y0+ycc(i),z0+json.z(iZ),v);
+    
+        if (v && i==1 && iZ==1)
+            fprintf('%s Turning Laser Diode On For The First Time... \n\t(if Matlab is taking more than 1 minute to finish this step, restart hardware and try again)\n',datestr(datetime));
+            %Switch light on, write to screen only for first line
+            % ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(true);  % Version using .NET
+            yOCTTurnLaser(true); % Version using Matlab directly
+            fprintf('%s Laser Diode is On\n',datestr(datetime)); 
+        else
+            % Version using .NET
+            %evalc('ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(true);'); %Switch light on, use evalc to prevent writing to window
 
-    %Find lines to photobleach, center along current position of the stage
-    ptStart = ptStartcc{i} - [xcc(i);ycc(i)];
-    ptEnd   = ptEndcc{i}   - [xcc(i);ycc(i)];
-    
-    %Loop over all lines
-    for j=1:size(ptStart,2)
-        if (v)
-            fprintf('%s \tPhotobleaching Line #%d of %d\n',datestr(datetime),j,size(ptStart,2));
+            yOCTTurnLaser(true); % Version using Matlab directly
         end
 
-        if (v && i==1 && j==1)
-            fprintf('%s Drawing First Line. This is The First Time Galvo Is Moving... \n\t(if Matlab is taking more than a few minutes to finish this step, restart hardware and try again)\n',datestr(datetime));
-        end
-        
-        d = sqrt(sum( (ptStart(:,j) - ptEnd(:,j)).^2));
-        ThorlabsImagerNET.ThorlabsImager.yOCTPhotobleachLine( ...
-            ptStart(1,j),ptStart(2,j), ... Start X,Y
-            ptEnd(1,j),  ptEnd(2,j)  , ... End X,y
-            json.exposure*d,  ... Exposure time sec
-            json.nPasses); 
-        
-        if (v && i==1 && j==1)
-            fprintf('%s Drew The First Line!\n',datestr(datetime));
+        %Find lines to photobleach, center along current position of the stage
+        ptStart = ptStartcc{i} - [xcc(i);ycc(i)];
+        ptEnd   = ptEndcc{i}   - [xcc(i);ycc(i)];
+
+        %Loop over all lines
+        for j=1:size(ptStart,2)
+            if (v)
+                fprintf('%s \tPhotobleaching Line #%d of %d\n',datestr(datetime),j,size(ptStart,2));
+            end
+
+            if (v && i==1 && j==1)
+                fprintf('%s Drawing First Line. This is The First Time Galvo Is Moving... \n\t(if Matlab is taking more than a few minutes to finish this step, restart hardware and try again)\n',datestr(datetime));
+            end
+
+            d = sqrt(sum( (ptStart(:,j) - ptEnd(:,j)).^2));
+            ThorlabsImagerNET.ThorlabsImager.yOCTPhotobleachLine( ...
+                ptStart(1,j),ptStart(2,j), ... Start X,Y
+                ptEnd(1,j),  ptEnd(2,j)  , ... End X,y
+                json.exposure*d/length(json.z),  ... Exposure time sec
+                json.nPasses); 
+
+            if (v && i==1 && j==1)
+                fprintf('%s Drew The First Line!\n',datestr(datetime));
+            end
+
         end
 
-    end
-
-    if (v && i==1)
-        fprintf('%s Turning Laser Diode Off For The First Time... \n\t(if Matlab is taking more than 1 minute to finish this step, restart hardware and try again)\n',datestr(datetime));
-		%Switch light off, write to screen only for first line
-		%ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(false); % Version using .NET
-		yOCTTurnLaser(false); % Version using Matlab directly
-        fprintf('%s Laser Diode is Off\n',datestr(datetime)); 
-    else
-		% Version using .NET
-        %evalc('ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(false);'); %Switch light off, use evalc to prevent writing to window
-		yOCTTurnLaser(false); % Version using Matlab directly
-    end
+        if (v && i==1 && iZ==1)
+            fprintf('%s Turning Laser Diode Off For The First Time... \n\t(if Matlab is taking more than 1 minute to finish this step, restart hardware and try again)\n',datestr(datetime));
+            %Switch light off, write to screen only for first line
+            %ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(false); % Version using .NET
+            yOCTTurnLaser(false); % Version using Matlab directly
+            fprintf('%s Laser Diode is Off\n',datestr(datetime)); 
+        else
+            % Version using .NET
+            %evalc('ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(false);'); %Switch light off, use evalc to prevent writing to window
+            yOCTTurnLaser(false); % Version using Matlab directly
+        end
     
-    pause(0.5);
+        pause(0.5);
+    end
 end
 
 %% Finalize
