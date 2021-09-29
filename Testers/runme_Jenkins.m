@@ -37,9 +37,9 @@ try
 	
 	%% Select cluster given Matlab version
 	vText = version;
-	if (contains(vText,'R2021')
+	if (contains(vText,'R2021'))
 		clusterName = 'delaZerdaParallel2021';
-	elseif (contains(vText,'R2020')
+	elseif (contains(vText,'R2020'))
 		clusterName = 'delaZerdaParallel2020';
 	else 
 		clusterName = 'delaZerdaParallel';
