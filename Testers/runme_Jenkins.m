@@ -34,6 +34,16 @@ try
 	yOCTMainFolder = [currentFileFolder '\..\'];
     d = dir(yOCTMainFolder);yOCTMainFolder = [d(1).folder '\'];
 	addpath(genpath(yOCTMainFolder)); %Add current files to path
+	
+	%% Select cluster given Matlab version
+	vText = version;
+	if (contains(vText,'R2021'))
+		clusterName = 'delaZerdaParallel2021';
+	elseif (contains(vText,'R2020'))
+		clusterName = 'delaZerdaParallel2020';
+	else 
+		clusterName = 'delaZerdaParallel';
+	end
     
     %% Connect to cluster if needed. Matlab Parallel Server
     %To Start a cluster, we need to have a Matlab user logged in to Matlab.
@@ -45,8 +55,6 @@ try
     %   C:\Users\<My User>\AppData\Roaming\MathWorks\MATLAB\<Which Matlab>\
     %Copy files to:
     %   C:\Windows\System32\config\systemprofile\AppData\Roaming\MathWorks\MATLAB\<Which Matlab>\
-    
-	clusterName = 'delaZerdaParallel';
     if isConnectToCluster %Do we need to connect to cluster
 		disp('Starting Cluster ... ');
         myCluster = parcluster(clusterName)
