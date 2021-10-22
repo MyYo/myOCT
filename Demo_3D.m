@@ -16,7 +16,8 @@ tic;
     {'meanAbs','speckleVariance'}, ... Which functions would you like to process. Option exist for function hendel
     'dispersionQuadraticTerm', dispersionQuadraticTerm, ...
     'nYPerIteration', yFramesPerBatch, ...
-    'showStats',true);
+    'showStats',true, ...
+    'interpMethod', 'sinc5');
 toc;
 
 %% Save To File
