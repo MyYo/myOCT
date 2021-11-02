@@ -18,17 +18,18 @@ function varargout = yOCTProcessScan(varargin)
 %   - parameter1,... - parameters to be passed to yOCTLoadInterfFromFile
 %       and yOCTInterfToScanCpx or any of the parameters below
 % LIST OF OPTIONAL PARAMETERS AND VALUES
-% Parameter                  Default    Information & Values
-% 'nYPerIteration'           1          Number of Y scans to load per
-%                                       iteration. Try to set such that
-%                                       nYPerIteration*scanAvg = 100 scans.
-%                                       For parallel usage. Leave default
-% 'showStats'                False      Prints execution stats
-% 'runProcessScanInParallel' True       Would you like to process Y scans
-%                                       in parallel or sequential? 
-% 'maxNParallelWorkers'      Inf        Max number of workers to open parallel
-%                                       pool with, if set to Inf, will use
-%                                       as many workers as suppored by cluster
+% Parameter                     Default    Information & Values
+% 'nYPerIteration'              1          Number of Y scans to load per
+%                                          iteration. Try to set such that
+%                                          nYPerIteration*scanAvg = 100 scans.
+%                                          For parallel usage. Leave default
+% 'showStats'                   False      Prints execution stats
+% 'applyPathLengthCorrection'   True       Apply path link correction, if probe ini has the information.
+% 'runProcessScanInParallel'    True       Would you like to process Y scans
+%                                          in parallel or sequential? 
+% 'maxNParallelWorkers'         Inf        Max number of workers to open parallel
+%                                          pool with, if set to Inf, will use
+%                                          as many workers as suppored by cluster
 %
 %OUTPUTS:
 %   - out1, out2... same as processFunc dimensions: (z,x,y)
@@ -44,6 +45,7 @@ inputDataFolder = varargin{1};
 processFunc = varargin{2}; 
 nYPerIteration = 1;
 showStats = false;
+applyPathLengthCorrection = false;
 runProcessScanInParallel = true;
 maxNParallelWorkers = Inf;
 parameters = {};
@@ -52,6 +54,8 @@ for i=3:2:length(varargin)
         case 'nyperiteration'
             nYPerIteration = varargin{i+1};
         case 'showstats'
+            showStats = varargin{i+1};
+        case 'applypathlengthcorrection'
             showStats = varargin{i+1};
         case 'runprocessscaninparallel'
             runProcessScanInParallel = varargin{i+1};
@@ -147,7 +151,7 @@ if runProcessScanInParallel
         try
         ii = iis(i,:);
         [dataOutIter,prof1,prof2,prof3] = ...
-            RunIteration(ii,inputDataFolder,parameters,dimensions,func,sz);
+            RunIteration(ii,inputDataFolder,parameters,dimensions,func,sz,applyPathLengthCorrection);
 
         datOut(:,:,:,:,i) = dataOutIter;
         profData_dataLoadFrameTime(i)  = prof1;
@@ -170,7 +174,7 @@ else
         ii = iis(i,:);
         
         [dataOutIter,prof1,prof2,prof3] = ...
-            RunIteration(ii,inputDataFolder,parameters,dimensions,func,sz);
+            RunIteration(ii,inputDataFolder,parameters,dimensions,func,sz,applyPathLengthCorrection);
         
         datOut(:,:,:,:,i) = dataOutIter;%tall(dataOutIter);
         clear dataOutIter; %Clear memory
@@ -246,7 +250,7 @@ end
 
 %% Run a single iteration
 function [dataOutIter,profData_dataLoadFrameTime,profData_dataLoadHeaderTime,profData_processingTime] = ...
-    RunIteration(ii,inputDataFolder,parameters,dimensions,func,tmpSize)
+    RunIteration(ii,inputDataFolder,parameters,dimensions,func,tmpSize, applyPathLengthCorrection)
     tw = tic;
     
     %Load interf from file
@@ -262,6 +266,13 @@ function [dataOutIter,profData_dataLoadFrameTime,profData_dataLoadHeaderTime,pro
         tmp(:,:,:,j) = single(func{j}(scanCpx,scanAbs,dim));
     end
     dataOutIter = tmp;
+    
+    [filepath, ~, ~] = fileparts(inputDataFolder);
+    json = awsReadJSON([filepath '\ScanInfo.json']);
+    
+    if (applyPathLengthCorrection && isfield(json.octProbe,'OpticalPathCorrectionPolynomial'))
+        [dataOutIter, ~] = yOCTOpticalPathCorrection(dataOutIter, dim, json);
+    end
     
     %Profiling
     ld = prof.totalFrameLoadTimeSec + prof.headerLoadTimeSec;

@@ -62,10 +62,7 @@ end
 %% If zDepthStitchingMode is set
 if zDepthStitchingMode
     % Count the number of Data folders within the inputDataFolder
-    file = dir(intputDataFolder);
-    filenames = {file.name};
-    numDataFiles = sum(~cellfun(@isempty, strfind(filenames, 'Data')));
-    % Yonatan's comment: ^ these can be taken directly from scanInfoJson
+    numDataFiles = length(scanInfoJson.scanOrder);
 
     % Create zFocusPix array to store the focus of each volume
     zFocusPix = zeros(1, numDataFiles);
@@ -83,16 +80,11 @@ if zDepthStitchingMode
             'dispersionQuadraticTerm', dispersionQuadraticTerm, ...
             'n',n, ...
             'YFramesToProcess',yToLoad, ...
-            'showStats',in.verbose);
-        
-        % Optical Path Correction
-        %%% Optical path correction should be done inside yOCTProcessScan,
-        %%% can we add a switch?
-        [meanAbsPathCorrected, meanAbsValidDataMap] = yOCTOpticalPathCorrection(meanAbs, dimensions, optPathCorrection);
-
+            'showStats',in.verbose, ...
+            'applyPathLengthCorrection', true);
 
         % Use the reconstructed volume to find the focus and store it in zFocusPix
-        [max_val, focus] = max(mean(squeeze(log(meanAbsPathCorrected)), [2 3]));
+        [max_val, focus] = max(mean(squeeze(log(meanAbs)), [2 3]));
         zFocusPix(focusInd) = focus;
         focusInd = focusInd + 1;
         
@@ -103,7 +95,8 @@ if zDepthStitchingMode
                 'dispersionQuadraticTerm', dispersionQuadraticTerm, ...
                 'n',n, ...
                 'YFramesToProcess',yToLoad(end/2)+[-1:01], ...
-                'showStats',in.verbose);
+                'showStats',in.verbose, ...
+                'applyPathLengthCorrection', true);
             
             figure(1)
             imagesc(meanAbs);
