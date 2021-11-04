@@ -172,6 +172,9 @@ for scanI=1:length(scanOrder)
 			in.OCTSystem = 'NA';
         end
     end
+    
+    yOCTUnzipOCTFolder(strcat(s, "\VolumeFile.oct"),s,true);
+    
 end
 
 %% Finalize
