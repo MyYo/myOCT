@@ -50,10 +50,10 @@ if strcmp(OCTFolderOut(1:2),'\\')
 end
 
 %Check Unziped to directory is empty
-if exist(OCTUnzipToDirectory,'dir')
+%if exist(OCTUnzipToDirectory,'dir')
     %Delete directory first
-    rmdir(OCTUnzipToDirectory,'s');
-end
+%    rmdir(OCTUnzipToDirectory,'s');
+%end
 
 %% Preform Unzip
 
