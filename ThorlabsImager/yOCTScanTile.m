@@ -165,7 +165,7 @@ for scanI=1:length(scanOrder)
 		%Figure out which OCT System are we scanning in
 		a = dir(s);
 		names = {a.name}; names([a.isdir]) = [];
-		nm = names{round(end/2)};
+		nm = names{2};
         if (contains(lower(nm),'ganymede'))
 			in.OCTSystem = 'Ganymede';
 		else
