@@ -173,7 +173,7 @@ for scanI=1:length(scanOrder)
         end
     end
     
-    yOCTUnzipOCTFolder(strcat(s, 'VolumeGanymedeOCTFile.oct'),s,true);
+    % yOCTUnzipOCTFolder(strcat(s, 'VolumeGanymedeOCTFile.oct'),s,true);
     
 end
 
