@@ -167,7 +167,7 @@ for scanI=1:length(scanOrder)
 		names = {a.name}; names([a.isdir]) = [];
 		nm = names{round(end/2)};
         if (contains(lower(nm),'ganymede'))
-			in.OCTSystem = 'Ganymede_SRR';
+			in.OCTSystem = 'Ganymede';
 		else
 			in.OCTSystem = 'NA';
         end
