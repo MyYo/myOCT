@@ -161,19 +161,21 @@ for scanI=1:length(scanOrder)
         s ... Output directory, make sure this folder doesn't exist when starting the scan
         );
     
+    yOCTUnzipOCTFolder(strcat(s, 'VolumeGanymedeOCTFile.oct'),s,true);
+    
     if(scanI==1)
 		%Figure out which OCT System are we scanning in
-		a = dir(s);
-		names = {a.name}; names([a.isdir]) = [];
-		nm = names{2};
-        if (contains(lower(nm),'ganymede'))
-			in.OCTSystem = 'Ganymede';
-		else
-			in.OCTSystem = 'NA';
-        end
+		%a = dir(s);
+		%names = {a.name}; names([a.isdir]) = [];
+		%nm = names{2};
+        %if (contains(lower(nm),'ganymede'))
+		%	in.OCTSystem = 'Ganymede';
+		%else
+		%	in.OCTSystem = 'NA';
+        %end
+        [OCTSystem, OCTSystemManufacturer] = yOCTLoadInterfFromFile_WhatOCTSystemIsIt(s);
+        in.OCTSystem = OCTSystem;
     end
-    
-    % yOCTUnzipOCTFolder(strcat(s, 'VolumeGanymedeOCTFile.oct'),s,true);
     
 end
 
