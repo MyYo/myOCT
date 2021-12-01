@@ -45,7 +45,7 @@ inputDataFolder = varargin{1};
 processFunc = varargin{2}; 
 nYPerIteration = 1;
 showStats = false;
-applyPathLengthCorrection = false;
+applyPathLengthCorrection = true;
 runProcessScanInParallel = true;
 maxNParallelWorkers = Inf;
 parameters = {};
@@ -268,9 +268,9 @@ function [dataOutIter,profData_dataLoadFrameTime,profData_dataLoadHeaderTime,pro
     dataOutIter = tmp;
     
     [filepath, ~, ~] = fileparts(inputDataFolder);
-    json = awsReadJSON([filepath '\ScanInfo.json']);
     
     if (applyPathLengthCorrection && isfield(json.octProbe,'OpticalPathCorrectionPolynomial'))
+        json = awsReadJSON([filepath '\ScanInfo.json']);
         [dataOutIter, ~] = yOCTOpticalPathCorrection(dataOutIter, dim, json);
     end
     
