@@ -219,6 +219,7 @@ for i=1:length(xcc)
 
         end
 
+		t = tic();
         if (v && i==1 && iZ==1)
             fprintf('%s Turning Laser Diode Off For The First Time... \n\t(if Matlab is taking more than 1 minute to finish this step, restart hardware and try again)\n',datestr(datetime));
             %Switch light off, write to screen only for first line
@@ -230,6 +231,12 @@ for i=1:length(xcc)
             %evalc('ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(false);'); %Switch light off, use evalc to prevent writing to window
             yOCTTurnLaser(false); % Version using Matlab directly
         end
+		t = toc(t);
+		
+		% Check to see if the time it took to switch off the laser is more than a few seconds raise an error
+		if (t>4)
+			error('Laser diode took way too long to switch off (%d seconds), this may be a problem',t);
+		end
     
         pause(0.5);
     end
