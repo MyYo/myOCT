@@ -125,6 +125,13 @@ end
 
 fp = cellfun(@(x)(awsModifyPathForCompetability([tiledScanInputFolder '\' x '\'])),json.octFolders,'UniformOutput',false);
 focusPositionInImageZpix = in.focusPositionInImageZpix;
+% If the focus position is the same for all volumes, create a vector that
+% stores the focus position for each volume. This is mainly to enable
+% compatbility with the upgraded yOCTFindFocus which returns a focus value
+% for each volume 
+if length(in.focusPositionInImageZpix) == 1
+    focusPositionInImageZpix = in.focusPositionInImageZpix * ones(1, length(json.zDepths));
+end
 focusSigma = in.focusSigma;
 OCTSystem = json.OCTSystem; %Provide OCT system to prevent unesscecary polling of file system
 
@@ -159,17 +166,16 @@ end
 % Remove Z positions that are way out of focus (if we are doing focus processing)
 if(~isnan(focusPositionInImageZpix))
     zAll( ...
-        ( zAll < min(zDepths) + zOneTile(round(max(focusPositionInImageZpix - cuttoffSigma*in.focusSigma,1))) ) ...
+        ( zAll < min(zDepths) + zOneTile(round(max(focusPositionInImageZpix(1) - cuttoffSigma*in.focusSigma,1))) ) ...
         | ...
-        ( zAll > max(zDepths) + zOneTile(round(min(focusPositionInImageZpix + cuttoffSigma*in.focusSigma,length(zOneTile)))) ) ...
+        ( zAll > max(zDepths) + zOneTile(round(min(focusPositionInImageZpix(end) + cuttoffSigma*in.focusSigma,length(zOneTile)))) ) ...
         ) = []; 
 end
 
 % Dimensions of everything
 dimOutput.lambda = dimOneTile.lambda;
 dimOutput.z = dimOneTile.z;
-dimOutput.z.values = zAll(:)' - ...
-    dz*(focusPositionInImageZpix-1)*zSetOriginAsFocusOfZDepth0;
+dimOutput.z.values = zAll(:)' - zAll(1);
 if zSetOriginAsFocusOfZDepth0
     dimOutput.z.origin = 'z=0 is the focus positoin of OCT image when zDepths=0 scan was taken';
 else
@@ -275,9 +281,9 @@ parfor yI=1:length(yAll)
                 
                 %Filter around the focus
                 zI = 1:length(zOneTile); zI = zI(:);
-                if ~isnan(focusPositionInImageZpix)
-                    factorZ = exp(-(zI-focusPositionInImageZpix).^2/(2*focusSigma)^2) + ...
-                        (zI>focusPositionInImageZpix)*exp(-3^2/2);%Under the focus, its possible to not reduce factor as much 
+                if ~isnan(focusPositionInImageZpix(zzI))
+                    factorZ = exp(-(zI-focusPositionInImageZpix(zzI)).^2/(2*focusSigma)^2) + ...
+                        (zI>focusPositionInImageZpix(zzI))*exp(-3^2/2);%Under the focus, its possible to not reduce factor as much 
                     factor = repmat(factorZ, [1 size(scan1,2)]);
                 else
                     factor = ones(length(zOneTile),length(xOneTile)); %No focus gating
@@ -305,8 +311,8 @@ parfor yI=1:length(yAll)
                     
                     tn = [tempname '.tif'];
                     im = mag2db(scan1);
-                    if ~isnan(focusPositionInImageZpix)
-                        im(focusPositionInImageZpix,1:20:end) = min(im(:)); % Mark focus position on sample
+                    if ~isnan(focusPositionInImageZpix(zzI))
+                        im(focusPositionInImageZpix(zzI),1:20:end) = min(im(:)); % Mark focus position on sample
                     end
                     yOCT2Tif(im,tn);
                     awsCopyFile_MW1(tn, ...
