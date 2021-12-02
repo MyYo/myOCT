@@ -45,32 +45,38 @@ addParameter(p,'tissueRefractiveIndex',[]);
 
 parse(p,varargin{:});
 in = p.Results;
-
 inputDataFolder = in.inputDataFolder;
-n = in.tissueRefractiveIndex; 
-scanInfoJson = awsReadJSON([inputDataFolder 'ScanInfo.json']);
-dispersionQuadraticTerm = scanInfoJson.DefaultDispersionQuadraticTerm;
-optPathCorrection = scanInfoJson.OpticalPathCorrectionPolynomial;
-if isempty(n)
-    n = scanInfoJson.tissueRefractiveIndex;
-end
 
-if ~zDepthStitchingMode
-    error('zDepthStitchingMode=false is not implemented yet');
+% If input folder points to a specific Data folder, extract the path to the
+% OCTVolumes folder in order to access the ScanConfig.json file 
+if contains(inputDataFolder,'Data')
+    configDataFolder = [fileparts(fileparts(inputDataFolder)) '/'];
+else
+    configDataFolder = inputDataFolder;
+end
+    
+n = in.tissueRefractiveIndex; 
+scanConfigJson = awsReadJSON([configDataFolder 'ScanConfig.json']);
+dispersionQuadraticTerm = scanConfigJson.DefaultDispersionQuadraticTerm;
+
+if isempty(n)
+    n = scanConfigJson.tissueRefractiveIndex;
 end
 
 %% If zDepthStitchingMode is set
-if zDepthStitchingMode
+if in.zDepthStitchingMode
     % Count the number of Data folders within the inputDataFolder
-    numDataFiles = length(scanInfoJson.scanOrder);
+    numDataFiles = length(scanConfigJson.scanOrder);
 
     % Create zFocusPix array to store the focus of each volume
     zFocusPix = zeros(1, numDataFiles);
-
+    
+    OCTVolumesFolderVolume = [inputDataFolder '/Volume/'];
+    
     % Iterate through all data folders in inputDataFolder and reconstruct each 
     % volume which was acquired at a different depth. Optical Path Correction?
     for ind = 1:numDataFiles
-        filePath = sprintf('%s/Data%02d',inputDataFolder,ind);
+        filePath = sprintf('%s/Data%02d',OCTVolumesFolderVolume,ind);
         
         % Process        
         yToLoad = dim.y.index(round(linspace(1,length(dim.y.index),5)));
@@ -85,24 +91,68 @@ if zDepthStitchingMode
 
         % Use the reconstructed volume to find the focus and store it in zFocusPix
         [max_val, focus] = max(mean(squeeze(log(meanAbs)), [2 3]));
-        zFocusPix(focusInd) = focus;
-        focusInd = focusInd + 1;
+        zFocusPix(ind) = focus;
         
-        
-        if this volume is for refinement (5)
-            [meanAbs,dimensions] = yOCTProcessScan(filePath, ...
-                {'meanAbs'}, ... 
-                'dispersionQuadraticTerm', dispersionQuadraticTerm, ...
-                'n',n, ...
-                'YFramesToProcess',yToLoad(end/2)+[-1:01], ...
-                'showStats',in.verbose, ...
-                'applyPathLengthCorrection', true);
+        if in.outputDebugImages && (ind == 1 || mod(ind, 10) == 0)
             
-            figure(1)
-            imagesc(meanAbs);
-            % plot where the automated focus was selected
-            save corrected focus to zFocusPix_manual
+            x=-6:6;%x=-2.5:1:2.5;
+            %y=x;z=0;filter = '(XY filter)';
+            y=x;z=-2:2;filter = '(XZ filter)';
+            rel = 2;
+            [z,x,y]=ndgrid(z,x,y);
+            a = exp(-(x.^2+y.^2+(z*2).^2)/rel.^2); % Z step = 2um, X and Y step = 1um
+            a =a /sum(a (:));
+            INTabsF = log10(convn(meanAbs,a,'same'));
+            clear x y z a;
+
+            % intensity profile
+            FlagBead = 0;
+            profile = zeros(1,1024);
+            for i=1:1024
+                if FlagBead == 1
+                    profile(i)=mean(max(INTabsF(i,:,:)));
+                else
+                    profile(i)=mean(mean(INTabsF(i,:,:)));
+                end
+            end
+
+            [psor,lsor] = findpeaks(profile,(1:1024),'SortStr','descend','MinPeakDistance',5);
+            c1 = min(psor)+0.2;c2 =max(psor)+0.5;
+            ax = figure();
+            imagesc(squeeze(INTabsF(:,:,round(end/2))));
+            colormap('gray');
+            colorbar;
+            caxis([c1 c2]);
+            title(['Find Focus Plot Volume ' int2str(ind)]);
+            
+            %Output Tiff 
+            plot_name = ['FindFocusInBScanVolume' int2str(ind) '.png'];
+            saveas(ax, plot_name);
+            if (awsIsAWSPath(OCTVolumesFolder))
+                %Upload to AWS
+                awsCopyFileFolder(plot_name,[LogFolder '/' plot_name]);
+            else
+                if ~exist(LogFolder,'dir')
+                    mkdir(LogFolder)
+                end
+                copyfile(plot_name,[LogFolder '\' plot_name]);
+            end   
         end
+        
+%         if this volume is for refinement (5)
+%             [meanAbs,dimensions] = yOCTProcessScan(filePath, ...
+%                 {'meanAbs'}, ... 
+%                 'dispersionQuadraticTerm', dispersionQuadraticTerm, ...
+%                 'n',n, ...
+%                 'YFramesToProcess',yToLoad(end/2)+[-1:01], ...
+%                 'showStats',in.verbose, ...
+%                 'applyPathLengthCorrection', true);
+%             
+%             figure(1)
+%             imagesc(meanAbs);
+%             % plot where the automated focus was selected
+%             save corrected focus to zFocusPix_manual
+%         end
     end
     
     %% Correct all focus positions according to manual 
@@ -115,12 +165,55 @@ else   %<--- delete for now
             'dispersionQuadraticTerm', dispersionQuadraticTerm, ...
             'nYPerIteration', yFramesPerBatch, ...
             'showStats',true);
-        
-    % Optical Path Correction
-    scanInfoJson = awsReadJSON([inputDataFolder 'ScanInfo.json']);
-    [meanAbsPathCorrected, meanAbsValidDataMap] = yOCTOpticalPathCorrection(meanAbs, dimensions, optPathCorrection);
 
     % Use the reconstructed volume to find the focus and store it in zFocusPix
-    [max_val, zFocusPix] = max(mean(squeeze(log(meanAbsPathCorrected)), [2 3]));
+    [max_val, zFocusPix] = max(mean(squeeze(log(meanAbs)), [2 3]));
+    
+    if in.outputDebugImages
+            
+        x=-6:6;%x=-2.5:1:2.5;
+        %y=x;z=0;filter = '(XY filter)';
+        y=x;z=-2:2;filter = '(XZ filter)';
+        rel = 2;
+        [z,x,y]=ndgrid(z,x,y);
+        a = exp(-(x.^2+y.^2+(z*2).^2)/rel.^2); % Z step = 2um, X and Y step = 1um
+        a =a /sum(a (:));
+        INTabsF = log10(convn(meanAbs,a,'same'));
+        clear x y z a;
+
+        % intensity profile
+        FlagBead = 0;
+        profile = zeros(1,1024);
+        for i=1:1024
+            if FlagBead == 1
+                profile(i)=mean(max(INTabsF(i,:,:)));
+            else
+                profile(i)=mean(mean(INTabsF(i,:,:)));
+            end
+        end
+
+        [psor,lsor] = findpeaks(profile,(1:1024),'SortStr','descend','MinPeakDistance',5);
+        c1 = min(psor)+0.2;c2 =max(psor)+0.5;
+        ax = figure();
+        imagesc(squeeze(INTabsF(:,:,round(end/2))));
+        colormap('gray');
+        colorbar;
+        caxis([c1 c2]);
+        title('Find Focus Plot Volume 10x');
+
+        %Output Tiff 
+        plot_name = 'FindFocusInBScan.png';
+        saveas(ax, plot_name);
+        if (awsIsAWSPath(OCTVolumesFolder))
+            %Upload to AWS
+            awsCopyFileFolder(plot_name,[LogFolder '/' plot_name]);
+        else
+            if ~exist(LogFolder,'dir')
+                mkdir(LogFolder)
+            end
+            copyfile(plot_name,[LogFolder '\' plot_name]);
+        end   
+    end
+    
 end
 
