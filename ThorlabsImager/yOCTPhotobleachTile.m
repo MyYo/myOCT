@@ -235,7 +235,7 @@ for i=1:length(xcc)
 		
 		% Check to see if the time it took to switch off the laser is more than a few seconds raise an error
 		if (t>4)
-			error('Laser diode took way too long to switch off (%d seconds), this may be a problem',t);
+			warning('Laser diode took way too long to switch off (%d seconds), this may be a problem',t);
 		end
     
         pause(0.5);
