@@ -7,7 +7,6 @@ function yOCTTurnLaser(newState)
 
 
 %% Input processing
-
 if newState
     newStateText = 'ON';
 else
@@ -18,7 +17,7 @@ end
 currentFileFolder = fileparts(mfilename('fullpath'));
 lib	 = [currentFileFolder '\Lib\'];
 
-[~,txt] = system(['"' lib 'DiodeCtrl.exe" ' newStateText]); 
+[~,txt] = runSystem(['"' lib 'DiodeCtrl.exe" ' newStateText]); 
 
 %% Process output
 if ~isempty(txt)
@@ -28,5 +27,18 @@ end
 if ~isempty(strfind(lower(txt),'error'))
 	% Try again
 	pause(0.5);
-	system(['"' lib 'DiodeCtrl.exe" ' newStateText]); 
+	runSystem(['"' lib 'DiodeCtrl.exe" ' newStateText]); 
+end
+
+
+function [output1, output2] = runSystem(text)
+t = tic();
+
+[output1, output2] = system(text); 
+
+t = toc(t);
+% Check to see if the time it took to switch off/on the laser is more than a few seconds raise an error
+if (t>4)
+    warning('Laser diode took way too long to switch off (%d seconds), this may be a problem.\n This is what we tried to run "%s", These are the outputs "%s","%s"',...
+        t,text,output1,output2);
 end
