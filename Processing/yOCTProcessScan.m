@@ -268,11 +268,10 @@ function [dataOutIter,profData_dataLoadFrameTime,profData_dataLoadHeaderTime,pro
     dataOutIter = tmp;
     
     [filepath, ~, ~] = fileparts(inputDataFolder);
-    
-    if (applyPathLengthCorrection && isfield(json.octProbe,'OpticalPathCorrectionPolynomial'))
-        json = awsReadJSON([filepath '\ScanInfo.json']);
-        [dataOutIter, ~] = yOCTOpticalPathCorrection(dataOutIter, dim, json);
-    end
+    %json = awsReadJSON([filepath '\ScanInfo.json']);
+    %if (applyPathLengthCorrection && isfield(json.octProbe,'OpticalPathCorrectionPolynomial'))
+    %    [dataOutIter, ~] = yOCTOpticalPathCorrection(dataOutIter, dim, json);
+    %end
     
     %Profiling
     ld = prof.totalFrameLoadTimeSec + prof.headerLoadTimeSec;
