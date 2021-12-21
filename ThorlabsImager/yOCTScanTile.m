@@ -26,6 +26,7 @@ function [json] = yOCTScanTile(varargin)
 %                                           Example: 'xCenters', [0 1], 'yCenters', [0 1], 
 %                                           will scan 4 OCT volumes centered around [0 0 1 1; 0 1 0 1] + [xOffset; yOffset]
 %   zDepths                 0               Scan depths to scan. Positive value is deeper). Units: mm
+%	unzipOCTFile			true			Scan will scan .OCT file, if you would like to automatically unzip it set this to true.
 %Debug parameters:
 %   v                       true            verbose mode      
 %OUTPUT:
@@ -57,6 +58,7 @@ addParameter(p,'nBScanAvg',1,@isnumeric);
 addParameter(p,'xCenters',0,@isnumeric);
 addParameter(p,'yCenters',0,@isnumeric);
 addParameter(p,'zDepths',0,@isnumeric);
+addParameter(p,'unzipOCTFile',true);
 
 %Debugging
 addParameter(p,'v',true,@islogical);
@@ -161,7 +163,9 @@ for scanI=1:length(scanOrder)
         s ... Output directory, make sure this folder doesn't exist when starting the scan
         );
     
-    yOCTUnzipOCTFolder(strcat(s, 'VolumeGanymedeOCTFile.oct'),s,true);
+	if in.unzipOCTFile
+		yOCTUnzipOCTFolder(strcat(s, 'VolumeGanymedeOCTFile.oct'),s,true);
+	end
     
     if(scanI==1)
 		%Figure out which OCT System are we scanning in
