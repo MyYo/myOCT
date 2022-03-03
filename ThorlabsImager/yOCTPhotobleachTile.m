@@ -25,6 +25,7 @@ function json = yOCTPhotobleachTile(varargin)
 %Debug parameters:
 %   v                       true            verbose mode  
 %   skipHardware            false           Set to true if you would like to calculate only and not move or photobleach 
+%   plotPattern             false           Plot the pattern of photonleach before executing on it.
 %OUTPUT:
 %   json with the parameters used for photboleach
   
@@ -43,6 +44,7 @@ addParameter(p,'oct2stageXYAngleDeg',0,@isnumeric);
 
 addParameter(p,'v',true);
 addParameter(p,'skipHardware',false);
+addParameter(p,'plotPattern',false);
 
 parse(p,varargin{:});
 json = p.Results;
@@ -139,6 +141,39 @@ for i=1:length(xcc)
     photobleachInstructions(i).linesPhotobleachedEnd = ptEndcc{i};
 end
 json.photobleachInstructions = photobleachInstructions;
+
+%% Plot the pattern
+if json.plotPattern
+    colors = num2cell(winter(length(xcc)),2);
+    
+    figure;
+    for tileI = 1:length(ptStartcc)
+        % Draw the phtobleach panel
+        rectangle('Position',...
+            [-FOV(1)/2+xcc(tileI) -FOV(2)/2+ycc(tileI) FOV(1) FOV(2)],...
+            'EdgeColor',[0.5 0.5 0.5]);
+        hold on;
+        
+        % Draw the lines that are photobleached
+        s = ptStartcc{tileI};
+        e = ptEndcc{tileI};
+        s_x = s(1,:);
+        s_y = s(2,:);
+        e_x = e(1,:);
+        e_y = e(2,:);
+        for plotI = 1:length(s_x)
+           plot([s_x(plotI) e_x(plotI)],[s_y(plotI) e_y(plotI)],'Color',colors{tileI});
+        end
+        
+    end
+    hold off;
+    axis equal;
+    axis ij;
+    grid on;
+    xlabel('x[mm]');
+    ylabel('y[mm]');
+end
+
 
 %% If skip hardware mode, we are done!
 if (json.skipHardware)
