@@ -18,6 +18,7 @@ function json = yOCTPhotobleachTile(varargin)
 %   nPasses                 2               Should we expose to laser light in single or multiple passes over the same spot? 
 %                                           The lower number of passes the better 
 %   oct2stageXYAngleDeg     0               The angle to convert OCT coordniate system to motor coordinate system, see yOCTStageInit
+%   maxLensFOV              []              What is the FOV allowed for photobleaching, by default will use lens defenition [mm].
 %Constraints
 %   enableZone              ones evrywhere  a function handle returning 1 if we can photobleach in that coordinate, 0 otherwise.
 %                                           For example, this function will allow photobleaching only in a circle:
@@ -41,6 +42,7 @@ addParameter(p,'exposure',15,@isnumeric);
 addParameter(p,'nPasses',2,@isnumeric);
 addParameter(p,'enableZone',NaN);
 addParameter(p,'oct2stageXYAngleDeg',0,@isnumeric);
+addParameter(p,'maxLensFOV',[]);
 
 addParameter(p,'v',true);
 addParameter(p,'skipHardware',false);
@@ -62,7 +64,16 @@ end
 ini = yOCTReadProbeIniToStruct(json.octProbePath);
 
 %Load FOV
-json.FOV = [ini.RangeMaxX ini.RangeMaxY];
+if isempty(json.maxLensFOV)
+    json.FOV = [ini.RangeMaxX ini.RangeMaxY];
+else
+    if length(json.maxLensFOV)==2
+        json.FOV = [json.maxLensFOV(1) maxLensFOV(2)];
+    else
+        json.FOV = [json.maxLensFOV(1) maxLensFOV(1)];
+    end
+end
+json = rmfield(json,'maxLensFOV');
 FOV = json.FOV;
 
 v = json.v;
