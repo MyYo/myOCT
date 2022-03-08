@@ -68,9 +68,9 @@ if isempty(json.maxLensFOV)
     json.FOV = [ini.RangeMaxX ini.RangeMaxY];
 else
     if length(json.maxLensFOV)==2
-        json.FOV = [json.maxLensFOV(1) maxLensFOV(2)];
+        json.FOV = [json.maxLensFOV(1) json.maxLensFOV(2)];
     else
-        json.FOV = [json.maxLensFOV(1) maxLensFOV(1)];
+        json.FOV = [json.maxLensFOV(1) json.maxLensFOV(1)];
     end
 end
 json = rmfield(json,'maxLensFOV');
