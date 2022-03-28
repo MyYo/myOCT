@@ -20,6 +20,7 @@ function [scanCpx,dimensionsOut] = yOCTInterfToScanCpx (varargin)
 %       - 'interpMethod', see help yOCTEquispaceInterf for interpetation
 %           methods
 %		- 'n' - medium refractive index. default: 1.33
+%               For brain tissue, use 1.35. Reference: Srinivasan VJ, Radhakrishnan H, Jiang JY, Barry S, & Cable AE (2012) Optical coherence microscopy for deep tissue imaging of the cerebral cortex with intrinsic contrast. Opt Express 20(3):2220-2239.
 %		- 'peakOnly' - if set to true, only returns dimensions update. Default: false
 %			dimensions = yOCTInterfToScanCpx (varargin)
 %OUTPUT
