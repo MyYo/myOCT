@@ -9,7 +9,7 @@ function [data, metadata, c] = yOCTFromTif (varargin)
 %       Path can be local or s3 path.
 % PARAMETERS:
 %   'xI','yI','zI' - specify which index of area of the data to load. 
-%       For example 'yI',1:10 will load first 10 frames. Default: load all.
+%       For example yOCTFromTif(filepath,'yI',1:10) will load first 10 frames. Default: load all.
 %       Notice that if you would like par
 %   'isLoadMetadataOnly' - when set to true will set data to [] and return
 %       metadata only. Default: false.
