@@ -76,6 +76,8 @@ end
 json = rmfield(json,'maxLensFOV');
 FOV = json.FOV;
 
+epsilon = 10e-3; % mm, small buffer number
+
 v = json.v;
 json = rmfield(json,'v');
 
@@ -93,6 +95,16 @@ if isa(enableZone,'function_handle')
     json.ptEnd = ptEnd;
 end
 
+%% Initial distance check
+dPerAxis = json.ptStart - json.ptEnd;
+d = sqrt(sum((dPerAxis).^2,1));
+if not(any(d>epsilon))
+    warning('No lines to photobleach, exit');
+    return;
+end
+
+%% Find what FOVs & lines to photobleach
+
 %Find what FOVs should we go to
 minX = min([json.ptStart(1,:) json.ptEnd(1,:)]);
 maxX = max([json.ptStart(1,:) json.ptEnd(1,:)]);
@@ -108,7 +120,6 @@ ptStartcc = cell(length(xcc),1);
 ptEndcc = ptStartcc;
 for i=1:length(ptStartcc)
     
-    epsilon = 10e-3; % mm, small buffer number 
     [ptStart,ptEnd] = yOCTApplyEnableZone(json.ptStart, json.ptEnd, ...
         @(x,y)( ...
             abs(x-xcc(i))<FOV(1)/2-epsilon*2 & ...
@@ -290,5 +301,3 @@ end
 yOCTStageMoveTo(x0,y0,z0,v);
 
 ThorlabsImagerNET.ThorlabsImager.yOCTScannerClose(); %Close scanner
-
-
