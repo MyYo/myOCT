@@ -9,6 +9,11 @@ inputDataFolder = awsModifyPathForCompetability(inputDataFolder,false); %No CLI 
 if awsIsAWSPath(inputDataFolder)
     awsSetCredentials;
 end
+
+%% Make sure folder exist
+if ~awsExist(inputDataFolder,'dir')
+    error('"%s" doesn''t exist, mistake?',inputDataFolder)
+end
     
 %% Select manufacturer by looking at file types
 try
