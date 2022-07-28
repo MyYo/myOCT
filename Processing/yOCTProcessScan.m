@@ -142,7 +142,11 @@ iis = zeros(nIterations,nYPerIteration);
 for i=1:nIterations
     iis(i,:) = ys((i-1)*nYPerIteration + (1:nYPerIteration));
 end
-sz = gather(size(datOut)); sz = sz(1:4);
+sz = gather(size(datOut));
+if length(sz)<4
+    sz((end+1):4) = 1;
+end
+sz = sz(1:4);
 myT = tic;
 
 if runProcessScanInParallel
