@@ -22,7 +22,10 @@ function json = yOCTPhotobleachTile(varargin)
 %Constraints
 %   enableZone              ones evrywhere  a function handle returning 1 if we can photobleach in that coordinate, 0 otherwise.
 %                                           For example, this function will allow photobleaching only in a circle:
-%                                           @(x,y)(x^2+y^2 < 2^2). enableZoon accuracy is 10um.
+%                                           @(x,y)(x^2+y^2 < 2^2). enableZone accuracy see enableZoneAccyracy_mum.
+%   bufferZoneWidth         10e-3           To prevent line overlap between near by tiles we use a buffer zone [mm].
+%   enableZoneAccuracy      5e-3            Defines the evaluation step size of enable zone [mm].
+%   minLineLength           10e-3           Minimal line length to photobleach, shorter lines are skipped [mm].
 %Debug parameters:
 %   v                       true            verbose mode  
 %   skipHardware            false           Set to true if you would like to calculate only and not move or photobleach 
@@ -43,6 +46,9 @@ addParameter(p,'nPasses',2,@isnumeric);
 addParameter(p,'enableZone',NaN);
 addParameter(p,'oct2stageXYAngleDeg',0,@isnumeric);
 addParameter(p,'maxLensFOV',[]);
+addParameter(p,'bufferZoneWidth',10e-3,@isnumeric);
+addParameter(p,'enableZoneAccuracy',5e-3,@isnumeric);
+addParameter(p,'minLineLength',10e-3,@isnumeric);
 
 addParameter(p,'v',true);
 addParameter(p,'skipHardware',false);
@@ -98,7 +104,7 @@ end
 %% Initial distance check
 dPerAxis = json.ptStart - json.ptEnd;
 d = sqrt(sum((dPerAxis).^2,1));
-if not(any(d>epsilon))
+if not(any(d>json.minLineLength))
     warning('No lines to photobleach, exit');
     return;
 end
@@ -122,17 +128,17 @@ for i=1:length(ptStartcc)
     
     [ptStart,ptEnd] = yOCTApplyEnableZone(json.ptStart, json.ptEnd, ...
         @(x,y)( ...
-            abs(x-xcc(i))<FOV(1)/2-epsilon*2 & ...
-            abs(y-ycc(i))<FOV(2)/2-epsilon*2 ) ...
-        , epsilon);
+            abs(x-xcc(i))<FOV(1)/2-json.bufferZoneWidth/2 & ...
+            abs(y-ycc(i))<FOV(2)/2-json.bufferZoneWidth/2 ) ...
+        , json.enableZoneAccuracy);
 
     % Compute line length
     dPerAxis = ptStart - ptEnd;
     d = sqrt(sum((dPerAxis).^2,1));
     
     % Remove lines that are too short to photobleach
-    ptStart(:,d<epsilon) = [];
-    ptEnd(:,d<epsilon) = [];
+    ptStart(:,d<json.minLineLength) = [];
+    ptEnd(:,d<json.minLineLength) = [];
  
     % Double check we don't have lines that are too long
     if ~isempty(dPerAxis)
