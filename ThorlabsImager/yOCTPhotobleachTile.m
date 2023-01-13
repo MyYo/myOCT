@@ -228,7 +228,19 @@ if (v)
     fprintf('%s Initialzing Motorized Translation Stage Hardware Completed\n',datestr(datetime));
 end
 
-%% Photobleach
+%% Turn laser diode on
+% We set switch to OCT position to prevent light leak
+fprintf('%s Turning Laser Diode On... \n\t(if Matlab is taking more than 1 minute to finish this step, restart hardware and try again)\n',datestr(datetime));
+
+yOCTTurnOpticalSwitch('OCT'); % Set switch position away from photodiode
+            
+% Switch light on, write to screen only for first line
+% ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(true);  % Version using .NET
+yOCTTurnLaser(true); % Version using Matlab directly
+
+fprintf('%s Laser Diode is On\n',datestr(datetime)); 
+
+%% Photobleach pattern
 
 % Loop over FOVs
 for i=1:length(xcc)
@@ -240,20 +252,11 @@ for i=1:length(xcc)
                 datestr(datetime),xcc(i),ycc(i),json.z(iZ),i,length(xcc));
         end
     
+        % Move stage to next position
         yOCTStageMoveTo(x0+xcc(i),y0+ycc(i),z0+json.z(iZ),v);
-    
-        if (v && i==1 && iZ==1)
-            fprintf('%s Turning Laser Diode On For The First Time... \n\t(if Matlab is taking more than 1 minute to finish this step, restart hardware and try again)\n',datestr(datetime));
-            %Switch light on, write to screen only for first line
-            % ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(true);  % Version using .NET
-            yOCTTurnLaser(true); % Version using Matlab directly
-            fprintf('%s Laser Diode is On\n',datestr(datetime)); 
-        else
-            % Version using .NET
-            %evalc('ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(true);'); %Switch light on, use evalc to prevent writing to window
-
-            yOCTTurnLaser(true); % Version using Matlab directly
-        end
+        
+        % Set optical switch to "on" position
+        yOCTTurnOpticalSwitch('photodiode');
 
         %Find lines to photobleach, center along current position of the stage
         ptStart = ptStartcc{i} - [xcc(i);ycc(i)];
@@ -282,21 +285,24 @@ for i=1:length(xcc)
 
         end
 
-        if (v && i==1 && iZ==1)
-            fprintf('%s Turning Laser Diode Off For The First Time... \n\t(if Matlab is taking more than 1 minute to finish this step, restart hardware and try again)\n',datestr(datetime));
-            %Switch light off, write to screen only for first line
-            %ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(false); % Version using .NET
-            yOCTTurnLaser(false); % Version using Matlab directly
-            fprintf('%s Laser Diode is Off\n',datestr(datetime)); 
-        else
-            % Version using .NET
-            %evalc('ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(false);'); %Switch light off, use evalc to prevent writing to window
-            yOCTTurnLaser(false); % Version using Matlab directly
-        end
+        % Set optical switch to "off" position
+        yOCTTurnOpticalSwitch('OCT');
     
         pause(0.5);
     end
 end
+
+%% Turn laser diode off
+% We set switch to OCT position to prevent light leak
+fprintf('%s Turning Laser Diode Off... \n\t(if Matlab is taking more than 1 minute to finish this step, restart hardware and try again)\n',datestr(datetime));
+
+yOCTTurnOpticalSwitch('OCT'); % Set switch position away from photodiode
+            
+% Switch light on, write to screen only for first line
+% ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(false);  % Version using .NET
+yOCTTurnLaser(false); % Version using Matlab directly
+
+fprintf('%s Laser Diode is Off\n',datestr(datetime)); 
 
 %% Finalize
 if (v)
