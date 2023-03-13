@@ -14,7 +14,7 @@ function json = yOCTPhotobleachTile(varargin)
 %                                           Can be array for multiple depths. Use array for high NA lens that require photobleach in serveral depths
 %   exposure                15              How much time to expose each spot to laser light. Units sec/mm 
 %                                           Meaning for each 1mm, we will expose for exposurePerLine sec 
-%                                           If scanning at multiple depths, exposure will be devided by length(z) for each line 
+%                                           If scanning at multiple depths, exposure will for each depth. Meaning two depths will be exposed twice as much. 
 %   nPasses                 2               Should we expose to laser light in single or multiple passes over the same spot? 
 %                                           The lower number of passes the better 
 %   oct2stageXYAngleDeg     0               The angle to convert OCT coordniate system to motor coordinate system, see yOCTStageInit
@@ -276,7 +276,7 @@ for i=1:length(xcc)
             ThorlabsImagerNET.ThorlabsImager.yOCTPhotobleachLine( ...
                 ptStart(1,j),ptStart(2,j), ... Start X,Y
                 ptEnd(1,j),  ptEnd(2,j)  , ... End X,y
-                json.exposure*d/length(json.z),  ... Exposure time sec
+                json.exposure*d,  ... Exposure time sec
                 json.nPasses); 
 
             if (v && i==1 && j==1)
