@@ -29,7 +29,7 @@ function yOCTProcessTiledScan(varargin)
 %   howManyYPlanes              3       How many y planes to save (if yPlanesOutput folder is set)
 %Other parameters:
 %   applyPathLengthCorrection true  Apply path link correction, if probe ini has the information.
-%   v                   true        verbose mode      
+%   v                         true        verbose mode      
 %
 %OUTPUT:
 %   No output is returned. Will save mag2db(scan Abs) to outputPath, and
@@ -146,7 +146,11 @@ yCenters = json.yCenters;
 xOneTile = json.xOffset+json.xRange*linspace(-0.5,0.5,json.nXPixels+1); xOneTile(end) = [];
 dx = diff(xOneTile(1:2));
 yOneTile = json.yOffset+json.yRange*linspace(-0.5,0.5,json.nYPixels+1); yOneTile(end) = [];
-dy = diff(yOneTile(1:2));
+if (length(yOneTile) > 1)
+    dy = diff(yOneTile(1:2));
+else
+    dy = 0; % No y axis
+end
 zOneTile = dimOneTile.z.values(:)'; %[mm]
 dz = diff(zOneTile(1:2));
 
@@ -159,7 +163,7 @@ zAll = (min(zDepths)+zOneTile(1)):dz:(max(zDepths)+zOneTile(end)+dz);zAll = zAll
 if (length(xCenters) == 1)
     xAll = xAll(1:length(dimOneTileProcessed.x.values));
 end
-if (length(yCenters) == 1)
+if (length(yCenters) == 1 && ~isempty(yAll)) % yAll will be empty in the case of scanning a Bscan with no volume in y axis
     yAll = yAll(1:length(dimOneTileProcessed.y.values));
 end
 
