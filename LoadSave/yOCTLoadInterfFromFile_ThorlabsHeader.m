@@ -91,7 +91,7 @@ dimensions.x.index = dimensions.x.index(:)';
 order = order + 1;
 
 %Across B Scan Axis (y)
-if str2double(xDoc.Image.SizeReal.SizeY.Text) == 0  %Only 1 B Scan
+if ~isfield(xDoc.Image.SizeReal,'SizeY') || str2double(xDoc.Image.SizeReal.SizeY.Text) == 0  %No Y axis
     sizeY = 1;
     dimensions.y.order = NaN;
     dimensions.y.values = 0;
