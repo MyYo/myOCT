@@ -158,6 +158,7 @@ if (verbose || in.manualRefinment)
     legend('First Guess','Updated Guess');
     fprintf('Initial guess: %.d[pix]\n',focusZPixel_Step1);
     fprintf('Updated guess: %.d[pix]\n',focusZPixel_Step2);
+    caxis([-5 6]);
 end
 
 %% Step #3 Manual refinement
