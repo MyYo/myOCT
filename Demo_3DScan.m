@@ -3,6 +3,9 @@
 % Before running this script, make sure myOCT folder is in path for example
 % by running: addpath(genpath('F:\Jenkins\Scan OCTHist Dev\workspace\'))
 
+% The protocol for how to use this script can be found here:
+% https://docs.google.com/presentation/d/1EUYneJwzGAgj2Qg-rG0k6EQb5t1KOCVi0VxEJl8mPmM/edit#slide=id.g25bcdbd2c45_0_0
+
 %% Inputs
 
 % Define the 3D Volume
@@ -33,7 +36,7 @@ output_folder = '\';
 
 % Foe debug purpuse. Set to true if you would like to process existing scan
 % rather than scan a new one.
-skipScanning = true;
+skipScanning = false;
 
 %% Compute scanning parameters
 % Check that scan range is a whole number compared to octProbeFOV_mm
