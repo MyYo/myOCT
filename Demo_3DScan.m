@@ -83,14 +83,14 @@ end
 
 % Define number of pixels in each axis to preserve pixel size
 nXPixels = xRange_mm * 1000 / pixel_size_um;
-yXPixels = yRange_mm * 1000 / pixel_size_um;
+nYPixels = yRange_mm * 1000 / pixel_size_um;
 
 % Deal with single B-Scan situation.
 if isnan(y_centers_mm)
     % Only a single B-Scan is needed
     y_centers_mm = 0;
     yRange_mm = octProbeFOV_mm/10;
-    yXPixels = 2; % Scan two pixels in y direction since this code is not ment for a single B scan
+    nYPixels = 2; % Scan two pixels in y direction since this code is not ment for a single B scan
 end
 
 %% Perform the scan
