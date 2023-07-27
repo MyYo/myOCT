@@ -146,20 +146,6 @@ focusZPixel_Step2 = round(p(i));
 %% Show Our result
 if (verbose || in.manualRefinment)
     figure(4)
-    subplot(1,4,[1 3])
-    imagesc(dim.x.values,dim.z.values,squeeze(log(mean(meanAbs,3))))
-    colormap gray
-    hold on;
-    plot(dim.x.values([1 end]),dim.z.values(focusZPixel_Step1)*[1 1],'--');
-    plot(dim.x.values([1 end]),dim.z.values(focusZPixel_Step2)*[1 1],'--');
-    hold off;
-    xlabel(['x [' dim.x.units ']'])
-    ylabel(['z [' dim.z.units ']'])
-    title('Focus Position');
-    legend('First Guess','Updated Guess');
-    fprintf('Initial guess: %.d[pix]\n',focusZPixel_Step1);
-    fprintf('Updated guess: %.d[pix]\n',focusZPixel_Step2);
-    caxis([-5 6]);
     
     subplot(1,4,4);
     m = mean(meanAbs,[2,3]);
@@ -174,6 +160,21 @@ if (verbose || in.manualRefinment)
     grid on;
     axis ij;
     title('Average Intensity');
+    
+    subplot(1,4,[1 3])
+    imagesc(dim.x.values,dim.z.values,squeeze(log(mean(meanAbs,3))))
+    colormap gray
+    hold on;
+    plot(dim.x.values([1 end]),dim.z.values(focusZPixel_Step1)*[1 1],'--');
+    plot(dim.x.values([1 end]),dim.z.values(focusZPixel_Step2)*[1 1],'--');
+    hold off;
+    xlabel(['x [' dim.x.units ']'])
+    ylabel(['z [' dim.z.units ']'])
+    title('Focus Position');
+    legend('First Guess','Updated Guess');
+    fprintf('Initial guess: %.d[pix]\n',focusZPixel_Step1);
+    fprintf('Updated guess: %.d[pix]\n',focusZPixel_Step2);
+    caxis([-5 6]);
 end
 
 %% Step #3 Manual refinement
@@ -193,10 +194,20 @@ title('Click on the image where the focus is');
 focusZPixel_Step3 = round(focusZPixel_Step3);
 fprintf('Distance between my guess and user: %d[pixels]\n',abs(focusZPixel_Step3-focusZPixel_Step2));
 
+% Update main figure
+subplot(1,4,[1 3])
 hold on
-plot(dim.x.values([1 end]),dim.z.values(focusZPixel_Step3)*[1 1],'--');
+plot(dim.x.values([1 end]),dim.z.values(focusZPixel_Step3)*[1 1],'--','Color',[0.9 0.8 0.2],'LineWidth',2);
 legend('First Guess','Updated Guess','User Input');
 hold off;
+
+% Update average figure
+subplot(1,4,4);
+hold on
+plot(dim.x.values([1 end]),dim.z.values(focusZPixel_Step3)*[1 1],'--','Color',[0.9 0.8 0.2],'LineWidth',2);
+hold off;
+
+% Allow figure to update to show the result
 pause(0.1);
 
 if (verbose)
