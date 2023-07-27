@@ -119,7 +119,7 @@ for i=1:length(tissueZi)
     end
 end
 
-focusZPixel_Step1 = median(tissueZi); % pixel of part #1
+focusZPixel_Step1 = round(median(tissueZi)); % pixel of part #1
 
 %% Step #2, refine using the gel
 if (verbose)
@@ -141,11 +141,12 @@ m = imgaussfilt(m,4); %Apply Gaussian filtering
 % Find peaks, closest to first guess
 [~,p] = findpeaks(m);
 [~,i] = min(abs(p - focusZPixel_Step1));
-focusZPixel_Step2 = p(i);
+focusZPixel_Step2 = round(p(i));
 
 %% Show Our result
 if (verbose || in.manualRefinment)
     figure(4)
+    subplot(1,4,[1 3])
     imagesc(dim.x.values,dim.z.values,squeeze(log(mean(meanAbs,3))))
     colormap gray
     hold on;
@@ -159,6 +160,20 @@ if (verbose || in.manualRefinment)
     fprintf('Initial guess: %.d[pix]\n',focusZPixel_Step1);
     fprintf('Updated guess: %.d[pix]\n',focusZPixel_Step2);
     caxis([-5 6]);
+    
+    subplot(1,4,4);
+    m = mean(meanAbs,[2,3]);
+    scaleM = mean(m(focusZPixel_Step2+(-20:20)));
+    scaleM = scaleM*[0.5 2];
+    plot(scaleM,dim.z.values(focusZPixel_Step1)*[1 1],'--');
+    hold on;
+    plot(scaleM,dim.z.values(focusZPixel_Step2)*[1 1],'--');
+    plot(m,dim.z.values,'k');
+    hold off;
+    xlim(scaleM);
+    grid on;
+    axis ij;
+    title('Average Intensity');
 end
 
 %% Step #3 Manual refinement
@@ -175,12 +190,14 @@ end
 title('Click on the image where the focus is');
 [~,z] = ginput(1); %Get z index of the focus
 [~,focusZPixel_Step3] = min(abs(z-dim.z.values));
+focusZPixel_Step3 = round(focusZPixel_Step3);
 fprintf('Distance between my guess and user: %d[pixels]\n',abs(focusZPixel_Step3-focusZPixel_Step2));
 
 hold on
 plot(dim.x.values([1 end]),dim.z.values(focusZPixel_Step3)*[1 1],'--');
 legend('First Guess','Updated Guess','User Input');
 hold off;
+pause(0.1);
 
 if (verbose)
     fprintf('User input: %d[pix]\n',focusZPixel_Step3);
