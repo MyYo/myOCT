@@ -119,13 +119,34 @@ maxY = max([json.ptStart(2,:) json.ptEnd(2,:)]);
 xCenters = unique([0:(-FOV(1)):(minX-FOV(1)) 0:FOV(1):(maxX+FOV(1))]);
 yCenters = unique([0:(-FOV(2)):(minY-FOV(1)) 0:FOV(1):(maxY+FOV(2))]);
 
+% Check if there are lines that start and finish close to the edges of FOV.
+% If thereare, they may not be drawn at all and we should warn the user
+[xedg,yedg]=meshgrid(...
+    [xCenters-FOV(1)/2, xCenters(end)+FOV(1)/2], ...
+    [yCenters-FOV(2)/2, yCenters(end)+FOV(2)/2]);
+xedg = xedg(:);
+yedg = yedg(:);
+isLineTooCloseToEdge = zeros(1,size(json.ptStart,2),'logical');
+for i=1:length(xedg)
+    pt0 = [xedg(i); yedg(i)];
+    isLineTooCloseToEdge = isLineTooCloseToEdge | ...
+        sqrt(sum((json.ptStart-pt0).^2))<json.bufferZoneWidth | ...
+        sqrt(sum((json.ptEnd  -pt0).^2))<json.bufferZoneWidth;
+end
+if (any(isLineTooCloseToEdge))
+    ii = find(isLineTooCloseToEdge,1,'first');
+    warning(['Photobleaching line from (%.1fmm, %.1fmm) to (%.1fmm, %.1fmm).\n' ...
+        'This line is very close to lens''s edge and might not show up.\n' ...
+        'Please move line inside lens''s FOV'],...
+        json.ptStart(ii,1), json.ptStart(ii,2),json.ptEnd(ii,1), json.ptEnd(ii,2));
+end
+
 %Generate what lines we should draw for each center
 [xcc,ycc]=meshgrid(xCenters,yCenters);
 xcc = xcc(:); ycc = ycc(:);
 ptStartcc = cell(length(xcc),1);
 ptEndcc = ptStartcc;
-for i=1:length(ptStartcc)
-    
+for i=1:length(ptStartcc)    
     [ptStart,ptEnd] = yOCTApplyEnableZone(json.ptStart, json.ptEnd, ...
         @(x,y)( ...
             abs(x-xcc(i))<FOV(1)/2-json.bufferZoneWidth/2 & ...
