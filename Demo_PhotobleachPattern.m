@@ -9,7 +9,7 @@
 % Mock option: When set to true the stage will not move and we will not
 % photobleach. Use "true" when you would like to see the output without
 % physcaily running the test.
-isMockTrial = true;
+isMockTrial = false;
 
 % Photobleach pattern configuration
 lens = '40x';
