@@ -51,6 +51,11 @@ if ((yOverallRange_mm > octProbeFOV_mm) && ...
     error('The range expresed in yOverall_mm should be a multiplier of octProbeFOV_mm');
 end
 
+% Check that sufficient ammount of gel is above the tissue for proper focus
+if (min(zToScan_mm)) > -100e-3
+	warning('Because we use gel above tissue to find focus position. It is important to have at least one of the z-stacks in the gel. Consider having the minimum zToScan_mm to be -100e-3[mm]')
+end
+
 % Define centers of the scan
 x_centers_mm = ...
     (xOverall_mm(1) + octProbeFOV_mm/2) : ...
