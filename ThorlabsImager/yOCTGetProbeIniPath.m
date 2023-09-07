@@ -1,9 +1,9 @@
 function p = yOCTGetProbeIniPath(magnificationStr, otherKeyword)
 % Returns probe ini absulte path for usage by this function
 % Some options:
-% 	p = getProbeIniPath('10x'); 
-%	p = getProbeIniPath('40x')
-%	p = getProbeIniPath('10x','OCTP900')
+% 	p = yOCTGetProbeIniPath('10x'); 
+%	p = yOCTGetProbeIniPath('40x')
+%	p = yOCTGetProbeIniPath('10x','OCTP900')
 
 %% Input checks
 if ~exist('magnificationStr','var') || isempty(magnificationStr)
