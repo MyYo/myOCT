@@ -15,7 +15,7 @@ yOverall_mm = [-1 1]; % Define the overall volume you would like to scan [start,
 % Set yOverall_mm = [NaN,NaN] if you would like to only do a BScan.
 
 % Define probe 
-octProbePath = getProbeIniPath('10x');
+octProbePath = getProbeIniPath('10x'); % Probe ini spec, you can use getProbeIniPath('10x','OCTP900') etc
 octProbeFOV_mm = 0.5; % How much of the field of view to use from the probe.
 oct2stageXYAngleDeg = 0; % Angle between x axis of the motor and the Galvo's x axis
 
