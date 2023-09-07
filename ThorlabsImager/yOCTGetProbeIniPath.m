@@ -13,7 +13,7 @@ if ~exist('otherKeyword','var') || isempty(otherKeyword)
 	otherKeyword = '';
 end
 
-overallKeyword = lower([magnificationStr otherKeyword])
+overallKeyword = lower([magnificationStr otherKeyword]);
 
 %% Set name 
 switch(overallKeyword)
