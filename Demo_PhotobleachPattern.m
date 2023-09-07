@@ -12,8 +12,7 @@
 isMockTrial = false;
 
 % Photobleach pattern configuration
-lens = '40x';
-octProbePath = getProbeIniPath(lens); % Select lens magnification
+octProbePath = yOCTGetProbeIniPath('40x'); % Select lens magnification
 
 % Pattern to photobleach. System will photobleach n lines from 
 % (x_start(i), y_start(i)) to (x_end(i), y_end(i))
