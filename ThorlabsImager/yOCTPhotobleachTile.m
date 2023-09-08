@@ -30,6 +30,11 @@ function json = yOCTPhotobleachTile(varargin)
 %   v                       true            verbose mode  
 %   skipHardware            false           Set to true if you would like to calculate only and not move or photobleach 
 %   plotPattern             false           Plot the pattern of photonleach before executing on it.
+%	laserToggleMethod		'OpticalSwitch' In order to turn off laser in between photobleach lines we can either use 'OpticalSwitch', or 'LaserPowerSwitch'
+%											'OpticalSwitch' is faster and more reliable, but if you don't have optical switch in the system setup
+%											The script can utilize 'LaserPowerSwitch' to turn on/off the diode. This is slower method with less accuracy but
+%											can work if no optical switch in the setup.
+%											View current setup: https://docs.google.com/document/d/1xHOKHVPpNBcxyRosTiVxx17hyXQ0NDnQGgiR3jcAuOM/edit
 %OUTPUT:
 %   json with the parameters used for photboleach
   
@@ -53,6 +58,7 @@ addParameter(p,'minLineLength',10e-3,@isnumeric);
 addParameter(p,'v',true);
 addParameter(p,'skipHardware',false);
 addParameter(p,'plotPattern',false);
+addParameter(p,'laserToggleMethod','OpticalSwitch');
 
 parse(p,varargin{:});
 json = p.Results;
@@ -111,7 +117,7 @@ end
 
 %% Find what FOVs & lines to photobleach
 
-%Find what FOVs should we go to
+% Find what FOVs should we go to
 minX = min([json.ptStart(1,:) json.ptEnd(1,:)]);
 maxX = max([json.ptStart(1,:) json.ptEnd(1,:)]);
 minY = min([json.ptStart(2,:) json.ptEnd(2,:)]);
@@ -141,7 +147,7 @@ if (any(isLineTooCloseToEdge))
         json.ptStart(1,ii), json.ptStart(2,ii),json.ptEnd(1,ii), json.ptEnd(2,ii));
 end
 
-%Generate what lines we should draw for each center
+% Generate what lines we should draw for each center
 [xcc,ycc]=meshgrid(xCenters,yCenters);
 xcc = xcc(:); ycc = ycc(:);
 ptStartcc = cell(length(xcc),1);
@@ -250,10 +256,14 @@ if (v)
 end
 
 %% Turn laser diode on
+
+if strcmpi(json.laserToggleMethod,'OpticalSwitch')
 % We set switch to OCT position to prevent light leak
 fprintf('%s Turning Laser Diode On... \n\t(if Matlab is taking more than 1 minute to finish this step, restart hardware and try again)\n',datestr(datetime));
 
-yOCTTurnOpticalSwitch('OCT'); % Set switch position away from photodiode
+if strcmpi(json.laserToggleMethod,'OpticalSwitch')
+	yOCTTurnOpticalSwitch('OCT'); % Set switch position away from photodiode
+end
             
 % Switch light on, write to screen only for first line
 % ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(true);  % Version using .NET
@@ -276,8 +286,12 @@ for i=1:length(xcc)
         % Move stage to next position
         yOCTStageMoveTo(x0+xcc(i),y0+ycc(i),z0+json.z(iZ),v);
         
-        % Set optical switch to "on" position
-        yOCTTurnOpticalSwitch('photodiode');
+		if strcmpi(json.laserToggleMethod,'OpticalSwitch')
+			% Set optical switch to "on" position
+			yOCTTurnOpticalSwitch('photodiode');
+		else
+			% No optical switch, we just keept the diode on, it will createa a phantom line 
+		end
 
         %Find lines to photobleach, center along current position of the stage
         ptStart = ptStartcc{i} - [xcc(i);ycc(i)];
@@ -306,8 +320,10 @@ for i=1:length(xcc)
 
         end
 
-        % Set optical switch to "off" position
-        yOCTTurnOpticalSwitch('OCT');
+		if strcmpi(json.laserToggleMethod,'OpticalSwitch')
+			% Set optical switch to "off" position
+			yOCTTurnOpticalSwitch('OCT');
+		end
     
         pause(0.5);
     end
@@ -317,7 +333,9 @@ end
 % We set switch to OCT position to prevent light leak
 fprintf('%s Turning Laser Diode Off... \n\t(if Matlab is taking more than 1 minute to finish this step, restart hardware and try again)\n',datestr(datetime));
 
-yOCTTurnOpticalSwitch('OCT'); % Set switch position away from photodiode
+if strcmpi(json.laserToggleMethod,'OpticalSwitch')
+	yOCTTurnOpticalSwitch('OCT'); % Set switch position away from photodiode
+end
             
 % Switch light on, write to screen only for first line
 % ThorlabsImagerNET.ThorlabsImager.yOCTTurnLaser(false);  % Version using .NET
