@@ -152,6 +152,7 @@ end
 xcc = xcc(:); ycc = ycc(:);
 ptStartcc = cell(length(xcc),1);
 ptEndcc = ptStartcc;
+lineLengths = ptEndcc;
 for i=1:length(ptStartcc)    
     [ptStart,ptEnd] = yOCTApplyEnableZone(json.ptStart, json.ptEnd, ...
         @(x,y)( ...
@@ -170,16 +171,17 @@ for i=1:length(ptStartcc)
     % Double check we don't have lines that are too long
     if ~isempty(dPerAxis)
         if any( abs(dPerAxis(1,:))>FOV(1) | abs(dPerAxis(2,:))>FOV(2) )
-            error('One (or more) of the photobleach lines is longer than the allowed size, this might cause photobleaching errors!');
+            error('One (or more) of the photobleach lines is longer than the allowed size by lens, this might cause photobleaching errors!');
         end
     end
     
     % Save lines
     ptStartcc{i} = ptStart;
     ptEndcc{i} = ptEnd;
+	lineLengths{i} = d;
 end
 
-%Remove empty slots
+% Remove empty slots
 em = cellfun(@isempty,ptStartcc);
 ptStartcc(em) = [];
 ptEndcc(em) = [];
@@ -196,6 +198,10 @@ for i=1:length(xcc)
     photobleachInstructions(i).linesPhotobleachedEnd = ptEndcc{i};
 end
 json.photobleachInstructions = photobleachInstructions;
+
+%% Estimate photobleach time
+totalLineLength = sum(sum(lineLengths{:})); % mm
+estimatedPhotobleachTime_sec = totalLineLength*json.exposure; % sec
 
 %% Plot the pattern
 if json.plotPattern
@@ -227,6 +233,7 @@ if json.plotPattern
     grid on;
     xlabel('x[mm]');
     ylabel('y[mm]');
+	title(sprintf('Photobleach Pattern\nEstimated Time: %.0f minutes',ceil(estimatedPhotobleachTime_sec/60)));
 end
 
 
