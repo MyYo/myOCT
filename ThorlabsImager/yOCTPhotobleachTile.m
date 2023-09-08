@@ -264,11 +264,10 @@ end
 
 %% Turn laser diode on
 
-if strcmpi(json.laserToggleMethod,'OpticalSwitch')
-% We set switch to OCT position to prevent light leak
 fprintf('%s Turning Laser Diode On... \n\t(if Matlab is taking more than 1 minute to finish this step, restart hardware and try again)\n',datestr(datetime));
 
 if strcmpi(json.laserToggleMethod,'OpticalSwitch')
+	% We set switch to OCT position to prevent light leak
 	yOCTTurnOpticalSwitch('OCT'); % Set switch position away from photodiode
 end
             
