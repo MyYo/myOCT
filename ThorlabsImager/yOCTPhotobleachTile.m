@@ -187,6 +187,7 @@ ptStartcc(em) = [];
 ptEndcc(em) = [];
 xcc(em) = [];
 ycc(em) = [];
+lineLengths(em)=[];
 
 %% Add photonleach instructions to json
 clear photobleachInstructions;
@@ -200,7 +201,7 @@ end
 json.photobleachInstructions = photobleachInstructions;
 
 %% Estimate photobleach time
-totalLineLength = sum(sum(lineLengths{:})); % mm
+totalLineLength = sum(sum([lineLengths{:}])); % mm
 estimatedPhotobleachTime_sec = totalLineLength*json.exposure; % sec
 
 %% Plot the pattern
