@@ -11,7 +11,8 @@ function json = yOCTPhotobleachTile(varargin)
 %   octProbePath            'probe.ini'     Where is the probe.ini is saved to be used
 %Photobleaching Parameters:
 %   z                       0               Photobleaching depth (compared to corrent position in mm). 
-%                                           Can be array for multiple depths. Use array for high NA lens that require photobleach in serveral depths
+%                                           Can be array for multiple depths. Use array for high NA lens that require photobleach in serveral depths.
+%                                           This option will draw the same lines defined in ptStart and ptEnd in multiple dpeths. 
 %   exposure                15              How much time to expose each spot to laser light. Units sec/mm 
 %                                           Meaning for each 1mm, we will expose for exposurePerLine sec 
 %                                           If scanning at multiple depths, exposure will for each depth. Meaning two depths will be exposed twice as much. 
@@ -93,6 +94,10 @@ epsilon = 10e-3; % mm, small buffer number
 v = json.v;
 json = rmfield(json,'v');
 
+% Check number of passes and exposure
+assert(length(json.nPasses) == 1, 'Only 1 nPasses is permitted for all lines');
+assert(length(json.exposure) == 1, 'Only 1 exposure is permitted for all lines');
+    
 %% Pre processing
 
 if isempty(json.ptStart) || isempty(json.ptEnd)
