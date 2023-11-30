@@ -1,4 +1,4 @@
-function yOCTTurnOpticalSwitch(newState, com, delayStart_sec)
+function yOCTTurnOpticalSwitch(newState)
 % This script controls Agiltron Optical Switch. To select between
 % photodiode path and OCT
 % https://docs.google.com/document/d/110r7mnKVDM_gtPJmkoLcAxplEn8t0JWKQvdcDOx5qJA/edit
@@ -6,19 +6,10 @@ function yOCTTurnOpticalSwitch(newState, com, delayStart_sec)
 %   newState 
 %       - set to 'photodiode' to connect photo diode fiber
 %       - set to 'OCT' to connect OCT 
-%   com - which com port is the switch on. 
-%       Default is 'COM3'. To see a list of all ports: serialportlist.
-%   delayStart_sec - Utilize this option to delay the turn on operation in
-%       order to sync with the OCT scan head. If value is 0 (default), bypass.
 
-%% Input processing
-if ~exist('com','var') || isempty(com)
-    com = 'COM3';
-end
-
-if ~exist('delayStart_sec','var') || isempty(delayStart_sec)
-    delayStart_sec = 0;
-end
+tic
+%% Input Processing
+% Nothing to do here
 
 %% Set Data
 switch(lower(newState))
@@ -37,18 +28,16 @@ if isempty(tmr)
 end
 
 %% Execute command
-execute_command = @(tmp_1, tmp_2)(execute_command1(data));
-
-if delayStart_sec == 0
-    execute_command()
-else   
-    % Start with async delay
-    set(tmr,'StartDelay',delayStart_sec)
-    set(tmr,'TimerFcn',execute_command)
-    start(tmr);
+persistent sp
+if isempty(sp)
+    % This is the first time we turn switch, connect to Port
+    sp=serialport('COM3',9600,'Timeout',5); %If that COM doesn't exist use serialportlist to list all options.
 end
+write(sp,data,'uint8'); % Selects photobleach diode
+%delete(sp) % Disconnect from port
 
-function execute_command1 (data)
-s=serialport('COM3',9600,'Timeout',5);
-write(s,data,'uint8'); % Selects photobleach diode
-delete(s)
+%% Timing analysis
+tt_ms=toc()*1e3;
+if (tt_ms > 2)
+    warning("yOCTTurnOpticalSwitch('%s') took %.1fms, which is longer than expected",newState,tt_ms);
+end
