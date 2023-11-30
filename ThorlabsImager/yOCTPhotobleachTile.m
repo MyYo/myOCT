@@ -298,45 +298,16 @@ for i=1:length(xcc)
         % Move stage to next position
         yOCTStageMoveTo(x0+xcc(i),y0+ycc(i),z0+json.z(iZ),v);
         
-		if strcmpi(json.laserToggleMethod,'OpticalSwitch')
-			% Set optical switch to "on" position
-			yOCTTurnOpticalSwitch('photodiode');
-		else
-			% No optical switch, we just keept the diode on, it will createa a phantom line 
-		end
-
         %Find lines to photobleach, center along current position of the stage
         ptStart = ptStartcc{i} - [xcc(i);ycc(i)];
         ptEnd   = ptEndcc{i}   - [xcc(i);ycc(i)];
-
-        %Loop over all lines
-        for j=1:size(ptStart,2)
-            if (v)
-                fprintf('%s \tPhotobleaching Line #%d of %d\n',datestr(datetime),j,size(ptStart,2));
-            end
-
-            if (v && i==1 && j==1)
-                fprintf('%s Drawing First Line. This is The First Time Galvo Is Moving... \n\t(if Matlab is taking more than a few minutes to finish this step, restart hardware and try again)\n',datestr(datetime));
-            end
-
-            d = sqrt(sum( (ptStart(:,j) - ptEnd(:,j)).^2));
-            ThorlabsImagerNET.ThorlabsImager.yOCTPhotobleachLine( ...
-                ptStart(1,j),ptStart(2,j), ... Start X,Y
-                ptEnd(1,j),  ptEnd(2,j)  , ... End X,y
-                json.exposure*d,  ... Exposure time sec
-                json.nPasses); 
-
-            if (v && i==1 && j==1)
-                fprintf('%s Drew The First Line!\n',datestr(datetime));
-            end
-
-        end
-
-		if strcmpi(json.laserToggleMethod,'OpticalSwitch')
-			% Set optical switch to "off" position
-			yOCTTurnOpticalSwitch('OCT');
-		end
-    
+        exposures_sec = json.exposure*sqrt(sum( (ptStart - ptEnd).^2));
+        
+        % Perform photobleaching of this FOV
+        photobleach_lines(ptStart,ptEnd, exposures_sec, v, i, json);
+ 
+        % Wait before moving the stage to next position to prevent stage
+        % motor jamming.
         pause(0.5);
     end
 end
@@ -364,3 +335,55 @@ end
 yOCTStageMoveTo(x0,y0,z0,v);
 
 ThorlabsImagerNET.ThorlabsImager.yOCTScannerClose(); %Close scanner
+
+
+%% Working with live laser
+function photobleach_lines(ptStart,ptEnd, exposures_sec, v, i, json)
+% This function performes the photobleaching itself. Avoid doing doing any
+% calculations in this function as laser beam is on and will continue
+% photobleaching.
+
+numberOfLines = size(ptStart,2);
+
+% Turn on
+if strcmpi(json.laserToggleMethod,'OpticalSwitch')
+    % Set optical switch to "on" position
+    yOCTTurnOpticalSwitch('photodiode');
+else
+    % No optical switch, we just keept the diode on, it will createa a phantom line 
+end
+
+% Loop over all lines in this FOV
+for j=1:numberOfLines
+    if (v)
+        tic
+        fprintf('%s \tPhotobleaching Line #%d of %d. Requested Exposure: %.1fms,', ...
+            datestr(datetime),j,numberOfLines, exposures_sec(j)*1e3);
+    end
+
+    if (v && i==1 && j==1)
+        fprintf('%s Drawing First Line. This is The First Time Galvo Is Moving... \n\t(if Matlab is taking more than a few minutes to finish this step, restart hardware and try again)\n',datestr(datetime));
+    end
+     
+    ThorlabsImagerNET.ThorlabsImager.yOCTPhotobleachLine( ...
+        ptStart(1,j),ptStart(2,j), ... Start X,Y
+        ptEnd(1,j),  ptEnd(2,j)  , ... End X,y
+        exposures_sec(j),  ... Exposure time sec
+        json.nPasses); 
+    
+    if (v)
+        tt_ms = toc()*1e3;
+        fprintf('Measured: %.1fms\n',tt_ms);
+    end 
+
+    if (v && i==1 && j==1)
+        fprintf('%s Drew The First Line!\n',datestr(datetime));
+    end
+
+end
+
+% Turn laser line off
+if strcmpi(json.laserToggleMethod,'OpticalSwitch')
+    % Set optical switch to "off" position
+    yOCTTurnOpticalSwitch('OCT');
+end
