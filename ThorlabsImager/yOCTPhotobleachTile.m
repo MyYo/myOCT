@@ -94,6 +94,9 @@ epsilon = 10e-3; % mm, small buffer number
 v = json.v;
 json = rmfield(json,'v');
 
+% Stage pause before moving
+json.stagePauseBeforeMoving_sec = 0.5;
+
 % Check number of passes and exposure
 assert(length(json.nPasses) == 1, 'Only 1 nPasses is permitted for all lines');
 assert(length(json.exposure) == 1, 'Only 1 exposure is permitted for all lines');
@@ -268,6 +271,25 @@ if (v)
     fprintf('%s Initialzing Motorized Translation Stage Hardware Completed\n',datestr(datetime));
 end
 
+%% Before turning diode on, draw a line with galvo to see if it works
+if (v)
+    fprintf('%s Drawing Practice Line Without Laser Diode. This is The First Time Galvo Is Moving... \n\t(if Matlab is taking more than a few minutes to finish this step, restart hardware and try again)\n',datestr(datetime));
+end
+
+ptStart = ptStartcc{1} - [xcc(1);ycc(1)];
+ptEnd   = ptEndcc{1}   - [xcc(1);ycc(1)];
+exposures_sec = json.exposure*sqrt(sum( (ptStart - ptEnd).^2));
+     
+ThorlabsImagerNET.ThorlabsImager.yOCTPhotobleachLine( ...
+    ptStart(1,1),ptStart(2,1), ... Start X,Y
+    ptEnd(1,1),  ptEnd(2,1)  , ... End X,y
+    exposures_sec(1),  ... Exposure time sec
+    json.nPasses); 
+    
+if (v)
+    fprintf('%s Done. Drew Practice Line!\n',datestr(datetime));
+end
+
 %% Turn laser diode on
 
 fprintf('%s Turning Laser Diode On... \n\t(if Matlab is taking more than 1 minute to finish this step, restart hardware and try again)\n',datestr(datetime));
@@ -307,11 +329,11 @@ for i=1:length(xcc)
         exposures_sec = json.exposure*sqrt(sum( (ptStart - ptEnd).^2));
         
         % Perform photobleaching of this FOV
-        photobleach_lines(ptStart,ptEnd, exposures_sec, v, i, json);
+        photobleach_lines(ptStart,ptEnd, exposures_sec, v, json);
  
         % Wait before moving the stage to next position to prevent stage
         % motor jamming.
-        pause(0.5);
+        pause(json.stagePauseBeforeMoving_sec);
     end
 end
 
@@ -341,7 +363,7 @@ ThorlabsImagerNET.ThorlabsImager.yOCTScannerClose(); %Close scanner
 
 
 %% Working with live laser
-function photobleach_lines(ptStart,ptEnd, exposures_sec, v, i, json)
+function photobleach_lines(ptStart,ptEnd, exposures_sec, v, json)
 % This function performes the photobleaching itself. Avoid doing doing any
 % calculations in this function as laser beam is on and will continue
 % photobleaching.
@@ -357,18 +379,19 @@ else
     % No optical switch, we just keept the diode on, it will createa a phantom line 
 end
 
+
 % Loop over all lines in this FOV
 for j=1:numberOfLines
     if (v)
+        if (j==1)
+            t_all = tic;
+            total_time_drawing_line_ms = 0;
+        end
         tic
         fprintf('%s \tPhotobleaching Line #%d of %d. Requested Exposure: %.1fms, ', ...
             datestr(datetime),j,numberOfLines, exposures_msec(j));
     end
-
-    if (v && i==1 && j==1)
-        fprintf('%s Drawing First Line. This is The First Time Galvo Is Moving... \n\t(if Matlab is taking more than a few minutes to finish this step, restart hardware and try again)\n',datestr(datetime));
-    end
-     
+  
     ThorlabsImagerNET.ThorlabsImager.yOCTPhotobleachLine( ...
         ptStart(1,j),ptStart(2,j), ... Start X,Y
         ptEnd(1,j),  ptEnd(2,j)  , ... End X,y
@@ -377,12 +400,9 @@ for j=1:numberOfLines
     
     if (v)
         tt_ms = toc()*1e3;
+        total_time_drawing_line_ms = total_time_drawing_line_ms + tt_ms;
         fprintf('Measured: %.1fms (+%.1fms)\n',tt_ms,tt_ms-exposures_msec(j));
     end 
-
-    if (v && i==1 && j==1)
-        fprintf('%s Drew The First Line!\n',datestr(datetime));
-    end
 
 end
 
@@ -390,4 +410,14 @@ end
 if strcmpi(json.laserToggleMethod,'OpticalSwitch')
     % Set optical switch to "off" position
     yOCTTurnOpticalSwitch('OCT');
+end
+
+if (v)
+    t_all_ms = toc(t_all)*1e3;
+    time_photodiode_on_no_laser_ms = t_all_ms - total_time_drawing_line_ms;
+    if ~strcmpi(json.laserToggleMethod,'OpticalSwitch')
+        time_photodiode_on_no_laser_ms = time_photodiode_on_no_laser_ms + json.stagePauseBeforeMoving_sec*1e3;
+    end
+    fprintf('%s \tTime Photodiode Switch Was On Without Drawing Line: %.1fms, ', ...
+            datestr(datetime),time_photodiode_on_no_laser_ms);
 end
