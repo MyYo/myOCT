@@ -273,6 +273,9 @@ end
 fprintf('%s Turning Laser Diode On... \n\t(if Matlab is taking more than 1 minute to finish this step, restart hardware and try again)\n',datestr(datetime));
 
 if strcmpi(json.laserToggleMethod,'OpticalSwitch')
+    % Initialize first
+    yOCTTurnOpticalSwitch('init');
+    
 	% We set switch to OCT position to prevent light leak
 	yOCTTurnOpticalSwitch('OCT'); % Set switch position away from photodiode
 end
@@ -344,6 +347,7 @@ function photobleach_lines(ptStart,ptEnd, exposures_sec, v, i, json)
 % photobleaching.
 
 numberOfLines = size(ptStart,2);
+exposures_msec = exposures_sec*1e3;
 
 % Turn on
 if strcmpi(json.laserToggleMethod,'OpticalSwitch')
@@ -357,8 +361,8 @@ end
 for j=1:numberOfLines
     if (v)
         tic
-        fprintf('%s \tPhotobleaching Line #%d of %d. Requested Exposure: %.1fms,', ...
-            datestr(datetime),j,numberOfLines, exposures_sec(j)*1e3);
+        fprintf('%s \tPhotobleaching Line #%d of %d. Requested Exposure: %.1fms, ', ...
+            datestr(datetime),j,numberOfLines, exposures_msec(j));
     end
 
     if (v && i==1 && j==1)
@@ -373,7 +377,7 @@ for j=1:numberOfLines
     
     if (v)
         tt_ms = toc()*1e3;
-        fprintf('Measured: %.1fms\n',tt_ms);
+        fprintf('Measured: %.1fms (+%.1fms)\n',tt_ms,tt_ms-exposures_msec(j));
     end 
 
     if (v && i==1 && j==1)
