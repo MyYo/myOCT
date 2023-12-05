@@ -38,5 +38,5 @@ write(sp,data,'uint8'); % Selects photobleach diode
 %% Timing analysis
 tt_ms=toc()*1e3;
 if (tt_ms > 2)
-    warning("yOCTTurnOpticalSwitch('%s') took %.1fms, which is longer than expected",newState,tt_ms);
+    %warning("yOCTTurnOpticalSwitch('%s') took %.1fms, which is longer than expected",newState,tt_ms);
 end
