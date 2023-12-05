@@ -418,6 +418,6 @@ if (v)
     if ~strcmpi(json.laserToggleMethod,'OpticalSwitch')
         time_photodiode_on_no_laser_ms = time_photodiode_on_no_laser_ms + json.stagePauseBeforeMoving_sec*1e3;
     end
-    fprintf('%s \tTime Photodiode Switch Was On Without Drawing Line: %.1fms, ', ...
+    fprintf('%s \tTime Photodiode Switch Was On Without Drawing Line: %.1fms\n', ...
             datestr(datetime),time_photodiode_on_no_laser_ms);
 end
