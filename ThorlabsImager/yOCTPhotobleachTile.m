@@ -371,7 +371,10 @@ function photobleach_lines(ptStart,ptEnd, exposures_sec, v, json)
 numberOfLines = size(ptStart,2);
 exposures_msec = exposures_sec*1e3;
 
+
 % Turn on
+t_all = tic;
+total_time_drawing_line_ms = 0;
 if strcmpi(json.laserToggleMethod,'OpticalSwitch')
     % Set optical switch to "on" position
     yOCTTurnOpticalSwitch('photodiode');
@@ -383,10 +386,6 @@ end
 % Loop over all lines in this FOV
 for j=1:numberOfLines
     if (v)
-        if (j==1)
-            t_all = tic;
-            total_time_drawing_line_ms = 0;
-        end
         tic
         fprintf('%s \tPhotobleaching Line #%d of %d. Requested Exposure: %.1fms, ', ...
             datestr(datetime),j,numberOfLines, exposures_msec(j));
