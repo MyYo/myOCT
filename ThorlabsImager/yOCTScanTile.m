@@ -101,6 +101,10 @@ in.octFolders = arrayfun(@(x)(sprintf('Data%02d',x)),in.scanOrder,'UniformOutput
 
 scanOrder = in.scanOrder;
 
+if (in.nBScanAvg > 1)
+    error('B Scan Averaging is not supported yet, it shifts the position of the scan');
+end
+
 %% Initialize hardware
 if (v)
     fprintf('%s Initialzing Hardware...\n\t(if Matlab is taking more than 2 minutes to finish this step, restart hardware and try again)\n',datestr(datetime));
