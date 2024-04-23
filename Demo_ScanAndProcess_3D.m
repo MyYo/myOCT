@@ -10,8 +10,8 @@
 
 % Define the 3D Volume
 pixel_size_um = 1; % x-y Pixel size in microns
-xOverall_mm = [-1 1]; % Define the overall volume you would like to scan [start, finish].
-yOverall_mm = [-1 1]; % Define the overall volume you would like to scan [start, finish].
+xOverall_mm = [-1 1]/2; % Define the overall volume you would like to scan [start, finish].
+yOverall_mm = [-1 1]/2; % Define the overall volume you would like to scan [start, finish].
 % Set yOverall_mm = [NaN,NaN] if you would like to only do a BScan.
 
 % Define probe 
