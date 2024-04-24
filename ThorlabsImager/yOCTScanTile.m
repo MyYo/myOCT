@@ -89,6 +89,14 @@ else
     objectiveWorkingDistance = Inf;
 end
 
+% Check scan is within probe's limits
+if ( ...
+    ((in.xOffset+in.octProbe.D  ynamicOffsetX + in.xRange*in.octProbe.DynamicFactorX) > in.octProbe.RangeMaxX ) || ...
+    ((in.yOffset + in.yRange > in.octProbe.RangeMaxY )) ...
+    )
+    error('Tring to scan outside lens range');
+end
+
 %% Scan center list
 
 %Scan order, z changes fastest, x after, y latest
@@ -156,14 +164,6 @@ for scanI=1:length(scanOrder)
     %Make a folder
     s = sprintf('%s\\%s\\',octFolder,in.octFolders{scanI});
     s = awsModifyPathForCompetability(s);
-    
-    % Check scan is within probe's limits
-    if ( ...
-        ((in.xOffset+in.octProbe.DynamicOffsetX + in.xRange*in.octProbe.DynamicFactorX) > in.octProbe.RangeMaxX ) || ...
-        ((in.yOffset + in.yRange > in.octProbe.RangeMaxY )) ...
-        )
-        error('Tring to scan outside lens range');
-    end
     
     ThorlabsImagerNET.ThorlabsImager.yOCTScan3DVolume(...
         in.xOffset+in.octProbe.DynamicOffsetX, in.yOffset, ... centerX, centerY [mm]
