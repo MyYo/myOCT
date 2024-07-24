@@ -10,33 +10,35 @@
 
 % Define the 3D Volume
 pixel_size_um = 1; % x-y Pixel size in microns
-xOverall_mm = [-1 1]/2; % Define the overall volume you would like to scan [start, finish].
-yOverall_mm = [-1 1]/2; % Define the overall volume you would like to scan [start, finish].
+xOverall_mm = [-0.25 0.25]; % Define the overall volume you would like to scan [start, finish]. For 10x use [-0.5 0.5] for 40x use [-0.25 0.25]
+yOverall_mm = [-0.25 0.25]; % Define the overall volume you would like to scan [start, finish]. For 10x use [-0.5 0.5] for 40x use [-0.25 0.25]
 % Set yOverall_mm = [NaN,NaN] if you would like to only do a BScan.
 
 % Define probe 
-octProbePath = yOCTGetProbeIniPath('10x'); % Probe ini spec, you can use yOCTGetProbeIniPath('10x','OCTP900') etc
+octProbePath = yOCTGetProbeIniPath('40x','OCTP900'); % Probe ini spec, you can use yOCTGetProbeIniPath('10x','OCTP900') etc
 octProbeFOV_mm = 0.5; % How much of the field of view to use from the probe.
 oct2stageXYAngleDeg = 0; % Angle between x axis of the motor and the Galvo's x axis
 
 % Define z stack and z-stitching
-scanZJump_um = 15; % Use 15 microns for 10x lens, 5 microns for 40x lens
+scanZJump_um = 5; % Use 15 microns for 10x lens, 5 microns for 40x lens
 zToScan_mm = ((-190:scanZJump_um:500)-15)*1e-3; %[mm]
-focusSigma = 20; %When stitching along Z axis (multiple focus points), what is the size of each focus in z [pixel], use 20 for 10x, 1 for 40x
+focusSigma = 1; %When stitching along Z axis (multiple focus points), what is the size of each focus in z [pixel], use 20 for 10x, 1 for 40x
 
 % Other scanning parameters
 nBScanAvg = 1; % Number of B-Scan averages
 tissueRefractiveIndex = 1.4; % Use either 1.33 or 1.4 depending on the results
-%dispersionQuadraticTerm=6.539e07; % Thorlabs 10x
-%dispersionQuadraticTerm=9.56e7;   % Thorlbas 40x
-dispersionQuadraticTerm=-2.059e8;  % Jingjing's setup 10x
+%dispersionQuadraticTerm=6.539e07; % 10x
+%dispersionQuadraticTerm=9.56e7;   % 40x
+dispersionQuadraticTerm=-2.059e8;  % 10x, OCTP900
 
 % Where to save scan files
 output_folder = '\';
 
-% Foe debug purpuse. Set to true if you would like to process existing scan
-% rather than scan a new one.
+% Set to true if you would like to process existing scan rather than scan a new one.
 skipScanning = false;
+
+% If depth of focus position is known, write it here. If you would like the script to help you keep empty
+focusPositionInImageZpix = [];
 
 %% Compute scanning parameters
 % Check that scan range is a whole number compared to octProbeFOV_mm
@@ -123,10 +125,11 @@ if ~skipScanning
 end	
 
 %% Find focus in the scan
-fprintf('%s Find Focus\n',datestr(datetime));
-focusPositionInImageZpix = yOCTFindFocusTilledScan(volumeOutputFolder,...
-    'reconstructConfig',{'dispersionQuadraticTerm',dispersionQuadraticTerm},'verbose',true);
-
+if isempty(focusPositionInImageZpix)
+	fprintf('%s Find Focus\n',datestr(datetime));
+	focusPositionInImageZpix = yOCTFindFocusTilledScan(volumeOutputFolder,...
+	    'reconstructConfig',{'dispersionQuadraticTerm',dispersionQuadraticTerm},'verbose',true);
+	
 %% Process the scan
 fprintf('%s Processing\n',datestr(datetime));
 outputTiffFile = [output_folder '/Image.tiff'];
