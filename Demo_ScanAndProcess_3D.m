@@ -55,7 +55,7 @@ end
 
 % Check that sufficient ammount of gel is above the tissue for proper focus
 if (min(zToScan_mm)) > -100e-3
-	warning('Because we use gel above tissue to find focus position. It is important to have at least one of the z-stacks in the gel. Consider having the minimum zToScan_mm to be -100e-3[mm]')
+    warning('Because we use gel above tissue to find focus position. It is important to have at least one of the z-stacks in the gel. Consider having the minimum zToScan_mm to be -100e-3[mm]')
 end
 
 % Define centers of the scan
@@ -126,18 +126,18 @@ end
 
 %% Find focus in the scan
 if isempty(focusPositionInImageZpix)
-	fprintf('%s Find Focus\n',datestr(datetime));
-	focusPositionInImageZpix = yOCTFindFocusTilledScan(volumeOutputFolder,...
-	    'reconstructConfig',{'dispersionQuadraticTerm',dispersionQuadraticTerm},'verbose',true);
+    focusPositionInImageZpix = yOCTFindFocusTilledScan(volumeOutputFolder,...
+        'reconstructConfig',{'dispersionQuadraticTerm',dispersionQuadraticTerm},'verbose',true);
+end
 	
 %% Process the scan
 fprintf('%s Processing\n',datestr(datetime));
 outputTiffFile = [output_folder '/Image.tiff'];
 yOCTProcessTiledScan(...
-        volumeOutputFolder, ... Input
-        {outputTiffFile},... Save only Tiff file as folder will be generated after smoothing
-        'focusPositionInImageZpix', focusPositionInImageZpix,... No Z scan filtering
-		'focusSigma',focusSigma,...
-        'dispersionQuadraticTerm',dispersionQuadraticTerm,... Use default
-        'interpMethod','sinc5', ...
-        'v',true);
+    volumeOutputFolder, ... Input
+    {outputTiffFile},... Save only Tiff file as folder will be generated after smoothing
+    'focusPositionInImageZpix', focusPositionInImageZpix,... No Z scan filtering
+    'focusSigma',focusSigma,...
+    'dispersionQuadraticTerm',dispersionQuadraticTerm,... Use default
+    'interpMethod','sinc5', ...
+    'v',true);
