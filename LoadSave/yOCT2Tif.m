@@ -271,9 +271,11 @@ else
     numberOfYPlanes=NaN;
     %for parforI=1:1
     parfor(parforI=1:1,1) %Run once but on a worker, to save trafic
-        % Make sure worker has the right credentials
-        awsSetCredentials;
-    
+        if isAWS
+            % Make sure worker has the right credentials
+            awsSetCredentials;
+        end
+            
         %Get all the JSON files, so we can read c
         % Any fileDatastore request to AWS S3 is limited to 1000 files in 
         % MATLAB 2021a. Due to this bug, we have replaced all calls to 
