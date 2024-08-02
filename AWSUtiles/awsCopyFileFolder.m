@@ -17,8 +17,6 @@ if isempty(source) || isempty(dest)
 end
 
 %% Set Credentials
-awsSetCredentials (1); %Write cridentials are required  
-
 % Check source
 isSourceAWS = awsIsAWSPath(source);
 if any(isSourceAWS ~= isSourceAWS(1))
@@ -37,6 +35,13 @@ if (awsIsAWSPath(dest))
     isDestAWS = true;
 else
     isDestAWS = false;
+end
+
+if isSourceAWS 
+    awsSetCredentials(0); % Read credentials are required  
+end
+if isDestAWS
+    awsSetCredentials(1); % Write cridentials are required  
 end
 
 %% Upload Mode
