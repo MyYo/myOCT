@@ -12,7 +12,8 @@
 pixel_size_um = 1; % x-y Pixel size in microns
 xOverall_mm = [-0.25 0.25]; % Define the overall volume you would like to scan [start, finish]. For 10x use [-0.5 0.5] for 40x use [-0.25 0.25]
 yOverall_mm = [-0.25 0.25]; % Define the overall volume you would like to scan [start, finish]. For 10x use [-0.5 0.5] for 40x use [-0.25 0.25]
-% Set yOverall_mm = [NaN,NaN] if you would like to only do a BScan.
+% Uncomment below to scan one B-Scan.
+% yOverall_mm = 0;
 
 % Define probe 
 octProbePath = yOCTGetProbeIniPath('40x','OCTP900'); % Probe ini spec, you can use yOCTGetProbeIniPath('10x','OCTP900') etc
@@ -25,7 +26,6 @@ zToScan_mm = ((-190:scanZJump_um:500)-15)*1e-3; %[mm]
 focusSigma = 1; %When stitching along Z axis (multiple focus points), what is the size of each focus in z [pixel], use 20 for 10x, 1 for 40x
 
 % Other scanning parameters
-nBScanAvg = 1; % Number of B-Scan averages
 tissueRefractiveIndex = 1.4; % Use either 1.33 or 1.4 depending on the results
 %dispersionQuadraticTerm=6.539e07; % 10x
 %dispersionQuadraticTerm=9.56e7;   % 40x
@@ -41,91 +41,36 @@ skipScanning = false;
 focusPositionInImageZpix = [];
 
 %% Compute scanning parameters
-% Check that scan range is a whole number compared to octProbeFOV_mm
-xOverallRange_mm = diff(xOverall_mm);
-yOverallRange_mm = diff(yOverall_mm);
-if ((xOverallRange_mm > octProbeFOV_mm) && ...
-    (round(xOverallRange_mm/octProbeFOV_mm) ~= (xOverallRange_mm/octProbeFOV_mm)))
-    error('The range expresed in xOverall_mm should be a multiplier of octProbeFOV_mm');
-end
-if ((yOverallRange_mm > octProbeFOV_mm) && ...
-    (round(yOverallRange_mm/octProbeFOV_mm) ~= (yOverallRange_mm/octProbeFOV_mm)))
-    error('The range expresed in yOverall_mm should be a multiplier of octProbeFOV_mm');
-end
 
 % Check that sufficient ammount of gel is above the tissue for proper focus
 if (min(zToScan_mm)) > -100e-3
     warning('Because we use gel above tissue to find focus position. It is important to have at least one of the z-stacks in the gel. Consider having the minimum zToScan_mm to be -100e-3[mm]')
 end
 
-% Define centers of the scan
-x_centers_mm = ...
-    (xOverall_mm(1) + octProbeFOV_mm/2) : ...
-    octProbeFOV_mm : ...
-    (xOverall_mm(2) - octProbeFOV_mm/2);
-if isempty(x_centers_mm)
-    x_centers_mm = 0;
-end
-y_centers_mm = ...
-    (yOverall_mm(1) + octProbeFOV_mm/2) : ...
-    octProbeFOV_mm : ...
-    (yOverall_mm(2) - octProbeFOV_mm/2);
-if isempty(y_centers_mm)
-    y_centers_mm = 0;
-end
-
-% Define the range in x and y. according to FOV
-if xOverallRange_mm > octProbeFOV_mm
-    % The xOverall scanning area is more than one FOV, use all of it
-    xRange_mm = octProbeFOV_mm;
-else
-    xRange_mm = xOverallRange_mm;
-end
-if yOverallRange_mm > octProbeFOV_mm
-    % The xOverall scanning area is more than one FOV, use all of it
-    yRange_mm = octProbeFOV_mm;
-else
-    yRange_mm = yOverallRange_mm;
-end
-
-% Define number of pixels in each axis to preserve pixel size
-nXPixels = xRange_mm * 1000 / pixel_size_um;
-nYPixels = yRange_mm * 1000 / pixel_size_um;
-
-% Deal with single B-Scan situation.
-if isnan(y_centers_mm)
-    % Only a single B-Scan is needed
-    y_centers_mm = 0;
-    yRange_mm = octProbeFOV_mm/10;
-    nYPixels = 2; % Scan two pixels in y direction since this code is not ment for a single B scan
-end
-
 %% Perform the scan
 volumeOutputFolder = [output_folder '/OCTVolume/'];
-if ~skipScanning
-    msgbox('Please adjust sample such that the sample-gel interface is at OCT focus')
-    
-    fprintf('%s Scanning Volume\n',datestr(datetime));
-    scanParameters = yOCTScanTile (...
-        volumeOutputFolder, ...
-        'octProbePath', octProbePath, ...
-        'tissueRefractiveIndex', tissueRefractiveIndex, ...
-        'xOffset',   0, ...
-        'yOffset',   0, ... 
-        'xRange',    xRange_mm, ...
-        'yRange',    yRange_mm, ...
-        'nXPixels',  nXPixels, ...
-        'nYPixels',  nYPixels, ...
-        'nBScanAvg', nBScanAvg, ...
-        'xCenters',  x_centers_mm, ...
-        'zDepths',   zToScan_mm, ... [mm]
-        'oct2stageXYAngleDeg', oct2stageXYAngleDeg, ...
-        'v',true  ...
-        );
-end	
+msgbox('Please adjust sample such that the sample-gel interface is at OCT focus')
+
+fprintf('%s Scanning Volume\n',datestr(datetime));
+scanParameters = yOCTScanTile (...
+    volumeOutputFolder, ...
+    xOverall_mm, ...
+    yOverall_mm, ...
+    'octProbePath', octProbePath, ...
+    'tissueRefractiveIndex', tissueRefractiveIndex, ...
+    'octProbeFOV_mm', octProbeFOV_mm, ...
+    'pixelSize_um', pixel_size_um, ...
+    'xOffset',   0, ...
+    'yOffset',   0, ... 
+    'zDepths',   zToScan_mm, ... [mm]
+    'oct2stageXYAngleDeg', oct2stageXYAngleDeg, ...
+    'skipHardware',skipScanning, ...
+    'v',true  ...
+    );
 
 %% Find focus in the scan
 if isempty(focusPositionInImageZpix)
+    fprintf('%s Find focus position volume\n',datestr(datetime));
     focusPositionInImageZpix = yOCTFindFocusTilledScan(volumeOutputFolder,...
         'reconstructConfig',{'dispersionQuadraticTerm',dispersionQuadraticTerm},'verbose',true);
 end

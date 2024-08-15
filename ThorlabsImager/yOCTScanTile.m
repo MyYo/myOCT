@@ -4,31 +4,28 @@ function [json] = yOCTScanTile(varargin)
 %stage.
 %INPUTS:
 %   octFolder - folder to save all output information
+%   xRange_mm - Area to scan [start, finish]. If area is larger than
+%       lens's FOV, then tiling will automatically be used.
+%   yRange_mm - Area to scan [start, finish]. If area is larger than
+%       lens's FOV, then tiling will automatically be used. 
+%       Set to a single value to scan a B-scan instead of 3D
 %
-%NAME VALUE INPUTS:
+%NAME VALUE PARAMETERS:
 %   Parameter               Default Value   Notes
-%   octProbePath            'probe.ini'     Where is the probe.ini is saved to be used
-%   oct2stageXYAngleDeg     0               The angle to convert OCT coordniate system to motor coordinate system, see yOCTStageInit
-%   isVerifyMotionRange     true            Try the full range of motion before scanning, to make sure we won't get 'stuck' through the scan
-%   tissueRefractiveIndex   1.4             Refractive index of tissue
-%Parameter controling each tile:
+%   octProbePath            'probe.ini'     Where is the probe.ini is saved to be used.
+%   octProbeFOV_mm          []              Keep empty to use FOV frome probe, or set to override probe's value.
+%   pixelSize_um            1               What is the pixel size.
+%   oct2stageXYAngleDeg     0               The angle to convert OCT coordniate system to motor coordinate system, see yOCTStageInit.
+%   isVerifyMotionRange     true            Try the full range of motion before scanning, to make sure we won't get 'stuck' through the scan.
+%   tissueRefractiveIndex   1.4             Refractive index of tissue.
 %   xOffset,yOffset         0               (0,0) means that the center of the tile scaned is at the center of the galvo range aka lens optical axis. 
 %                                           By appling offset, the center of the tile will be positioned differently.Units: mm
-%   xRange, yRange          1               Total range of scan x & y in mm. For example, if xOffset=0, xRange=1, OCT will scan from -0.5 to 0.5mm.
-%   nXPixels                1000            Number of pixels in x direction (equally spaced)
-%   nYPixels                1000            Number of pixels in y direction (equally spaced)
 %   nBScanAvg               1               How many B Scan Averaging to scan
-%Scan tiling parameters, these will cerate a meshgrid relative to position
-%   of stage at the beginning of the scan.
-%   x,y,z parameters in tiling, are in the same direction as x,y,z of the
-%   sacn, you can look at it as an extention of the size of the lens. 
-%   xCenters,yCenters       0               Center positions of each tiles to scan (x,y) Units: mm. 
-%                                           Example: 'xCenters', [0 1], 'yCenters', [0 1], 
-%                                           will scan 4 OCT volumes centered around [0 0 1 1; 0 1 0 1] + [xOffset; yOffset]
 %   zDepths                 0               Scan depths to scan. Positive value is deeper). Units: mm
 %	unzipOCTFile			true			Scan will scan .OCT file, if you would like to automatically unzip it set this to true.
 %Debug parameters:
 %   v                       true            verbose mode      
+%   skipHardware            false           Set to true to skip hardware operation.
 %OUTPUT:
 %   json - config file
 %
@@ -37,31 +34,32 @@ function [json] = yOCTScanTile(varargin)
 
 %% Input Parameters
 p = inputParser;
-addRequired(p,'octFolder',@isstr);
 
-%General parameters
-addParameter(p,'octProbePath','probe.ini',@isstr);
+% Output folder
+addRequired(p,'octFolder',@ischar);
+
+% Scan geometry parameters
+addRequired(p,'xRange_mm')
+addRequired(p,'yRange_mm')
+addParameter(p,'zDepths',0,@isnumeric);
+addParameter(p,'pixelSize_um',1,@isnumeric)
+
+% Probe and stage parameters
+addParameter(p,'octProbePath','probe.ini',@ischar);
+addParameter(p,'octProbeFOV_mm',[])
 addParameter(p,'oct2stageXYAngleDeg',0,@isnumeric);
 addParameter(p,'isVerifyMotionRange',true,@islogical);
-addParameter(p,'tissueRefractiveIndex',1.4,@isnumeric);
-
-%Single scan parmaeters
 addParameter(p,'xOffset',0,@isnumeric);
 addParameter(p,'yOffset',0,@isnumeric);
-addParameter(p,'xRange',1,@isnumeric);
-addParameter(p,'yRange',1,@isnumeric);
-addParameter(p,'nXPixels',1000,@isnumeric);
-addParameter(p,'nYPixels',1000,@isnumeric);
-addParameter(p,'nBScanAvg',1,@isnumeric);
 
-%Tile Parameters
-addParameter(p,'xCenters',0,@isnumeric);
-addParameter(p,'yCenters',0,@isnumeric);
-addParameter(p,'zDepths',0,@isnumeric);
+% Other parameters
+addParameter(p,'tissueRefractiveIndex',1.4,@isnumeric);
+addParameter(p,'nBScanAvg',1,@isnumeric);
 addParameter(p,'unzipOCTFile',true);
 
 %Debugging
 addParameter(p,'v',true,@islogical);
+addParameter(p,'skipHardware',false,@islogical);
 
 parse(p,varargin{:});
 
@@ -80,6 +78,10 @@ end
 %% Parse our parameters from probe
 in.octProbe = yOCTReadProbeIniToStruct(in.octProbePath);
 
+if isempty(in.octProbeFOV_mm)
+    in.octProbeFOV_mm = in.octProbe.RangeMaxX; % Capture default value from probe ini
+end
+
 % If set, will protect lens from going into deep to the sample hiting the lens. Units: mm.
 % The way it works is it computes what is the span of zDepths, compares that to working distance + safety buffer
 % If the number is too high, abort will be initiated.
@@ -89,31 +91,54 @@ else
     objectiveWorkingDistance = Inf;
 end
 
+if (in.nBScanAvg > 1)
+    error('B Scan Averaging is not supported yet, it shifts the position of the scan');
+end
+
+if length(in.xRange_mm) ~= 2
+    error('xRange_mm should be [start, finish]')
+end
+if length(in.yRange_mm) > 2
+    error('yRange_mm should be [start, finish] or [mean]')
+end
+if length(in.yRange_mm) == 1 %#ok<ISCL>
+    % Scan one pixel
+    in.yRange_mm = in.yRange_mm + 0.5 * in.pixelSize_um/1e3 * [-1 1];
+end
+
+%% Split the scan to tiles
+
+[in.xCenters_mm, in.yCenters_mm, in.tileRangeX_mm, in.tileRangeY_mm] = ...
+    yOCTScanTile_XYRangeToCenters(in.xRange_mm, in.yRange_mm, in.octProbeFOV_mm);
+
 % Check scan is within probe's limits
 if ( ...
-    ((in.xOffset+in.octProbe.DynamicOffsetX + in.xRange*in.octProbe.DynamicFactorX) > in.octProbe.RangeMaxX ) || ...
-    ((in.yOffset + in.yRange > in.octProbe.RangeMaxY )) ...
+    ((in.xOffset+in.octProbe.DynamicOffsetX + in.tileRangeX_mm*in.octProbe.DynamicFactorX) > in.octProbe.RangeMaxX ) || ...
+    ((in.yOffset + in.tileRangeY_mm > in.octProbe.RangeMaxY )) ...
     )
     error('Tring to scan outside lens range');
 end
 
-%% Scan center list
-
+%Create scan center list
 %Scan order, z changes fastest, x after, y latest
-[in.gridXcc, in.gridZcc,in.gridYcc] = meshgrid(in.xCenters,in.zDepths,in.yCenters); 
+[in.gridXcc, in.gridZcc,in.gridYcc] = meshgrid(in.xCenters_mm,in.zDepths,in.yCenters_mm); 
 in.gridXcc = in.gridXcc(:);
 in.gridYcc = in.gridYcc(:);
 in.gridZcc = in.gridZcc(:);
 in.scanOrder = 1:length(in.gridZcc);
 in.octFolders = arrayfun(@(x)(sprintf('Data%02d',x)),in.scanOrder,'UniformOutput',false);
 
-scanOrder = in.scanOrder;
-
-if (in.nBScanAvg > 1)
-    error('B Scan Averaging is not supported yet, it shifts the position of the scan');
-end
+%% Figure out number of pixels in each direction
+in.nXPixels = ceil(in.tileRangeX_mm/(in.pixelSize_um/1e3));
+in.nYPixels = ceil(in.tileRangeY_mm/(in.pixelSize_um/1e3));
 
 %% Initialize hardware
+if in.skipHardware
+    % We are done, from now on it's just hardware execution
+    json = in;
+    return;
+end
+
 if (v)
     fprintf('%s Initialzing Hardware...\n\t(if Matlab is taking more than 2 minutes to finish this step, restart hardware and try again)\n',datestr(datetime));
 end
@@ -134,8 +159,8 @@ end
 
 % Init stage and verify range if needed
 if in.isVerifyMotionRange
-    rg_min = [min(in.xCenters) min(in.yCenters) min(in.zDepths)];
-    rg_max = [max(in.xCenters) max(in.yCenters) max(in.zDepths)];
+    rg_min = [min(in.xCenters_mm) min(in.yCenters_mm) min(in.zDepths)];
+    rg_max = [max(in.xCenters_mm) max(in.yCenters_mm) max(in.zDepths)];
 else
     rg_min = NaN;
     rg_max = NaN;
@@ -153,9 +178,9 @@ end
 mkdir(octFolder);
 
 %% Preform the scan
-for scanI=1:length(scanOrder)
+for scanI=1:length(in.scanOrder)
     if (v)
-        fprintf('%s Scanning Volume %02d of %d\n',datestr(datetime),scanI,length(scanOrder));
+        fprintf('%s Scanning Volume %02d of %d\n',datestr(datetime),scanI,length(in.scanOrder));
     end
         
     %Move to position
@@ -167,7 +192,7 @@ for scanI=1:length(scanOrder)
     
     ThorlabsImagerNET.ThorlabsImager.yOCTScan3DVolume(...
         in.xOffset+in.octProbe.DynamicOffsetX, in.yOffset, ... centerX, centerY [mm]
-        in.xRange.*in.octProbe.DynamicFactorX, in.yRange,  ... rangeX,rangeY [mm]
+        in.xRange_mm.*in.octProbe.DynamicFactorX, in.yRange_mm,  ... rangeX,rangeY [mm]
         0,       ... rotationAngle [deg]
         in.nXPixels,in.nYPixels, ... SizeX,sizeY [# of pixels]
         in.nBScanAvg,       ... B Scan Average
@@ -179,16 +204,7 @@ for scanI=1:length(scanOrder)
 	end
     
     if(scanI==1)
-		%Figure out which OCT System are we scanning in
-		%a = dir(s);
-		%names = {a.name}; names([a.isdir]) = [];
-		%nm = names{2};
-        %if (contains(lower(nm),'ganymede'))
-		%	in.OCTSystem = 'Ganymede';
-		%else
-		%	in.OCTSystem = 'NA';
-        %end
-        [OCTSystem, OCTSystemManufacturer] = yOCTLoadInterfFromFile_WhatOCTSystemIsIt(s);
+        [OCTSystem] = yOCTLoadInterfFromFile_WhatOCTSystemIsIt(s);
         in.OCTSystem = OCTSystem;
     end
     
