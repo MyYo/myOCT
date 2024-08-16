@@ -23,10 +23,10 @@ oct2stageXYAngleDeg = 0; % Angle between x axis of the motor and the Galvo's x a
 % Define z stack and z-stitching
 scanZJump_um = 5; % Use 15 microns for 10x lens, 5 microns for 40x lens
 zToScan_mm = ((-190:scanZJump_um:500)-15)*1e-3; %[mm]
-focusSigma = 1; %When stitching along Z axis (multiple focus points), what is the size of each focus in z [pixel], use 20 for 10x, 1 for 40x
+focusSigma = 20; %When stitching along Z axis (multiple focus points), what is the size of each focus in z [pixel], use 20 for 10x, 1 for 40x
 
 % Other scanning parameters
-tissueRefractiveIndex = 1.4; % Use either 1.33 or 1.4 depending on the results
+tissueRefractiveIndex = 1.4; % Use either 1.33 or 1.4 depending on the results. Use 1.4 for brain.
 %dispersionQuadraticTerm=6.539e07; % 10x
 %dispersionQuadraticTerm=9.56e7;   % 40x
 dispersionQuadraticTerm=-2.059e8;  % 10x, OCTP900
