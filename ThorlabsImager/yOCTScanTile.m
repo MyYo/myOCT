@@ -191,10 +191,10 @@ for scanI=1:length(in.scanOrder)
     s = awsModifyPathForCompetability(s);
     
     ThorlabsImagerNET.ThorlabsImager.yOCTScan3DVolume(...
-        mean(in.tileRangeX_mm) + in.xOffset + in.octProbe.DynamicOffsetX, ... centerX [mm]
-	mean(in.tileRangeY_mm) + in.yOffset, ... centerY [mm]
-        diff(in.tileRangeX_mm) * in.octProbe.DynamicFactorX, ... rangeX [mm]
-	diff(in.tileRangeY_mm),  ... rangeY [mm]
+        in.xOffset + in.octProbe.DynamicOffsetX, ... centerX [mm]
+	    in.yOffset, ... centerY [mm]
+        in.tileRangeX_mm * in.octProbe.DynamicFactorX, ... rangeX [mm]
+	    in.tileRangeY_mm,  ... rangeY [mm]
         0,       ... rotationAngle [deg]
         in.nXPixels,in.nYPixels, ... SizeX,sizeY [# of pixels]
         in.nBScanAvg,       ... B Scan Average
