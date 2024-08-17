@@ -49,7 +49,7 @@ end
 
 %% Perform the scan
 volumeOutputFolder = [output_folder '/OCTVolume/'];
-msgbox('Please adjust sample such that the sample-gel interface is at OCT focus')
+disp('Please adjust sample such that the sample-gel interface is at OCT focus')
 
 fprintf('%s Scanning Volume\n',datestr(datetime));
 scanParameters = yOCTScanTile (...
