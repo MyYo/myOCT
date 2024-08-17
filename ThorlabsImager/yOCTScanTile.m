@@ -192,9 +192,9 @@ for scanI=1:length(in.scanOrder)
     
     ThorlabsImagerNET.ThorlabsImager.yOCTScan3DVolume(...
         in.xOffset + in.octProbe.DynamicOffsetX, ... centerX [mm]
-	    in.yOffset, ... centerY [mm]
+        in.yOffset, ... centerY [mm]
         in.tileRangeX_mm * in.octProbe.DynamicFactorX, ... rangeX [mm]
-	    in.tileRangeY_mm,  ... rangeY [mm]
+        in.tileRangeY_mm,  ... rangeY [mm]
         0,       ... rotationAngle [deg]
         in.nXPixels,in.nYPixels, ... SizeX,sizeY [# of pixels]
         in.nBScanAvg,       ... B Scan Average
