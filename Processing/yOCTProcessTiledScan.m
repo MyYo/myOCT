@@ -359,7 +359,7 @@ end
 % Count how many files are in the library
 cnt = yOCTProcessTiledScan_AuxCountHowManyYFiles(whereAreMyFiles);
     
-if cnt ~= length(yAll)
+if cnt ~= length(dimOutput.y.values)
     % Some files are missing, print debug to help trubleshoot 
     fprintf('\nDebug Data:\n');
     fprintf('whereAreMyFiles = ''%s''\n',whereAreMyFiles);
