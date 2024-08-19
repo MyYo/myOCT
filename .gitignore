@@ -5,4 +5,4 @@ _private/My_ec2RunStructure.m
 _private/My_ec2RunStructure_DeepLearning.m
 *.DS_Store
 *.asv
-
+*.getmeout

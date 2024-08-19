@@ -135,65 +135,28 @@ end
 focusSigma = in.focusSigma;
 OCTSystem = json.OCTSystem; %Provide OCT system to prevent unesscecary polling of file system
 
-[dimOneTile, dimOneTileProcessed] = yOCTTileScanGetDimOfOneTile(tiledScanInputFolder, 'mm');
-
 %% Create dimensions structure for the entire tiled volume
-zDepths = json.zDepths;
-xCenters = json.xCenters;
-yCenters = json.yCenters;
+[dimOneTile, dimOutput] = yOCTProcessTiledScan_createDimStructure(tiledScanInputFolder);
 
-% Dimensions of one tile (mm)
-xOneTile = json.xOffset+json.xRange*linspace(-0.5,0.5,json.nXPixels+1); xOneTile(end) = [];
-dx = diff(xOneTile(1:2));
-yOneTile = json.yOffset+json.yRange*linspace(-0.5,0.5,json.nYPixels+1); yOneTile(end) = [];
-if (length(yOneTile) > 1)
-    dy = diff(yOneTile(1:2));
-else
-    dy = 0; % No y axis
-end
-zOneTile = dimOneTile.z.values(:)'; %[mm]
-dz = diff(zOneTile(1:2));
-
-%Dimensions of the entire stack
-xAll = (min(xCenters)+xOneTile(1)):dx:(max(xCenters)+xOneTile(end)+dx);xAll = xAll(:);
-yAll = (min(yCenters)+yOneTile(1)):dy:(max(yCenters)+yOneTile(end)+dy);yAll = yAll(:);
-zAll = (min(zDepths)+zOneTile(1)):dz:(max(zDepths)+zOneTile(end)+dz);zAll = zAll(:);
-
-% Correct for the case of only one scan
-if (length(xCenters) == 1)
-    xAll = xAll(1:length(dimOneTileProcessed.x.values));
-end
-if (length(yCenters) == 1 && ~isempty(yAll)) % yAll will be empty in the case of scanning a Bscan with no volume in y axis
-    yAll = yAll(1:length(dimOneTileProcessed.y.values));
-end
-
-% Remove Z positions that are way out of focus (if we are doing focus processing)
-if(~isnan(focusPositionInImageZpix))
-    zAll( ...
-        ( zAll < min(zDepths) + zOneTile(round(max(focusPositionInImageZpix(1) - cuttoffSigma*in.focusSigma,1))) ) ...
-        | ...
-        ( zAll > max(zDepths) + zOneTile(round(min(focusPositionInImageZpix(end) + cuttoffSigma*in.focusSigma,length(zOneTile)))) ) ...
-        ) = []; 
-end
-
-% Dimensions of everything
-dimOutput.lambda = dimOneTile.lambda;
-dimOutput.z = dimOneTile.z;
-dimOutput.z.values = zAll(:)' - zAll(1);
 if zSetOriginAsFocusOfZDepth0
+    % Remove Z positions that are way out of focus (if we are doing focus processing)
+
+    zAll = dimOutput.z.values;
+
+    % Remove depths that are out of focus
+    zAll( ...
+        ( zAll < min(zDepths) + dimOneTile.z.values(round( ...
+            max(focusPositionInImageZpix(1) - cuttoffSigma*in.focusSigma,1) ...
+            )) ) ...
+        | ...
+        ( zAll > max(zDepths) + dimOneTile.z.values(round( ...
+            min(focusPositionInImageZpix(end) + cuttoffSigma*in.focusSigma,length(dimOneTile.z.values)) ...
+            )) ) ...
+        ) = []; 
+
+    dimOutput.z.values = zAll(:)' - zAll(1);
     dimOutput.z.origin = 'z=0 is the focus positoin of OCT image when zDepths=0 scan was taken';
-else
-    dimOutput.z.origin = 'z=0 is the top of OCT image when zDepths=0 scan was taken';
 end
-dimOutput.x = dimOneTile.x;
-dimOutput.x.origin = 'x=0 is OCT scanner origin when xCenters=0 scan was taken';
-dimOutput.x.values = xAll(:)';
-dimOutput.x.index = 1:length(dimOutput.x.values);
-dimOutput.y = dimOneTile.x;
-dimOutput.y.values = yAll(:)';
-dimOutput.y.index = 1:length(dimOutput.y.values);
-dimOutput.y.origin = 'y=0 is OCT scanner origin when yCenters=0 scan was taken';
-dimOutput.aux = dimOneTile.aux;
 
 %% Save some Y planes in a debug folder if needed
 if ~isempty(in.yPlanesOutputFolder) && in.howManyYPlanes > 0
@@ -213,6 +176,24 @@ else
     yToSaveI = [];
 end
 
+%% Extract some data (refactor candidate)
+% Note this is a good place for future refactoring, where we create a
+% function that for every yI index specifies which scans to load and where
+% their XZ coordinates are compared to the larger grid.
+% This is what these varibles are here to do
+
+if ~isfield(json,'xCenters_mm')
+    % Backward compatibility
+    xCenters = json.xCenters;
+    yCenters = json.yCenters;
+    yRange = json.yRange;
+else
+    xCenters = json.xCenters_mm;
+    yCenters = json.yCenters_mm;
+    yRange = json.tileRangeY_mm;
+end
+zDepths = json.zDepths;
+
 %% Create indexing reference
 %This specifies how to mesh together a tiled scan, each axis seperately
 
@@ -222,23 +203,23 @@ imOutSize = [...
     length(dimOutput.y.values)];
 
 %For each Y, what files are being used
-yGroupSF = zeros(length(json.yCenters),2); %[start yI, end yI]
-yGroupFP =  cell(length(json.yCenters),1); %Which files to use for each group
+yGroupSF = zeros(length(yCenters),2); %[start yI, end yI]
+yGroupFP =  cell(length(yCenters),1); %Which files to use for each group
 for i=1:length(yGroupFP)
-    yI = abs(dimOutput.y.values-json.yCenters(i)) <= json.yRange/2;
+    yI = abs(dimOutput.y.values-yCenters(i)) <= yRange/2;
     yGroupSF(i,:) = [find(yI,1,'first') find(yI,1,'last')];
-    yGroupFP(i) = {fp(json.gridYcc == json.yCenters(i))};
+    yGroupFP(i) = {fp(json.gridYcc == yCenters(i))};
 end
 
 %% Main loop
-printStatsEveryyI = max(floor(length(yAll)/20),1);
+printStatsEveryyI = max(floor(length(dimOutput.y.values)/20),1);
 ticBytes(gcp);
 if(v)
     fprintf('%s Stitching ...\n',datestr(datetime)); tt=tic();
 end
 whereAreMyFiles = yOCT2Tif([], outputPath, 'partialFileMode', 1); %Init
 clear yI; % Clean up varible to prevent confusion
-parfor yI=1:length(yAll) 
+parfor yI=1:length(dimOutput.y.values) 
     try
         %Create a container for all data
         stack = zeros(imOutSize(1:2)); %#ok<PFBNS> %z,x,zStach
@@ -269,10 +250,10 @@ parfor yI=1:length(yAll)
                 fileI = fileI+1;
                 
                 %Load Frame
-                [int1,dim1] = ...
+                int1 = ...
                     yOCTLoadInterfFromFile([{fpTxt}, reconstructConfig, ...
                     {'dimensions', dimOneTile, 'YFramesToProcess', yIInFile, 'OCTSystem', OCTSystem}]);
-                [scan1,~] = yOCTInterfToScanCpx([{int1 dim1} reconstructConfig]);
+                [scan1,~] = yOCTInterfToScanCpx([{int1} {dimOneTile} reconstructConfig]);
                 int1 = []; %#ok<NASGU> %Freeup some memory
                 scan1 = abs(scan1);
                 for i=length(size(scan1)):-1:3 %Average BScan Averages, A Scan etc
@@ -280,24 +261,24 @@ parfor yI=1:length(yAll)
                 end
                 
                 if (in.applyPathLengthCorrection && isfield(json.octProbe,'OpticalPathCorrectionPolynomial'))
-                    [scan1, scan1ValidDataMap] = yOCTOpticalPathCorrection(scan1, dim1, json);
+                    [scan1, scan1ValidDataMap] = yOCTOpticalPathCorrection(scan1, dimOneTile, json);
                 end
                 
                 %Filter around the focus
-                zI = 1:length(zOneTile); zI = zI(:);
+                zI = 1:length(dimOneTile.z.values); zI = zI(:);
                 if ~isnan(focusPositionInImageZpix(zzI))
                     factorZ = exp(-(zI-focusPositionInImageZpix(zzI)).^2/(2*focusSigma)^2) + ...
                         (zI>focusPositionInImageZpix(zzI))*exp(-3^2/2);%Under the focus, its possible to not reduce factor as much 
                     factor = repmat(factorZ, [1 size(scan1,2)]);
                 else
-                    factor = ones(length(zOneTile),length(xOneTile)); %No focus gating
+                    factor = ones(length(dimOneTile.z.values),length(dimOneTile.x.values)); %No focus gating
                 end
                 factor(~scan1ValidDataMap) = 0; %interpolated nan values should not contribute to image
             
                 
                 %Figure out what is the x,z position of each pixel in this file
-                x = xOneTile+xCenters(xxI);
-                z = zOneTile+zDepths(zzI);
+                x = dimOneTile.x.values+xCenters(xxI);
+                z = dimOneTile.z.values+zDepths(zzI);
                 
                 %Helps with interpolation problems
                 x(1) = x(1) - 1e-10; 
@@ -306,7 +287,7 @@ parfor yI=1:length(yAll)
                 z(end) = z(end) + 1e-10; 
                 
                 %Add to stack
-                [xxAll,zzAll] = meshgrid(xAll,zAll);
+                [xxAll,zzAll] = meshgrid(dimOutput.x.values,dimOutput.z.values);
                 stack = stack + interp2(x,z,scan1.*factor,xxAll,zzAll,'linear',0);
                 totalWeights = totalWeights + interp2(x,z,factor,xxAll,zzAll,'linear',0);
                 
@@ -352,7 +333,7 @@ parfor yI=1:length(yAll)
         if mod(yI,printStatsEveryyI)==0 && v
             % Stats time!
             cnt = yOCTProcessTiledScan_AuxCountHowManyYFiles(whereAreMyFiles);
-            fprintf('%s Completed yIs so far: %d/%d (%.1f%%)\n',datestr(datetime),cnt,length(yAll),100*cnt/length(yAll));
+            fprintf('%s Completed yIs so far: %d/%d (%.1f%%)\n',datestr(datetime),cnt,length(dimOutput.y.values),100*cnt/length(dimOutput.y.values));
         end
 
     catch ME
