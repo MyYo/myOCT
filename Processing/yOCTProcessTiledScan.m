@@ -135,6 +135,24 @@ end
 focusSigma = in.focusSigma;
 OCTSystem = json.OCTSystem; %Provide OCT system to prevent unesscecary polling of file system
 
+%% Extract some data (refactor candidate)
+% Note this is a good place for future refactoring, where we create a
+% function that for every yI index specifies which scans to load and where
+% their XZ coordinates are compared to the larger grid.
+% This is what these varibles are here to do
+
+if ~isfield(json,'xCenters_mm')
+    % Backward compatibility
+    xCenters = json.xCenters;
+    yCenters = json.yCenters;
+    yRange = json.yRange;
+else
+    xCenters = json.xCenters_mm;
+    yCenters = json.yCenters_mm;
+    yRange = json.tileRangeY_mm;
+end
+zDepths = json.zDepths;
+
 %% Create dimensions structure for the entire tiled volume
 [dimOneTile, dimOutput] = yOCTProcessTiledScan_createDimStructure(tiledScanInputFolder);
 
@@ -175,24 +193,6 @@ else
     yPlanesOutputFolder = '';
     yToSaveI = [];
 end
-
-%% Extract some data (refactor candidate)
-% Note this is a good place for future refactoring, where we create a
-% function that for every yI index specifies which scans to load and where
-% their XZ coordinates are compared to the larger grid.
-% This is what these varibles are here to do
-
-if ~isfield(json,'xCenters_mm')
-    % Backward compatibility
-    xCenters = json.xCenters;
-    yCenters = json.yCenters;
-    yRange = json.yRange;
-else
-    xCenters = json.xCenters_mm;
-    yCenters = json.yCenters_mm;
-    yRange = json.tileRangeY_mm;
-end
-zDepths = json.zDepths;
 
 %% Create indexing reference
 %This specifies how to mesh together a tiled scan, each axis seperately
