@@ -40,7 +40,7 @@ function yOCTProcessTiledScan(varargin)
 % the signal, avoiding very low values (on log scale)
 cuttoffSigma = 3; 
 
-%% Processing of input
+%% Input Processing
 p = inputParser;
 addRequired(p,'tiledScanInputFolder',@isstr);
 
@@ -129,7 +129,7 @@ focusPositionInImageZpix = in.focusPositionInImageZpix;
 % stores the focus position for each volume. This is mainly to enable
 % compatbility with the upgraded yOCTFindFocus which returns a focus value
 % for each volume 
-if length(in.focusPositionInImageZpix) == 1
+if length(in.focusPositionInImageZpix) == 1 %#ok<ISCL>
     focusPositionInImageZpix = in.focusPositionInImageZpix * ones(1, length(json.zDepths));
 end
 focusSigma = in.focusSigma;
@@ -271,8 +271,8 @@ parfor yI=1:length(yAll)
                 %Load Frame
                 [int1,dim1] = ...
                     yOCTLoadInterfFromFile([{fpTxt}, reconstructConfig, ...
-                    {'dimensions', dimOneTile, 'YFramesToProcess', yIInFile}]);
-                [scan1,~] = yOCTInterfToScanCpx ([{int1 dim1} reconstructConfig]);
+                    {'dimensions', dimOneTile, 'YFramesToProcess', yIInFile, 'OCTSystem', OCTSystem}]);
+                [scan1,~] = yOCTInterfToScanCpx([{int1 dim1} reconstructConfig]);
                 int1 = []; %#ok<NASGU> %Freeup some memory
                 scan1 = abs(scan1);
                 for i=length(size(scan1)):-1:3 %Average BScan Averages, A Scan etc
