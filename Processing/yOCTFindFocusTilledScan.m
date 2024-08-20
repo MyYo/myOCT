@@ -51,8 +51,6 @@ verbose = in.verbose;
 
 %% Get configuration data need
 scanInfo = awsReadJSON([yOCTScanTileOutputFolderPath '/ScanInfo.json']);
-[~, dim] = ...
-    yOCTTileScanGetDimOfOneTile(yOCTScanTileOutputFolderPath, 'um');
 
 %% Find which volume is closest to tissue-gel interface, which volume has gel only, and how many ySlices to load (so we can average)
 
@@ -66,17 +64,18 @@ volumePath_Step1 = [yOCTScanTileOutputFolderPath '/' scanInfo.octFolders{volumeI
 volumeIndex_Step2 = min(2,volumeIndex_Step1-1); 
 volumePath_Step2 = [yOCTScanTileOutputFolderPath '/' scanInfo.octFolders{volumeIndex_Step2}];
 
-% Pick which slices to load
-yToLoad = unique(dim.y.index(...
-    round(linspace(1,length(dim.y.index),5)) ...
-    ));
-
 %% Step #1, find the position with maximum intensity
 if (verbose)
     disp('Step #1, initial guess. Find focus position by locating tissue - gel interface');
 end
 
-%Load some data
+% Figure out the dimension of the data, and pick a few slices in the middle
+dim = yOCTLoadInterfFromFile([{volumePath_Step1}, in.reconstructConfig, {'PeakOnly'}, {true}]);
+yToLoad = unique(dim.y.index(...
+    round(linspace(1,length(dim.y.index),5)) ...
+    ));
+
+% Load some data
 [meanAbs,dim] = yOCTProcessScan([{volumePath_Step1, ...
             {'meanAbs'}, ... 
             'n', scanInfo.tissueRefractiveIndex, ...
