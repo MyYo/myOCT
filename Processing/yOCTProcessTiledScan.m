@@ -21,9 +21,7 @@ function yOCTProcessTiledScan(varargin)
 %Z position stitching:
 %   focusSigma                  20      If stitching along Z axis (multiple focus points), what is the size of each focus in z [pixel]
 %   focusPositionInImageZpix    NaN     Z position [pix] of focus in each scan (one number)
-%   zSetOriginAsFocusOfZDepth0  true    When saving volume how to set z coordinate system. 
-%                                       When set to true, will consider the focus position of the volume that was scanned at zDepths=0.
-%                                       When set to false, will take the top of the OCT scan for zDepths=0.
+%   cropZAroundFocusArea        true    When set to true, will crop output processed scan around the area of z focus. 
 %Save some Y planes in a debug folder:
 %   yPlanesOutputFolder         ''      If set will save some y planes for debug purpose in that folder
 %   howManyYPlanes              3       How many y planes to save (if yPlanesOutput folder is set)
@@ -51,7 +49,7 @@ addRequired(p,'outputPath');
 addParameter(p,'dispersionQuadraticTerm',79430000,@isnumeric);
 addParameter(p,'focusSigma',20,@isnumeric);
 addParameter(p,'focusPositionInImageZpix',NaN,@isnumeric);
-addParameter(p,'zSetOriginAsFocusOfZDepth0',true);
+addParameter(p,'cropZAroundFocusArea',true);
 
 % Save some Y planes in a debug folder
 addParameter(p,'yPlanesOutputFolder','',@isstr);
@@ -59,9 +57,7 @@ addParameter(p,'howManyYPlanes',3,@isnumeric);
 
 % Debug
 addParameter(p,'v',true,@islogical);
-
-%TODO(yonatan) shift this parameter to ProcessScanFunction
-addParameter(p,'applyPathLengthCorrection',true);
+addParameter(p,'applyPathLengthCorrection',true); %TODO(yonatan) shift this parameter to ProcessScanFunction
 
 p.KeepUnmatched = true;
 if (~iscell(varargin{1}))
@@ -97,10 +93,10 @@ elseif awsIsAWSPath(in.tiledScanInputFolder)
     awsSetCredentials();
 end
 
-zSetOriginAsFocusOfZDepth0 = in.zSetOriginAsFocusOfZDepth0;
-if (zSetOriginAsFocusOfZDepth0 && isnan(in.focusPositionInImageZpix))
-    warning('Because no focus position was set, zSetOriginAsFocusOfZDepth0 cannot be "true", changed to "false". See help of yOCTProcessTiledScan function.');
-    zSetOriginAsFocusOfZDepth0 = false;
+cropZAroundFocusArea = in.cropZAroundFocusArea;
+if (cropZAroundFocusArea && isnan(in.focusPositionInImageZpix))
+    warning('Because no focus position was set, cropZAroundFocusArea cannot be "true", changed to "false". See help of yOCTProcessTiledScan function.');
+    cropZAroundFocusArea = false;
 end
 
 %% Load configuration file & set parameters
@@ -122,8 +118,6 @@ else
     reconstructConfig = [reconstructConfig {'n', json.tissueRefractiveIndex}];
 end
 
-
-fp = cellfun(@(x)(awsModifyPathForCompetability([tiledScanInputFolder '\' x '\'])),json.octFolders,'UniformOutput',false);
 focusPositionInImageZpix = in.focusPositionInImageZpix;
 % If the focus position is the same for all volumes, create a vector that
 % stores the focus position for each volume. This is mainly to enable
@@ -144,19 +138,15 @@ OCTSystem = json.OCTSystem; %Provide OCT system to prevent unesscecary polling o
 if ~isfield(json,'xCenters_mm')
     % Backward compatibility
     xCenters = json.xCenters;
-    yCenters = json.yCenters;
-    yRange = json.yRange;
 else
     xCenters = json.xCenters_mm;
-    yCenters = json.yCenters_mm;
-    yRange = json.tileRangeY_mm;
 end
 zDepths = json.zDepths;
 
 %% Create dimensions structure for the entire tiled volume
 [dimOneTile, dimOutput] = yOCTProcessTiledScan_createDimStructure(tiledScanInputFolder);
 
-if zSetOriginAsFocusOfZDepth0
+if cropZAroundFocusArea
     % Remove Z positions that are way out of focus (if we are doing focus processing)
 
     zAll = dimOutput.z.values;
@@ -172,8 +162,7 @@ if zSetOriginAsFocusOfZDepth0
             )) ) ...
         ) = []; 
 
-    dimOutput.z.values = zAll(:)' - zAll(1);
-    dimOutput.z.origin = 'z=0 is the focus positoin of OCT image when zDepths=0 scan was taken';
+    dimOutput.z.values = zAll(:)';
 end
 
 %% Save some Y planes in a debug folder if needed
@@ -194,62 +183,38 @@ else
     yToSaveI = [];
 end
 
-%% Create indexing reference
-%This specifies how to mesh together a tiled scan, each axis seperately
-
+%% Main loop
 imOutSize = [...
     length(dimOutput.z.values) ...
     length(dimOutput.x.values) ...
     length(dimOutput.y.values)];
-
-%For each Y, what files are being used
-yGroupSF = zeros(length(yCenters),2); %[start yI, end yI]
-yGroupFP =  cell(length(yCenters),1); %Which files to use for each group
-for i=1:length(yGroupFP)
-    yI = abs(dimOutput.y.values-yCenters(i)) <= yRange/2;
-    yGroupSF(i,:) = [find(yI,1,'first') find(yI,1,'last')];
-    yGroupFP(i) = {fp(json.gridYcc == yCenters(i))};
-end
-
-%% Main loop
 printStatsEveryyI = max(floor(length(dimOutput.y.values)/20),1);
 ticBytes(gcp);
 if(v)
     fprintf('%s Stitching ...\n',datestr(datetime)); tt=tic();
 end
 whereAreMyFiles = yOCT2Tif([], outputPath, 'partialFileMode', 1); %Init
-clear yI; % Clean up varible to prevent confusion
 parfor yI=1:length(dimOutput.y.values) 
     try
-        %Create a container for all data
-        stack = zeros(imOutSize(1:2)); %#ok<PFBNS> %z,x,zStach
+        % Create a container for all data
+        stack = zeros(imOutSize(1:2)); %z,x,zStach
         totalWeights = zeros(imOutSize(1:2)); %z,x
         
-        %Relevant OCT files for this y
-        yGroup = find(yGroupSF(:,1) <= yI & yI <= yGroupSF(:,2),1,'first'); %#ok<PFBNS>
-        fps = yGroupFP{yGroup}; %#ok<PFBNS>
+        % Relevant OCT tiles for this y, and what is the local y in the file
+        [fps, yIInFile] = ...
+            yOCTProcessTiledScan_getScansFromYFrame(yI, tiledScanInputFolder);
+        
+        % Loop over all x stacks
         fileI = 1;
-        
-        %What is the y index in the file corresponding to this yI
-        %Example, let us assume we took two tiles in the y direction each
-        %tile has 4 scans in the y direction. Total number of scans is 8.
-        %The first scan in the stitched file is tile #1 scan #1, then scan 2
-        %and finally tile #1 scan #3. After this one, we need to move to 
-        %tile #2 scan #1. We need to have a varible specifing which scan in
-        %the file to grab. Altough we are processing the overall scan #5
-        %thus yI=5, the scan we would like to grab is yInFile=1
-        yIInFile = yI - yGroupSF(yGroup,1)+1;
-        
-        %Loop over all x stacks
         for xxI=1:length(xCenters)
-            %Loop over depths stacks
+            % Loop over depths stacks
             for zzI=1:length(zDepths)
                 
-                %Frame Name
+                % Frame path
                 fpTxt = fps{fileI};
                 fileI = fileI+1;
                 
-                %Load Frame
+                % Load frame
                 int1 = ...
                     yOCTLoadInterfFromFile([{fpTxt}, reconstructConfig, ...
                     {'dimensions', dimOneTile, 'YFramesToProcess', yIInFile, 'OCTSystem', OCTSystem}]);
@@ -264,7 +229,7 @@ parfor yI=1:length(dimOutput.y.values)
                     [scan1, scan1ValidDataMap] = yOCTOpticalPathCorrection(scan1, dimOneTile, json);
                 end
                 
-                %Filter around the focus
+                % Filter around the focus
                 zI = 1:length(dimOneTile.z.values); zI = zI(:);
                 if ~isnan(focusPositionInImageZpix(zzI))
                     factorZ = exp(-(zI-focusPositionInImageZpix(zzI)).^2/(2*focusSigma)^2) + ...
@@ -274,24 +239,23 @@ parfor yI=1:length(dimOutput.y.values)
                     factor = ones(length(dimOneTile.z.values),length(dimOneTile.x.values)); %No focus gating
                 end
                 factor(~scan1ValidDataMap) = 0; %interpolated nan values should not contribute to image
-            
                 
-                %Figure out what is the x,z position of each pixel in this file
+                % Figure out what is the x,z position of each pixel in this file
                 x = dimOneTile.x.values+xCenters(xxI);
                 z = dimOneTile.z.values+zDepths(zzI);
                 
-                %Helps with interpolation problems
+                % Helps with interpolation problems
                 x(1) = x(1) - 1e-10; 
                 x(end) = x(end) + 1e-10; 
                 z(1) = z(1) - 1e-10; 
                 z(end) = z(end) + 1e-10; 
                 
-                %Add to stack
+                % Add to stack
                 [xxAll,zzAll] = meshgrid(dimOutput.x.values,dimOutput.z.values);
                 stack = stack + interp2(x,z,scan1.*factor,xxAll,zzAll,'linear',0);
                 totalWeights = totalWeights + interp2(x,z,factor,xxAll,zzAll,'linear',0);
                 
-                %Save Stack, some files for future (debug)
+                % Save Stack, some files for future (debug)
                 if (isSaveSomeYPlanes && sum(yI == yToSaveI)>0)
                     
                     tn = [tempname '.tif'];
@@ -306,7 +270,7 @@ parfor yI=1:length(dimOutput.y.values)
                     delete(tn);
                     
                     if (xxI == length(xCenters) && zzI==length(zDepths))
-                        %Save the last weight
+                        % Save the last weight
                         tn = [tempname '.tif'];
                         yOCT2Tif(totalWeights,tn);
                         awsCopyFile_MW1(tn, ...
@@ -318,11 +282,11 @@ parfor yI=1:length(dimOutput.y.values)
             end
         end
                       
-        %Dont allow factor to get too small, it creates an unstable solution
+        % Dont allow factor to get too small, it creates an unstable solution
         minFactor1 = exp(-cuttoffSigma^2/2);
         totalWeights(totalWeights<minFactor1) = NaN; 
             
-        %Normalization
+        % Normalization
         stackmean = stack./totalWeights;
         
         % Save
