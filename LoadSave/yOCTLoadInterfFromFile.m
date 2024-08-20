@@ -145,6 +145,9 @@ if exist('YFramesToProcess','var')
     else
         %Process only subset of Y frames. Find the right index
         yIToUse = sum(dimensions.y.index(:)'==YFramesToProcess(:),1)>0;
+        if ~any(yIToUse)
+            error('User requested to process y frames %s but none exist in volume "%s"',sprintf('%d,',[26 27]),inputDataFolder);
+        end
         dimensions.y.values = dimensions.y.values(yIToUse);
         dimensions.y.values = dimensions.y.values(:)';
         dimensions.y.index = dimensions.y.index(yIToUse);
