@@ -54,9 +54,9 @@ else
     yCenters_mm = json.yCenters_mm;
 end
 
-xAll_mm = (min(xCenters_mm)+dimOneTile.x.values(1)):dx:(max(xCenters_mm)+dimOneTile.x.values(end)+dx);xAll_mm = xAll_mm(:);
-yAll_mm = (min(yCenters_mm)+dimOneTile.y.values(1)):dy:(max(yCenters_mm)+dimOneTile.y.values(end)+dy);yAll_mm = yAll_mm(:);
-zAll_mm = (min(zDepths_mm )+dimOneTile.z.values(1)):dz:(max(zDepths_mm) +dimOneTile.z.values(end)+dz);zAll_mm = zAll_mm(:);
+xAll_mm = (min(xCenters_mm)+dimOneTile.x.values(1)):dx:(max(xCenters_mm)+dimOneTile.x.values(end));xAll_mm = xAll_mm(:);
+yAll_mm = (min(yCenters_mm)+dimOneTile.y.values(1)):dy:(max(yCenters_mm)+dimOneTile.y.values(end));yAll_mm = yAll_mm(:);
+zAll_mm = (min(zDepths_mm )+dimOneTile.z.values(1)):dz:(max(zDepths_mm) +dimOneTile.z.values(end));zAll_mm = zAll_mm(:);
 
 % Correct for the case of only one scan
 if (length(xCenters_mm) == 1) %#ok<ISCL>

@@ -6,3 +6,4 @@ _private/My_ec2RunStructure_DeepLearning.m
 *.DS_Store
 *.asv
 *.getmeout
+*.tif
