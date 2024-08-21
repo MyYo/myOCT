@@ -22,7 +22,7 @@ oct2stageXYAngleDeg = 0; % Angle between x axis of the motor and the Galvo's x a
 
 % Define z stack and z-stitching
 scanZJump_um = 5; % Use 15 microns for 10x lens, 5 microns for 40x lens
-zToScan_mm = ((-190:scanZJump_um:500)-15)*1e-3; %[mm]
+zToScan_mm = ([-100 (-30:scanZJump_um:400)])*1e-3; %[mm]
 focusSigma = 20; %When stitching along Z axis (multiple focus points), what is the size of each focus in z [pixel], use 20 for 10x, 1 for 40x
 
 % Other scanning parameters
