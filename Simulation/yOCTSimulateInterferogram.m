@@ -1,4 +1,4 @@
-function [interf, dim] = yOCTGenerateInterferogram(varargin)
+function [interf, dim] = yOCTSimulateInterferogram(varargin)
 % This function generates an interferogram that matches the 3D volume provided as input
 % INPUTS:
 %   data - a 3D matrix (z,x,y) or a 2D matrix (z,x)

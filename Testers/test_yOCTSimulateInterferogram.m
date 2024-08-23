@@ -1,4 +1,4 @@
-classdef test_yOCTGenerateInterferogram < matlab.unittest.TestCase
+classdef test_yOCTSimulateInterferogram < matlab.unittest.TestCase
     % Test generating interferograms
     
     methods(TestClassSetup)
@@ -17,7 +17,7 @@ classdef test_yOCTGenerateInterferogram < matlab.unittest.TestCase
             data(10) = 1;
 
             % Encode as interferogram
-            [interf, dim] = yOCTGenerateInterferogram(data);
+            [interf, dim] = yOCTSimulateInterferogram(data);
 
             % Reconstruct
             [scanCpx, ~] = yOCTInterfToScanCpx(interf, dim, 'dispersionQuadraticTerm',0);
@@ -56,7 +56,7 @@ classdef test_yOCTGenerateInterferogram < matlab.unittest.TestCase
             end
 
             % Encode as interferogram
-            [interf, dim] = yOCTGenerateInterferogram(data);
+            [interf, dim] = yOCTSimulateInterferogram(data);
 
             % Reconstruct
             [scanCpx, ~] = yOCTInterfToScanCpx(interf, dim, 'dispersionQuadraticTerm',0);
@@ -90,7 +90,7 @@ classdef test_yOCTGenerateInterferogram < matlab.unittest.TestCase
             data(50,:,:) = 1;
 
             % Encode as interferogram
-            [interf, dim] = yOCTGenerateInterferogram(data);
+            [interf, dim] = yOCTSimulateInterferogram(data);
 
             % Reconstruct
             [scanCpx, ~] = yOCTInterfToScanCpx(interf, dim, 'dispersionQuadraticTerm',0);

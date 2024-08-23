@@ -135,6 +135,7 @@ in.nYPixels = ceil(in.tileRangeY_mm/(in.pixelSize_um/1e3));
 %% Initialize hardware
 if in.skipHardware
     % We are done, from now on it's just hardware execution
+    in.OCTSystem = 'Unknown'; % This parameter can only be figured out when using hardware
     json = in;
     return;
 end
