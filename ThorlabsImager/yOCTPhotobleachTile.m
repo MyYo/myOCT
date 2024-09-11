@@ -238,7 +238,7 @@ if json.plotPattern
     end
     hold off;
     axis equal;
-    axis ij;
+    axis ij; % Match coordinate system: https://docs.google.com/presentation/d/1tOod76WvhvOuByo-K81YB4b3QjRq-6A5j2ztS_ANSNo/edit#slide=id.g2812f1bd1d1_0_115
     grid on;
     xlabel('x[mm]');
     ylabel('y[mm]');
