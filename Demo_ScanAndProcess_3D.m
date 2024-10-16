@@ -16,7 +16,7 @@ yOverall_mm = [-0.25 0.25]; % Define the overall volume you would like to scan [
 % yOverall_mm = 0;
 
 % Define probe 
-octProbePath = yOCTGetProbeIniPath('40x','OCTP900'); % Probe ini spec, OBJECTIVE_DEPENDENT
+octProbePath = yOCTGetProbeIniPath('40x','OCTP900'); % Inputs to the function are OBJECTIVE_DEPENDENT: '10x' or '40x', and scanning system dependent 'OCTP900' or ''
 octProbeFOV_mm = 0.5; % How much of the field of view to use from the probe. OBJECTIVE_DEPENDENT: For 10x use 1, for 40x use 0.5
 oct2stageXYAngleDeg = 0; % Angle between x axis of the motor and the Galvo's x axis
 
