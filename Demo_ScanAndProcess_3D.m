@@ -10,23 +10,24 @@
 
 % Define the 3D Volume
 pixel_size_um = 1; % x-y Pixel size in microns
-xOverall_mm = [-0.25 0.25]; % Define the overall volume you would like to scan [start, finish]. For 10x use [-0.5 0.5] for 40x use [-0.25 0.25]
-yOverall_mm = [-0.25 0.25]; % Define the overall volume you would like to scan [start, finish]. For 10x use [-0.5 0.5] for 40x use [-0.25 0.25]
+xOverall_mm = [-0.25 0.25]; % Define the overall volume you would like to scan [start, finish]. OBJECTIVE_DEPENDENT: For 10x use [-0.5 0.5], for 40x use [-0.25 0.25]
+yOverall_mm = [-0.25 0.25]; % Define the overall volume you would like to scan [start, finish]. OBJECTIVE_DEPENDENT: For 10x use [-0.5 0.5], for 40x use [-0.25 0.25]
 % Uncomment below to scan one B-Scan.
 % yOverall_mm = 0;
 
 % Define probe 
-octProbePath = yOCTGetProbeIniPath('40x','OCTP900'); % Probe ini spec, you can use yOCTGetProbeIniPath('10x','OCTP900') etc
-octProbeFOV_mm = 0.5; % How much of the field of view to use from the probe.
+octProbePath = yOCTGetProbeIniPath('40x','OCTP900'); % Probe ini spec, OBJECTIVE_DEPENDENT
+octProbeFOV_mm = 0.5; % How much of the field of view to use from the probe. OBJECTIVE_DEPENDENT: For 10x use 1, for 40x use 0.5
 oct2stageXYAngleDeg = 0; % Angle between x axis of the motor and the Galvo's x axis
 
 % Define z stack and z-stitching
-scanZJump_um = 5; % Use 15 microns for 10x lens, 5 microns for 40x lens
+scanZJump_um = 5; % microns. OBJECTIVE_DEPENDENT: For 10x use 15, for 40x use 5
 zToScan_mm = ([-100 (-30:scanZJump_um:400)])*1e-3; %[mm]
-focusSigma = 20; % When stitching along Z axis (multiple focus points), what is the size of each focus in z [pixels]. For 10x use 20, for 40x use 20 or 1
+focusSigma = 20; % When stitching along Z axis (multiple focus points), what is the size of each focus in z [pixels]. OBJECTIVE_DEPENDENT: for 10x use 20, for 40x use 20 or 1
 
 % Other scanning parameters
 tissueRefractiveIndex = 1.4; % Use either 1.33 or 1.4 depending on the results. Use 1.4 for brain.
+% dispersionQuadraticTerm is OBJECTIVE_DEPENDENT
 %dispersionQuadraticTerm=6.539e07; % 10x
 %dispersionQuadraticTerm=9.56e7;   % 40x
 dispersionQuadraticTerm=-2.059e8;  % 10x, OCTP900
