@@ -211,35 +211,36 @@ parfor yI=1:length(dimOutput.y.values)
                 fpTxt = fps{fileI};
                 fileI = fileI+1;
                 
-                % Load frame
-                int1 = ...
+                % Load interferogram and dim of the frame
+                % Note that a frame is smaller than one tile as frame contains only one YFrameToPRocess, thus dim structure needs an update. 
+                [intFrame, dimFrame] = ...
                     yOCTLoadInterfFromFile([{fpTxt}, reconstructConfig, ...
-                    {'dimensions', dimOneTile, 'YFramesToProcess', yIInFile, 'OCTSystem', OCTSystem}]);
-                [scan1,~] = yOCTInterfToScanCpx([{int1} {dimOneTile} reconstructConfig]);
-                int1 = []; %#ok<NASGU> %Freeup some memory
+                    {'dimensions', , 'YFramesToProcess', yIInFile, 'OCTSystem', OCTSystem}]);
+                [scan1,~] = yOCTInterfToScanCpx([{intFrame} {dimFrame} reconstructConfig]);
+                intFrame = []; %#ok<NASGU> %Freeup some memory
                 scan1 = abs(scan1);
                 for i=length(size(scan1)):-1:3 %Average BScan Averages, A Scan etc
                     scan1 = squeeze(mean(scan1,i));
                 end
                 
                 if (in.applyPathLengthCorrection && isfield(json.octProbe,'OpticalPathCorrectionPolynomial'))
-                    [scan1, scan1ValidDataMap] = yOCTOpticalPathCorrection(scan1, dimOneTile, json);
+                    [scan1, scan1ValidDataMap] = yOCTOpticalPathCorrection(scan1, dimFrame, json);
                 end
                 
                 % Filter around the focus
-                zI = 1:length(dimOneTile.z.values); zI = zI(:);
+                zI = 1:length(dimFrame.z.values); zI = zI(:);
                 if ~isnan(focusPositionInImageZpix(zzI))
                     factorZ = exp(-(zI-focusPositionInImageZpix(zzI)).^2/(2*focusSigma)^2) + ...
                         (zI>focusPositionInImageZpix(zzI))*exp(-3^2/2);%Under the focus, its possible to not reduce factor as much 
                     factor = repmat(factorZ, [1 size(scan1,2)]);
                 else
-                    factor = ones(length(dimOneTile.z.values),length(dimOneTile.x.values)); %No focus gating
+                    factor = ones(length(dimFrame.z.values),length(dimFrame.x.values)); %No focus gating
                 end
                 factor(~scan1ValidDataMap) = 0; %interpolated nan values should not contribute to image
                 
                 % Figure out what is the x,z position of each pixel in this file
-                x = dimOneTile.x.values+xCenters(xxI);
-                z = dimOneTile.z.values+zDepths(zzI);
+                x = dimFrame.x.values+xCenters(xxI);
+                z = dimFrame.z.values+zDepths(zzI);
                 
                 % Helps with interpolation problems
                 x(1) = x(1) - 1e-10; 
