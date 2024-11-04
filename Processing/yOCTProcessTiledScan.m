@@ -224,7 +224,10 @@ parfor yI=1:length(dimOutput.y.values)
                 end
                 
                 if (in.applyPathLengthCorrection && isfield(json.octProbe,'OpticalPathCorrectionPolynomial'))
-                    [scan1, scan1ValidDataMap] = yOCTOpticalPathCorrection(scan1, dimFrame, json);
+                    [scan1, opticalPathCorrectionValidDataMap] = yOCTOpticalPathCorrection(scan1, dimFrame, json);
+                else
+                    % Optical path correction not applied, hence all pixels are "valud"
+                    opticalPathCorrectionValidDataMap = logical(ones(size(scan1)));
                 end
                 
                 % Filter around the focus
@@ -236,7 +239,10 @@ parfor yI=1:length(dimOutput.y.values)
                 else
                     factor = ones(length(dimFrame.z.values),length(dimFrame.x.values)); %No focus gating
                 end
-                factor(~scan1ValidDataMap) = 0; %interpolated nan values should not contribute to image
+
+                % When applying optical path correction, some values of scan1 are extrapolated to 0.
+                % We shouldn't use extrapolated data in reconstructing the z-stack, hence we give those position factor=0.
+                factor(~opticalPathCorrectionValidDataMap) = 0;
                 
                 % Figure out what is the x,z position of each pixel in this file
                 x = dimFrame.x.values+xCenters(xxI);
