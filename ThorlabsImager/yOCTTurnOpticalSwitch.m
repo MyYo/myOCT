@@ -6,21 +6,28 @@ function yOCTTurnOpticalSwitch(newState)
 %   newState 
 %       - set to 'photodiode' to connect photo diode fiber
 %       - set to 'OCT' to connect OCT 
-%       - set to 'init' to initialize com without turning anything
+%       - set to 'init' to initialize com without turning anything. Note that all options will init before running.
 
 tic
 %% Input Processing
-% Nothing to do here
+% Select COM, if doesn't exist use serialportlist to list all options
+com_chanel = 'COM4';  
 
-%% Comm
-persistent sp
-if isempty(sp)
-    % This is the first time we turn switch, connect to Port
-    sp=serialport('COM3',9600,'Timeout',5); %If that COM doesn't exist use serialportlist to list all options.
+%% Store com for fast activation
+persistent sp_structure;
+if isempty(sp_structure)
+    sp_structure.com_chanel = '';
+    sp_structure.sp = [];
 end
-%delete(sp) % Disconnect from port
 
-%% Set Data
+%% Connect to port if needed
+if ~strcmp(sp_structure.com_chanel,com_chanel) % com chanel has changed, connect to Port
+    sp_structure.com_chanel = com_chanel;
+    sp_structure.sp=serialport(com_chanel,9600,'Timeout',5); %If that COM doesn't exist use serialportlist to list all options.
+end
+%delete(sp_structure.sp) % Disconnect from port
+
+%% Convevert between state and the command to send to switch
 switch(lower(newState))
     case 'photodiode'
         data = [1 18 0 1];
@@ -33,7 +40,7 @@ switch(lower(newState))
 end
 
 %% Execute command
-write(sp,data,'uint8'); % Selects photobleach diode
+write(sp_structure.sp,data,'uint8'); % Selects photobleach diode
 
 %% Timing analysis
 tt_ms=toc()*1e3;
