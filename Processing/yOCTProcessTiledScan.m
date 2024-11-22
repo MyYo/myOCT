@@ -215,7 +215,7 @@ parfor yI=1:length(dimOutput.y.values)
                 % Note that a frame is smaller than one tile as frame contains only one YFrameToPRocess, thus dim structure needs an update. 
                 [intFrame, dimFrame] = ...
                     yOCTLoadInterfFromFile([{fpTxt}, reconstructConfig, ...
-                    {'YFramesToProcess', yIInFile, 'OCTSystem', OCTSystem}]);
+                    {'dimensions', dimOneTile 'YFramesToProcess', yIInFile, 'OCTSystem', OCTSystem}]);
                 [scan1,~] = yOCTInterfToScanCpx([{intFrame} {dimFrame} reconstructConfig]);
                 intFrame = []; %#ok<NASGU> %Freeup some memory
                 scan1 = abs(scan1);
