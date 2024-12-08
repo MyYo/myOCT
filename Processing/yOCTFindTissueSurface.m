@@ -99,11 +99,9 @@ smoothed_surface_depth = round(smoothed_surface_depth);  % Round smoothed values
 % Assign z, x, y, coordinates
 z = dim.z.values(:); x = dim.x.values(:); y = dim.y.values(:);
 
-% Convert Depth found from Pixels to Units in dim.x.units like microns or mm
+% Convert Depth found from Pixels to Units in dim.z.units like microns or mm
 surface_depth_pixels = smoothed_surface_depth.'; % Transpose for consistent global orientation system
-unit_per_pixel = abs(z(2) - z(1)); % Calculate Z unit per pixel ratio
-surfacePosition = surface_depth_pixels * unit_per_pixel; % Get Surface Depth in Units
-
+surfacePosition = z(surface_depth_pixels); % Get Surface Depth in Units
 
 %% Generate Heatmap of Surface Height for user visualization
 if isVisualize
@@ -112,7 +110,7 @@ if isVisualize
     colormap(flipud(jet));
     colorbar;
     set(gca, 'YDir', 'normal');
-    title(['Surface position in ', dim.x.units, ' (View from the top)']);
+    title(['Surface position in ', dim.z.units, ' (View from the top)']);
     xlabel(['X-axis (', dim.x.units, ')']); 
-    ylabel(['Y-axis (', dim.x.units, ')']); 
+    ylabel(['Y-axis (', dim.y.units, ')']); 
 end
