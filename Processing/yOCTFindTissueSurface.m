@@ -11,10 +11,9 @@ function [surfacePosition,x,y] = yOCTFindTissueSurface(varargin)
 % OUTPUTS:
 %   - surfacePosition- 2D matrix. dimensions are (y,x). What
 %       height is image surface (measured from the top of the OCT scan).
-%       Physical dimensions of surfacePosition are the same as dimensions.z.values
+%       Physical units of surfacePosition are the same as dimensions.z.units
 %   - x,y are the x,y positions that corresponds to surfacePosition(y,x).
 %       Units are the same as dimensions.x.units
-
 
 %% Parse inputs
 p = inputParser;
