@@ -8,8 +8,9 @@ function [surfacePosition_mm, x_mm, y_mm] = yOCTScanAndFindTissueSurface(varargi
 %       figure. Default is false
 % OUTPUTS:
 %   - surfacePosition_mm - 2D matrix. dimensions are (y,x). What
-%       height is image surface (measured from focal position at z=0 scan).
-%       physical dimensions of surfacePosition is mm.
+%       height (mm) is image surface. Height measured from “user specified
+%       tissue interface”, higher value means deeper. See: 
+%       https://docs.google.com/document/d/1aMgy00HvxrOlTXRINk-SvcvQSMU1VzT0U60hdChUVa0/
 %   - x_mm ,y_mm are the x,y positions that corresponds to surfacePosition(y,x).
 %       Units are mm.
 

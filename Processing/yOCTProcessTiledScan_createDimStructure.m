@@ -72,7 +72,7 @@ end
 dimOutput.lambda = dimOneTile.lambda;
 dimOutput.z = dimOneTile.z; % Template, we will update it soon
 dimOutput.z.values = zAll_mm(:)' - zAll_mm(1);
-dimOutput.z.origin = 'z=0 is the top of OCT image when zDepths=0 scan was taken';
+dimOutput.z.origin = 'z=0 is “user specified tissue interface”';
 dimOutput.x = dimOneTile.x;
 dimOutput.x.origin = 'x=0 is OCT scanner origin when xCenters=0 scan was taken';
 dimOutput.x.values = xAll_mm(:)';

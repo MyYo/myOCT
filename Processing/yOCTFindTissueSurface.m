@@ -10,7 +10,9 @@ function [surfacePosition,x,y] = yOCTFindTissueSurface(varargin)
 %       figure. Default is false
 % OUTPUTS:
 %   - surfacePosition- 2D matrix. dimensions are (y,x). What
-%       height is image surface (measured from the top of the OCT scan).
+%       height is image surface. Height measured from “user specified
+%       tissue interface”, higher value means deeper. See: 
+%       https://docs.google.com/document/d/1aMgy00HvxrOlTXRINk-SvcvQSMU1VzT0U60hdChUVa0/
 %       physical dimensions of surfacePosition are the same as dimensions.z.units
 %   - x,y are the x,y positions that corresponds to surfacePosition(y,x).
 %       Units are the same as dimensions.x.units
