@@ -1,6 +1,6 @@
 function [scanPaths, yIInFile] = ...
     yOCTProcessTiledScan_getScansFromYFrame(...
-    yFrameIndexInOutputVolume, tiledScanInputFolder)
+    yFrameIndexInOutputVolume, tiledScanInputFolder, focusPositionInImageZpix)
 % This is an auxilary function of yOCTProcessTiledScan designed to get a y
 % frame index in the overall tiled scan and return the exact tiles which
 % contain the data corresponding to that y frame.
@@ -15,7 +15,7 @@ function [scanPaths, yIInFile] = ...
 
 %% Load json and gather information
 json = awsReadJSON([tiledScanInputFolder 'ScanInfo.json']);
-[dimOneTile, dimOutput] = yOCTProcessTiledScan_createDimStructure(tiledScanInputFolder);
+[dimOneTile, dimOutput] = yOCTProcessTiledScan_createDimStructure(tiledScanInputFolder, focusPositionInImageZpix);
 
 % Parse all scan paths
 scanPaths = cellfun(@(x)(awsModifyPathForCompetability([tiledScanInputFolder '\' x '\'])),json.octFolders,'UniformOutput',false);
