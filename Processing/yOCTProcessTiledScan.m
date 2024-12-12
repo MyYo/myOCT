@@ -144,7 +144,7 @@ end
 zDepths = json.zDepths;
 
 %% Create dimensions structure for the entire tiled volume
-[dimOneTile, dimOutput] = yOCTProcessTiledScan_createDimStructure(tiledScanInputFolder);
+[dimOneTile, dimOutput] = yOCTProcessTiledScan_createDimStructure(tiledScanInputFolder, focusPositionInImageZpix);
 
 if cropZAroundFocusArea
     % Remove Z positions that are way out of focus (if we are doing focus processing)
@@ -199,7 +199,7 @@ parfor yI=1:length(dimOutput.y.values)
         
         % Relevant OCT tiles for this y, and what is the local y in the file
         [fps, yIInFile] = ...
-            yOCTProcessTiledScan_getScansFromYFrame(yI, tiledScanInputFolder);
+            yOCTProcessTiledScan_getScansFromYFrame(yI, tiledScanInputFolder, focusPositionInImageZpix);
         
         % Loop over all x stacks
         fileI = 1;
